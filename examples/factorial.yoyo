@@ -1,0 +1,47 @@
+/*Example of factorial on Yoyo*/
+
+/*All type declarations are absolutely optional
+But I recommend to put them if types are known
+at compile-time, because it adds type check to runtime
+and helps to avoid errors*/
+
+// Traditional recursive factorial
+def fac(n->sys.types.int)->sys.types.int {
+	if n<0
+		throw "NegativeArgument"
+	if n<2
+		return 1
+	return n*fac(--n);
+}
+// Factorial with loop
+def facLoop(n->sys.types.int)->sys.types.int {
+	if n<0
+		throw "NegativeArgument"
+	out = 1;
+	while n>0 {
+		out *= n--;
+	}
+	return out;
+}
+
+// Object-oriented factorial
+/*WARNING: all functions definitions are collected by
+parser and but to the start of block(whatever root or normal).
+Then they all will be available from the start of execution.
+On the other side, if they use special types(like below) they should
+be defined like this, because these types become available
+only at runtime*/
+Factorial = interface {
+	get: sys.types.signature(sys.types.int, sys.types.int)
+}
+facObj = null;
+{
+	def facObj(fun->sys.types.signature(sys.types.int, sys.types.int))->Factorial {
+		return object {
+			def get(n->sys.types.int)->sys.types.int fun(n);
+		}
+	}
+}
+
+obj = facObj(facLoop);
+print(obj.get(10));
