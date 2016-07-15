@@ -1,0 +1,44 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+
+# Project related
+build/*
+!build/mnemonics_gen.xsl
+!build/opcodes_gen.xsl
+!build/Makefile
+!build/gen_opcodes.sh
+!build/Win32
+.cproject
+.project
+.settings

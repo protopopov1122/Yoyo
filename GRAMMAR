@@ -1,0 +1,66 @@
+This file contains Yoyo grammar. It isn't any formalized grammar, but only
+tip for myself. This file based on 'yparse.c'.
+
+INTEGER: ('0x' | '0b')? [_0-9A-Za-z]+
+FLOAT: [0-9]+ '.' [0-9]+
+BOOLEAN: 'true' | 'false'
+STRING: '"' .* '"'
+NULL: 'null'
+ID: [a-zA-Z]+[a-zA-Z0-9]*
+constant: INTEGER
+	| FLOAT
+	| BOOLEAN
+	| STRING
+	| NULL
+array: '[' (values?) | (expression ';' expression) ']'
+overload: 'overload' '(' (expression | ('default' ID statement))* ')'
+lambda: '$' arg_list ('->' expr)? statement
+object: object (':' expression)? ('{' fields '}')?
+fields: (ID ':' expression)*
+interface: 'interface' (':' values)? ('{' fields '}')?
+declaration: interface
+factor: object
+	| lambda
+	| array
+	| overload
+	| ID
+	| constant
+	| declaration
+	| '(' expression ')'
+	| '{' (function | statement)* '}'
+reference: factor (('.' ID) | ('(' values? ')') | ('[' expression (':' expression)? ']' ))*
+unary: ('~' | '+' | '-' | '++' | '--') reference
+	| reference ('++' | '--')?
+power: unary ('**' unary)*
+mul_div: power (('*' | '/' | '%') power)*
+add_sub: mul_div (('+' | '-') mul_div)*
+bitshift: add_sub (('>>' | '<<') add_sub)*
+bitwise: bitshift (('&' | '|') bitshift)*
+comparison: bitwise (('==' | '!=' | '>=' | '<=' | '>' | '<') bitwise)?
+logical_not: '!'? comparison
+logical_ops: logical_not ('&' '&' logical_not)*
+expr: logical_ops
+	| 'if' expression statement ('else' statement)?
+	| (ID ':')? 'for' expression ';' expression ';' expression statement
+	| (ID ':')? 'foreach' expression ':' expression statement
+	| (ID ':')? 'while' expression statement
+	| (ID ':')? 'do' statement ('while' expression)?
+	| 'try' statement ('catch' ID statement)? ('else' statement)? ('finally' statement)?
+	| 'using' values statement
+	| 'with' expression statement
+	| 'switch' expression '{' case* '}'
+	| 'break' ID?
+	| 'continue' ID?
+	| 'return' expression
+	| 'throw' expression
+case: ('case' expression statement) | ('default' statement)
+expression: expr
+	    | 'del' var_list
+	    | 'var'? ('->' expr)> var_list ('=' values)?
+values: expr (',' expr)*
+statement: expression ';'?
+arg_list: '(' _arg_list? ')'
+_arg_list: _arg (',' _arg)*
+_arg: ID ('->' expr)?
+function: 'def' ID arg_list ('->' expr)? statement
+root: (function | statement)*

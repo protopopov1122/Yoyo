@@ -1,0 +1,1 @@
+YJI is FFI between Yoyo runtime and JVM. It works but should be documented.

@@ -1,0 +1,43 @@
+NumberType=sys.types.int | sys.types.float;
+
+acos=sys.native("YSTD_MATH_ACOS",
+	sys.types.signature(NumberType, NumberType), null);
+asin=sys.native("YSTD_MATH_ASIN",
+	sys.types.signature(NumberType, NumberType), null);
+atan=sys.native("YSTD_MATH_ATAN",
+	sys.types.signature(NumberType, NumberType), null);
+atan2=sys.native("YSTD_MATH_ATAN2",
+	sys.types.signature(NumberType, NumberType, NumberType), null);
+cos=sys.native("YSTD_MATH_COS",
+	sys.types.signature(NumberType, NumberType), null);
+cosh=sys.native("YSTD_MATH_COSH",
+	sys.types.signature(NumberType, NumberType), null);
+sin=sys.native("YSTD_MATH_SIN",
+	sys.types.signature(NumberType, NumberType), null);
+sinh=sys.native("YSTD_MATH_SINH",
+	sys.types.signature(NumberType, NumberType), null);
+tanh=sys.native("YSTD_MATH_TANH",
+	sys.types.signature(NumberType, NumberType), null);
+exp=sys.native("YSTD_MATH_EXP",
+	sys.types.signature(NumberType, NumberType), null);
+ldexp=sys.native("YSTD_MATH_LDEXP",
+	sys.types.signature(NumberType, NumberType, NumberType), null);
+log=sys.native("YSTD_MATH_LOG",
+	sys.types.signature(NumberType, NumberType), null);
+log10=sys.native("YSTD_MATH_LOG10",
+	sys.types.signature(NumberType, NumberType), null);
+pow=sys.native("YSTD_MATH_POW",
+	sys.types.signature(NumberType, NumberType, NumberType), null);
+sqrt=sys.native("YSTD_MATH_SQRT",
+	sys.types.signature(NumberType, NumberType), null);
+ceil=sys.native("YSTD_MATH_CEIL",
+	sys.types.signature(NumberType, NumberType), null);
+fabs=sys.native("YSTD_MATH_FABS",
+	sys.types.signature(NumberType, NumberType), null);
+floor=sys.native("YSTD_MATH_FLOOR",
+	sys.types.signature(NumberType, NumberType), null);
+fmod=sys.native("YSTD_MATH_FMOD",
+	sys.types.signature(NumberType, NumberType, NumberType), null);
+
+PI=acos(-1);
+E=exp(1);

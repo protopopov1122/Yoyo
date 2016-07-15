@@ -1,0 +1,47 @@
+/*
+ * Copyright (C) 2016  Jevgenijs Protopopovs <protopopov1122@yandex.ru>
+ */
+/*This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
+
+#include "yoyo.h"
+
+YOYO_FUNCTION(Console_println) {
+	YRuntime* runtime = th->runtime;
+	wchar_t* wstr = toString(args[0], th);
+	fprintf(runtime->env->out_stream, "%ls\n", wstr);
+	fflush(runtime->env->out_stream);
+	free(wstr);
+	return getNull(th);
+}
+YOYO_FUNCTION(Console_print) {
+	YRuntime* runtime = th->runtime;
+	wchar_t* wstr = toString(args[0], th);
+	fprintf(runtime->env->out_stream, "%ls", wstr);
+	fflush(runtime->env->out_stream);
+	free(wstr);
+	return getNull(th);
+}
+YOYO_FUNCTION(Console_read) {
+	YRuntime* runtime = th->runtime;
+	wchar_t wstr[] = { getwc(runtime->env->in_stream), L'\0' };
+	return newString(wstr, th);
+}
+YOYO_FUNCTION(Console_readLine) {
+	YRuntime* runtime = th->runtime;
+	wchar_t* wstr = readLine(runtime->env->in_stream);
+	YValue* ystr = newString(wstr, th);
+	free(wstr);
+	return ystr;
+}
+

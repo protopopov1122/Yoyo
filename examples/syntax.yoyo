@@ -1,0 +1,242 @@
+/*
+* File contains examples of Yoyo syntax.
+  All code there is grammatically corect,
+  but may be meaningless. It should be
+  concidered as a small language
+  tutorial. For more detalised inforation
+  see other examples and documentation
+  explaining system internals.*/
+
+/*There are two types of comments:*/
+// Signle-line comment
+/*Multi-line comment*/
+/*WARNING: Language is insensetive to spaces but is sensetive to
+character case*/
+/*Root of source file may contain
+    * statements
+    * function definitions*/
+
+/* Example of function definition
+Function definition contains 'def' keyword,
+function name, argument list in parentheses and
+function body(one statement). Function returns value
+of this statement*/
+def sum(x,y) {
+    return x+y;
+}
+def sum(x,y,z) return x+y+z;
+def sum(x,y,z,w) x+y+z+w;
+
+/* Function definitions optionally may contain information
+about types:
+any argument may have defined type and function
+may have return type*/
+
+def sub(x->sys.types.int, y->sys.types.int)->sys.types.int
+    return x-y;
+def subtract(x->sys.types.int, y) x-y;
+def cmp(x,y)->sys.types.boolean return x==y;
+
+/*Function may have variable arguments*/
+def fvar(a, ?b) b.add(a);
+/*This function must have at least one arguments. All
+other arguments are packed as array(may be empty)
+and passed as 'b'. If last argument is only one
+and it's array then it's passed without packing
+in array.*/
+
+/*WARNING: functions are overloaded only per argument count,
+function types are checked only in runtime, so two functions
+with equal argument count but different argument types
+are concidered equal*/
+
+/*Examples of statements. Each statement is expression that is finished by ';'(optional)*/
+a=2+2;
+sum(a,1)
+/*It is recommended to finish each statement with ';' to avoid cases like that
+a=b
+(c+d)
+Obivously there is two statements: a=b and (c+d), but parser 'see' statement
+as a=b(c+d), because language is insenstive to whitespaces*/
+
+/*All control structures in Yoyo language are expressions so almost all of
+them return value, but others return null. Assignment also return value.*/
+/*Assignment examples*/
+var a=5;
+var->sys.types.boolean c = true;
+->sys.types.string str = "test";
+m,e = 1,10;
+/*'var' keyword is used to define variable in current scope.
+Without 'var' variable will be defined in current scope only
+if others doesn't contain variable with this name,
+otherwise value will be assigned to existing variable.
+Assignment may contain list of variables and values:
+a, b[0], c.field = 1, 2, 3;
+After 'var' keyword and before assignment may be defined variable type:
+->type name = value;*/
+/*WARNING: It's recommended to use assignment value like that:
+a,c=(c=5);
+Bescause assignment may contain multiply arguments(e.g. a,b=b,a).*/
+
+/*Language contains control structures:*/
+/*Condition - may be chained*/
+if 2+2==4 print(2);
+else if 6==5 print(3);
+else print("Hello");
+/*Loops*/
+for i=0;i<100;i++ print(i); // Loop with counter
+foreach i : [1,2,3] print(i); // Loop with iterator
+while false {} // Loop with condition
+do {
+
+} while false; // Loop with condition. Condition checked after loop body.
+do {break} // Infinite loop.
+/*Each loop may has label. This label may be used in 'continue' and 'break' expressions*/
+label1: do break label1
+/*Switch structure. Switch may contain only one default case*/
+switch 2 {
+    case 1+1 {
+	print(2);
+    }
+    case 3 print("Three");
+    default print("?");
+}
+/*Execution-flow control statements:
+return 2+2	Stops function execution and returns value
+throw "Error"	Throw value as an exception
+break label1
+break		Breaks execution of loop
+continue label1
+continue	Jumps to loop start*/
+/*Try-Catch-Else-Finally statement.
+Very complicated.*
+try { 	// The main part
+        // Contains some code
+
+} catch e {}	// Optional. If there will be exception in
+		// 'try' block then it will be stored in variable
+		// ('e' in this case) and will be executed
+		// catch block.
+		// WARNING: catch block 'catches' exceptions
+		// only in try block, but not in else and finally
+		// blocks
+else {} // Block is executed if there wasn't any exceptions.
+fianally {} // Block is executed in any case
+/*'using' and 'with' blocks*/
+using sys, sys.types {} /*Using block may contain list of scopes or
+			only one scope. All these scope members in
+			using block may be used as local scope members
+			but only in read-only mode*/
+with sys {}		/*'with' block accepts only one scope.
+			This scope is used as local scope, but
+			local scope is accessible only in read-only
+			mode.*/
+/*Control-structures that return values:
+    * if-else
+    * switch
+    * try-catch-else-finally
+    * with*/
+
+/*Operation priority:
+    reference(see below)
+    ++, --, ~, +, -(unary)
+    **
+    *, /
+    +, -
+    <<, >>
+    &, |
+    ==, !=, >=, <=, >, <
+    !
+    &&, ||*/
+/*Reference:
+    * factor
+    * array index: 	arr[0]
+    * object member:	obj.field
+    * function call	fun1()
+References may be recursize:
+    var1.field[0]()(2)[1].fld*/
+/*Factor:
+    * local variable: var1
+    * constant: 2
+    * expression in parentheses: (2+2)
+    * code block: {
+	a=44;
+	a+2;
+    }
+    * object definition: object {}
+    * interface definition: interface {}
+    * array definition: [1,2,3]
+    * lambda definition: $() {}
+    * overload definition: overload($(){}, $(a){})*/
+/*Comments to operations:
+    ** - power operation(2**3==8)
+    &, | and &&, || - operations are equal for booleans,
+	but && and || are lazy. With integers work only & and |*/
+/*Comments to factor:
+    * code block returns last statement value so it
+	can be used:*/
+	a = {
+	    def fun() {}
+	    b=22;
+	    b++;
+	} // Now a=22
+/*
+    Each codeblock may have nested function definitions visible
+    only in block
+    * objects may have one parent(object ':' parent),
+	object fields and methods are defined in parentheses:*/
+	o1 = object;
+	o2 = object : o1;
+	o3 = object {
+	    field: 1
+	    def method() field++
+	}
+	o4 = object : o3 {
+	    test: 0
+	}
+/*   * interface may have multiple parents:*/
+    i1 = interface {
+	o1: sys.types.array
+    }
+    i2 = interface {
+	o3: sys.types.array
+    }
+    i3 = interface : i1,i2
+    i4 = interface : i2, i3 {
+	autumn: "leaves"
+    };
+/*   * array may be defined:*/
+    [1,2,3,4,5]; // Predefined array
+    [1;4]; // Generated array: generates [1,1,1,1]
+/*   * Lambda is defined :*/
+    $(x,y) x+y;
+    $(x->sys.types.int, y->sys.types.int)->sys.types.int {
+	return x-y;
+    } // Lambdas may have defined types and vararg like functions
+/*   * 'overload' may collect multiple lambdas and collect in one.
+	Overloaded lambdas are used to create functions.
+	Overload may have default lambda. If no lambda fits
+	to arguments then called default(if available) and
+	all arguments are passed as array*/
+	overload(
+	    $() 1
+	    $(x) x+1
+	    default arr print(arr);
+	)
+/* Types of constants:*/
+    2 0xA 0b10001_1000	// Integer constants. Integer constants may contain
+			// '_' sign that is ignored. May be decimal(no prefix)
+			// hexadecimal(prefix '0x') and binary('0b')
+    3.14		// Floating point constants
+    true false		// Boolean constants
+    "Строка - String"	// Unicode strings
+    null		// Null pointer
+/*Data types:
+    * integer (64-bit signed integer)
+    * floating-point (64-bit floating-point)
+    * boolean
+    * string (wchar_t array in C)
+    * object (see internals)
+    * array (array of any data)
+    * type declaration (atomic types, lambda signature, interface or array definition)
+    * any type (null)*/

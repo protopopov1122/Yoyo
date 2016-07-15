@@ -1,0 +1,42 @@
+clock=sys.native("YSTD_TIME_CLOCK",
+	sys.types.signature(sys.types.int), null);
+CLOCKS_PER_SEC=sys.native("YSTD_TIME_CLOCKS_PER_SEC",
+	sys.types.signature(sys.types.int), null)();
+time=sys.native("YSTD_TIME_TIME",
+	sys.types.signature(sys.types.int), null);
+	
+Date = interface {
+	second: sys.types.int
+	minute: sys.types.int
+	hour: sys.types.int
+	day: sys.types.int
+	month: sys.types.int
+	year: sys.types.int
+	time: sys.types.int
+}
+
+date = null;
+{
+	rawDate=sys.native("YSTD_TIME_DATE",
+		sys.types.signature(Date, sys.types.int), null);
+	date=overload($(tm) {
+			rd = rawDate(tm);
+			return object : rd {
+				def toString() day+"/"+month+"/"+year+" "+hour+":"+minute+":"+second;
+			}
+		}
+		$() date(time()));
+}
+
+gmdate = null;
+{
+	rawGmDate=sys.native("YSTD_TIME_GMDATE",
+		sys.types.signature(Date, sys.types.int), null);
+	gmdate=overload($(tm) {
+			rd = rawGmDate(tm);
+			return object : rd {
+				def toString() day+"/"+month+"/"+year+" "+hour+":"+minute+":"+second;
+			}
+		}
+		$() date(time()));
+}

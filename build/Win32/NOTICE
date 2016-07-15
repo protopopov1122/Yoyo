@@ -1,0 +1,3 @@
+Source code in this directory is used to cross-compile Yoyo by MinGW gcc.
+This files are imported from another Open Source project:
+* dlfcn.c, dlfcn.h - https://github.com/dlfcn-win32/dlfcn-win32

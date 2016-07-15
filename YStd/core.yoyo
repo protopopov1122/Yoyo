@@ -1,0 +1,27 @@
+sys.types = sys.native("YSTD_TYPES_TYPES", null, null)();
+sys.types.signature = sys.native("YSTD_TYPES_SIGNATURE", null, null);
+
+threads = object {
+	newThread: sys.native("Threads_newThread",
+		sys.types.signature(sys.types.any), null)
+	newMutex: sys.native("Threads_newMutex",
+		sys.types.signature(sys.types.any), null)
+	yield: sys.native("Threads_yield",
+		sys.types.signature(sys.types.any), null)
+}
+
+io = object {
+	print: sys.native("Console_print",
+		sys.types.signature(sys.types.any, sys.types.any), null)
+	println: sys.native("Console_println",
+		sys.types.signature(sys.types.any, sys.types.any), null)
+	read: sys.native("Console_read",
+		sys.types.signature(sys.types.string), null)
+	readLine: sys.native("Console_readLine",
+		sys.types.signature(sys.types.string), null)
+}
+
+print=io.println;
+read=io.readLine;
+eval=sys.eval;
+lib=sys.load;
