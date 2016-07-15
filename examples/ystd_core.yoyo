@@ -1,0 +1,83 @@
+/*This file contains example of all functions
+in 'core.yoyo'*/
+
+// Basic console IO
+// print - alias for io.println
+// io.println - print string and newline character
+// io.print - print strin without new line
+// read - alias for io.readLine
+// io.readLine - reads line from standart input
+// io.read - reads character from standart input
+io.print("And she is buying a stairway to heaven");
+io.print("\n");
+// These two lines are equal to input(s) function
+io.print("Enter your name: ");
+print("Hello, "+read());
+
+// Core system functions
+
+// To execute external code
+// sys.eval - evaluate string in current scope and return result
+// eval - alias for sys.eval
+a, b = "Hey, ", "ho"
+print(eval("a+b"));
+// sys.loadLibrary - load .yoyo file execute it
+// in separate scope and return this scope as an object
+// sys.load  - load .yoyo file and execute it in current
+// scope(works like eval with files)
+// sys.import - if file isn't imported yet
+// then use loadLibrary method, save result and return it
+// else return saved result
+// import - alias for sys.import
+// Libraries are searched in code path
+// Code path by default contains only working directory
+// Directories may be added to code path by passin -P flag
+// to interpreter(like "yoyo -Psomedir ...").
+// Standart library location(currently YStd) should be passed
+// as definition("yoyo -Dystd=YStd ...") 
+time = import("time.yoyo"); // See this file
+print(time.date());			// Just for example
+
+// sys.yji load YJI subsystem(if available)
+// and return YJI control object
+// See 'yji.yoyo'
+
+// sys.platform - returns current platform
+print(sys.platform);
+// sys.args - returns program arguments
+print(sys.args())
+
+// sys.sharedLibrary - load shared library
+// Used to provide external functionality
+// Used in pair with:
+// sys.native - call C function from current program
+// or shared library
+// All functions called with sys.native must
+// be defined as YOYO_FUNCTION(name)
+// See standart library(e.g. 'core.yoyo')
+
+// Multithreading
+// threads.newThread - create new thread
+// execute lambda passed as argument
+// threads.newMutex - return new mutex
+// Mutex has 3 methods:
+// 		* lock - locks mutex or pauses thread to wait for lock
+//		* unlock - unlocks mutex
+//		* tryLock - try to lock mutex and return result
+// threads.yield - switch to another thread
+// ATTENTION: in for loops recomended to
+// define variables with 'var' keyword
+// because otherwise they may affect on the variables
+// from parent scopes
+def newTh(n) {
+	$() {
+			for var i=0;i<1000;i++
+				print(n+": "+(i+n))
+	}
+};
+for var j=0;j<50;j++ threads.newThread(newTh(j));
+
+// sys.exit - terminate program
+// exit - alias for sys.exit
+exit();
+print("This will never execute");

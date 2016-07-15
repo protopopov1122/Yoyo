@@ -3,7 +3,8 @@ sys.types.signature = sys.native("YSTD_TYPES_SIGNATURE", null, null);
 
 threads = object {
 	newThread: sys.native("Threads_newThread",
-		sys.types.signature(sys.types.any), null)
+		sys.types.signature(sys.types.any,
+			sys.types.signature(sys.types.any)), null)
 	newMutex: sys.native("Threads_newMutex",
 		sys.types.signature(sys.types.any), null)
 	yield: sys.native("Threads_yield",
@@ -23,5 +24,11 @@ io = object {
 
 print=io.println;
 read=io.readLine;
+input = $(str) {
+	io.print(str);
+	return read();
+}
 eval=sys.eval;
-lib=sys.load;
+import = sys.import;
+exit = sys.exit
+
