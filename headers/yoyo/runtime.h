@@ -28,7 +28,13 @@
 #define READ_INDEX L"#readIndex"
 #define WRITE_INDEX L"#writeIndex"
 #define EQUALS L"equals"
-#define YOYO_FUNCTION(name) YValue* name(YLambda* l, YValue** args, size_t argc, YThread* th)
+#ifndef __cplusplus
+#define YOYO_FUNCTION(name) YValue* name(YLambda* l,\
+	YValue** args, size_t argc, YThread* th)
+#else
+#define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* l,\
+	YValue** args, size_t argc, YThread* th)
+#endif
 
 #define COMPARE_EQUALS 1
 #define COMPARE_NOT_EQUALS (1 << 1)

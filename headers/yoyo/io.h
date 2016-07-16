@@ -19,6 +19,6 @@
 
 #include "yoyo/bytecode.h"
 
-void export(ILBytecode*, FILE*);
+void exportBytecode(ILBytecode*, FILE*);
 
 #endif

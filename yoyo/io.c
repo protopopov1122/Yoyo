@@ -16,6 +16,6 @@
 
 #include "yoyo/io.h"
 
-void export(ILBytecode* bc, FILE* f) {
+void exportBytecode(ILBytecode* bc, FILE* f) {
 
 }

@@ -234,7 +234,7 @@ Constant* Bytecode_getConstant(ILBytecode* bc, int32_t id) {
 }
 
 void Bytecode_export(ILBytecode* bc, FILE* out) {
-	export(bc, out);
+	exportBytecode(bc, out);
 }
 
 ILBytecode* newBytecode(SymbolMap* sym) {

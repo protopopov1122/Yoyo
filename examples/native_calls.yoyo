@@ -1,0 +1,6 @@
+/*Example of using external code in C or C++*/
+
+sys.sharedLibrary("libtest.so");	// Load shared library. It must be in LD_LIBRARY_PATH
+write = sys.native("YOYO_EXAMPLES_WRITE", null, null);	// Get function from library
+write("Hey, ho!");	// Use it just as normal Yoyo function
+write("Let's go!");
