@@ -182,15 +182,21 @@ void RawPointer_setType(YObject* o, int32_t id, YoyoType* t, YThread* th) {
 YoyoType* RawPointer_getType(YObject* o, int32_t id, YThread* th) {
 	return th->runtime->NullType.TypeConstant;
 }
+void RawPointer_free(HeapObject* ptr) {
+	YRawPointer* raw = (YRawPointer*) ptr;
+	raw->free(raw->ptr);
+	free(raw);
+}
 
-YValue* newRawPointer(void* ptr, YThread* th)
+YValue* newRawPointer(void* ptr, void(*freeptr)(void*), YThread* th)
 {
 	YRawPointer* raw = malloc(sizeof(YRawPointer));
-	initAtomicHeapObject((HeapObject*) raw, freeAtomicData);
+	initAtomicHeapObject((HeapObject*) raw, RawPointer_free);
 	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) raw);
 	raw->obj.parent.type = &th->runtime->ObjectType;
 
 	raw->ptr = ptr;
+	raw->free = freeptr;
 	raw->obj.iterator = false;
 	raw->obj.get = RawPointer_get;
 	raw->obj.contains = RawPointer_contains;

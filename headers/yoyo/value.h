@@ -167,8 +167,9 @@ typedef struct YRawPointer {
 	YObject obj;
 
 	void* ptr;
+	void (*free)(void*);
 } YRawPointer;
 
-YValue* newRawPointer(void*, YThread*);
+YValue* newRawPointer(void*, void (*)(void*), YThread*);
 
 #endif
