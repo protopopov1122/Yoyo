@@ -163,4 +163,12 @@ typedef struct NativeLambda {
 	HeapObject* object;
 } NativeLambda;
 
+typedef struct YRawPointer {
+	YObject obj;
+
+	void* ptr;
+} YRawPointer;
+
+YValue* newRawPointer(void*, YThread*);
+
 #endif

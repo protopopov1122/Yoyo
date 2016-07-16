@@ -158,3 +158,46 @@ YLambda* newNativeLambda(size_t argc,
 	out->object = obj;
 	return (YLambda*) out;
 }
+
+YValue* RawPointer_get(YObject* o, int32_t id, YThread* th) {
+	return getNull(th);
+}
+
+bool RawPointer_contains(YObject* o, int32_t id, YThread* th) {
+	return false;
+}
+
+void RawPointer_put(YObject* o, int32_t id, YValue* v, bool n, YThread* th) {
+	return;
+}
+
+void RawPointer_remove(YObject* o, int32_t id, YThread* th) {
+	return;
+}
+
+void RawPointer_setType(YObject* o, int32_t id, YoyoType* t, YThread* th) {
+	return;
+}
+
+YoyoType* RawPointer_getType(YObject* o, int32_t id, YThread* th) {
+	return th->runtime->NullType.TypeConstant;
+}
+
+YValue* newRawPointer(void* ptr, YThread* th)
+{
+	YRawPointer* raw = malloc(sizeof(YRawPointer));
+	initAtomicHeapObject((HeapObject*) raw, freeAtomicData);
+	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) raw);
+	raw->obj.parent.type = &th->runtime->ObjectType;
+
+	raw->ptr = ptr;
+	raw->obj.iterator = false;
+	raw->obj.get = RawPointer_get;
+	raw->obj.contains = RawPointer_contains;
+	raw->obj.put = RawPointer_put;
+	raw->obj.remove = RawPointer_remove;
+	raw->obj.setType = RawPointer_setType;
+	raw->obj.getType = RawPointer_getType;
+
+	return (YValue*) raw;
+}
