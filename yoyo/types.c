@@ -16,6 +16,10 @@
 
 #include "yoyo.h"
 
+/*File contains procedures to build
+ * data types, validate data and check types
+ * for compatibility*/
+
 typedef struct AtomicType {
 	struct YoyoType type;
 

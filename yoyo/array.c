@@ -19,6 +19,10 @@
 #include "../headers/yoyo/value.h"
 #include "yoyo/interpreter.h"
 
+/*File contains default array implementation
+ * and useful methods to work with
+ * any abstract arrays*/
+
 typedef struct DefaultArray {
 	YArray parent;
 

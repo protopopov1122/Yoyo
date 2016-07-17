@@ -223,7 +223,7 @@ YObject* newReadonlyObject(YObject* o, YThread* th) {
                                                     &th->runtime->symbols, name), (YValue*) newNativeLambda(argc, proc,\
                                                                                     (HeapObject*) ptr, th),\
                                                             true, th);
-#define INIT_HASHMAP YoyoMap* map = (YoyoMap*) ((NativeLambda*) l)->object;
+#define INIT_HASHMAP YoyoMap* map = (YoyoMap*) ((NativeLambda*) lambda)->object;
 YOYO_FUNCTION(Map_size) {
 	INIT_HASHMAP
 	;
@@ -263,7 +263,7 @@ YOYO_FUNCTION(Map_keys) {
 	return (YValue*) newYoyoSet(map->keySet(map, th), th);
 }
 #undef INIT_HASHMAP
-#define INIT_SET YoyoSet* set = (YoyoSet*) ((NativeLambda*) l)->object;
+#define INIT_SET YoyoSet* set = (YoyoSet*) ((NativeLambda*) lambda)->object;
 
 YOYO_FUNCTION(Set_size) {
 	INIT_SET
@@ -376,15 +376,15 @@ YoyoIterator* newYoyoIterator(YObject* obj, YThread* th) {
 }
 
 YOYO_FUNCTION(DefYoyoIterator_next) {
-	YoyoIterator* iter = (YoyoIterator*) ((NativeLambda*) l)->object;
+	YoyoIterator* iter = (YoyoIterator*) ((NativeLambda*) lambda)->object;
 	return iter->next(iter, th);
 }
 YOYO_FUNCTION(DefYoyoIterator_hasNext) {
-	YoyoIterator* iter = (YoyoIterator*) ((NativeLambda*) l)->object;
+	YoyoIterator* iter = (YoyoIterator*) ((NativeLambda*) lambda)->object;
 	return newBoolean(iter->hasNext(iter, th), th);
 }
 YOYO_FUNCTION(DefYoyoIterator_reset) {
-	YoyoIterator* iter = (YoyoIterator*) ((NativeLambda*) l)->object;
+	YoyoIterator* iter = (YoyoIterator*) ((NativeLambda*) lambda)->object;
 	iter->reset(iter, th);
 	return getNull(th);
 }

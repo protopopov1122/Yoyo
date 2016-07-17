@@ -163,7 +163,8 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 
 CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* is, wchar_t* name) {
 	YParser parser;
-	parser.err_file = tmpfile();
+	FILE* errfile = tmpfile();
+	parser.err_file = errfile!=NULL ? errfile : stdout;
 	yparse(env, ylex(env, is, name), &parser);
 	if (parser.err_flag || parser.root == NULL) {
 		if (parser.root != NULL)
@@ -185,7 +186,8 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* is, wchar_t* name) {
 				sizeof(wchar_t) * (strlen(buffer) + 1)), .pid = -1 };
 		mbstowcs(res.log, buffer, strlen(buffer));
 		free(buffer);
-		fclose(parser.err_file);
+		if (errfile!=NULL)
+			fclose(errfile);
 
 		return res;
 	}
@@ -223,7 +225,8 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* is, wchar_t* name) {
 		wlog = calloc(1, sizeof(wchar_t) * (strlen(log) + 1));
 		mbstowcs(wlog, log, strlen(log));
 	}
-	fclose(parser.err_file);
+	if (errfile!=NULL)
+		fclose(errfile);
 	CompilationResult res = { .log = wlog, .pid = pid };
 	return res;
 }

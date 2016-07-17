@@ -64,19 +64,19 @@ void YoyoMutex_free(HeapObject* ptr) {
 }
 
 YOYO_FUNCTION(YoyoMutex_lock) {
-	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) l)->object;
+	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) lambda)->object;
 	MUTEX_LOCK(&mutex->mutex);
 	return getNull(th);
 }
 
 YOYO_FUNCTION(YoyoMutex_unlock) {
-	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) l)->object;
+	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) lambda)->object;
 	MUTEX_UNLOCK(&mutex->mutex);
 	return getNull(th);
 }
 
 YOYO_FUNCTION(YoyoMutex_tryLock) {
-	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) l)->object;
+	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) lambda)->object;
 	return newBoolean(MUTEX_TRYLOCK(&mutex->mutex), th);
 }
 

@@ -1,6 +1,4 @@
-hashMap = null;
-hashSet = null;
-list = null;
+var hashMap, hashSet, list;
 
 {
 	rawHashMap = sys.native("YSTD_COLLECTIONS_HASH_MAP_NEW",

@@ -29,7 +29,7 @@ bool Lambda_equals(YValue* v1, YValue* v2, YThread* th) {
 }
 
 YOYO_FUNCTION(Lambda_signature) {
-	YLambda* lmbd = (YLambda*) ((NativeLambda*) l)->object;
+	YLambda* lmbd = (YLambda*) ((NativeLambda*) lambda)->object;
 	return (YValue*) lmbd->signature(lmbd, th);
 }
 

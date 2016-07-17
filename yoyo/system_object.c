@@ -144,7 +144,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD) {
 YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	YObject* sys = (YObject*) ((NativeLambda*) l)->object;
+	YObject* sys = (YObject*) ((NativeLambda*) lambda)->object;
 	int32_t iid = th->runtime->bytecode->getSymbolId(th->runtime->bytecode, L"imported");
 	YObject* loaded = (YObject*) sys->get(sys, iid, th);
 	int32_t id = runtime->bytecode->getSymbolId(runtime->bytecode, wstr);

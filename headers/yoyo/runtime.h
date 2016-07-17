@@ -29,10 +29,10 @@
 #define WRITE_INDEX L"#writeIndex"
 #define EQUALS L"equals"
 #ifndef __cplusplus
-#define YOYO_FUNCTION(name) YValue* name(YLambda* l,\
+#define YOYO_FUNCTION(name) YValue* name(YLambda* lambda,\
 	YValue** args, size_t argc, YThread* th)
 #else
-#define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* l,\
+#define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* lambda,\
 	YValue** args, size_t argc, YThread* th)
 #endif
 

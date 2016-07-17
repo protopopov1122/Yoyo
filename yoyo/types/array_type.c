@@ -37,7 +37,7 @@ wchar_t* Array_toString(YValue* v, YThread* th) {
 	return res;
 }
 
-#define ARR_INIT  NativeLambda* nlam = (NativeLambda*) l;\
+#define ARR_INIT  NativeLambda* nlam = (NativeLambda*) lambda;\
   YArray* array = (YArray*) nlam->object;
 
 YOYO_FUNCTION(Array_size) {

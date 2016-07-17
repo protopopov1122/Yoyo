@@ -47,7 +47,7 @@ int compare_operation(YValue* arg1, YValue* arg2, YThread* th) {
 							COMPARE_NOT_EQUALS;
 }
 
-#define INIT NativeLambda* nlam = (NativeLambda*) l;\
+#define INIT NativeLambda* nlam = (NativeLambda*) lambda;\
                     YValue* value = (YValue*) nlam->object;
 YOYO_FUNCTION(_Common_toString) {
 	INIT

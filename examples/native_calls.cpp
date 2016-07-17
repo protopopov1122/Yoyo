@@ -10,7 +10,7 @@ using namespace std;
 YOYO_FUNCTION(YOYO_EXAMPLES_WRITE) {		// All functions used from Yoyo
 						// must be delarated this way.
 						// There are 4 arguments:
-						// l - NativeLambda created by Yoyo runtime
+						// lambda - NativeLambda created by Yoyo runtime
 						//	to handle this function
 						// argc - argument count
 						// args - arguments passed to this function

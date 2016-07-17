@@ -24,7 +24,7 @@ wchar_t* Decl_toString(YValue* val, YThread* th) {
 }
 
 YOYO_FUNCTION(Decl_check) {
-	YoyoType* type = (YoyoType*) ((NativeLambda*) l)->object;
+	YoyoType* type = (YoyoType*) ((NativeLambda*) lambda)->object;
 	for (size_t i = 0; i < argc; i++)
 		if (!type->verify(type, args[i], th))
 			return newBoolean(false, th);
@@ -32,7 +32,7 @@ YOYO_FUNCTION(Decl_check) {
 }
 
 YOYO_FUNCTION(Decl_verify) {
-	YoyoType* type = (YoyoType*) ((NativeLambda*) l)->object;
+	YoyoType* type = (YoyoType*) ((NativeLambda*) lambda)->object;
 	for (size_t i = 0; i < argc; i++)
 		if (!type->verify(type, args[i], th)) {
 			throwException(L"TypeError", NULL, 0, th);
@@ -42,12 +42,12 @@ YOYO_FUNCTION(Decl_verify) {
 }
 
 YOYO_FUNCTION(Decl_not_null) {
-	YoyoType* type = (YoyoType*) ((NativeLambda*) l)->object;
+	YoyoType* type = (YoyoType*) ((NativeLambda*) lambda)->object;
 	return (YValue*) newNotNullType(type, th);
 }
 
 YOYO_FUNCTION(Decl_setName) {
-	YoyoType* type = (YoyoType*) ((NativeLambda*) l)->object;
+	YoyoType* type = (YoyoType*) ((NativeLambda*) lambda)->object;
 	wchar_t* name = toString(args[0], th);
 	free(type->string);
 	type->string = name;

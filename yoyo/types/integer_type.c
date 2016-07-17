@@ -222,9 +222,9 @@ bool Float_equals(YValue* v1, YValue* v2, YThread* th) {
 	return ((YFloat*) v1)->value == ((YFloat*) v2)->value;
 }
 
-#define INT_INIT NativeLambda* nlam = (NativeLambda*) l;\
+#define INT_INIT NativeLambda* nlam = (NativeLambda*) lambda;\
                 int64_t value = ((YInteger*) nlam->object)->value;
-#define INT_INIT2 NativeLambda* nlam = (NativeLambda*) l;\
+#define INT_INIT2 NativeLambda* nlam = (NativeLambda*) lambda;\
                     YValue* yvalue = (YValue*) nlam->object;
 
 YOYO_FUNCTION(_Int_toFloat) {
@@ -390,9 +390,9 @@ YOYO_FUNCTION(Int_toChar) {
 #undef INT_INIT
 #undef INT_INIT2
 
-#define FLOAT_INIT NativeLambda* nlam = (NativeLambda*) l;\
+#define FLOAT_INIT NativeLambda* nlam = (NativeLambda*) lambda;\
                 double value = ((YFloat*) nlam->object)->value;
-#define FLOAT_INIT2 NativeLambda* nlam = (NativeLambda*) l;\
+#define FLOAT_INIT2 NativeLambda* nlam = (NativeLambda*) lambda;\
                     YValue* yvalue = (YValue*) nlam->object;
 
 YOYO_FUNCTION(_Float_toInteger) {

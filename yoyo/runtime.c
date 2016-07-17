@@ -22,6 +22,9 @@
 #include "../headers/yoyo/stringbuilder.h"
 #include "yoyo/interpreter.h"
 
+/* File contains procedures to work
+ * with runtime and perform garbage collection*/
+
 void freeRuntime(YRuntime* runtime) {
 	DEBUG(runtime->debugger, onunload, NULL, runtime->CoreThread);
 	runtime->state = RuntimeTerminated;
@@ -59,15 +62,21 @@ void Types_init(YRuntime* runtime) {
 	Null_type_init(runtime);
 }
 
+/* This procedure works while runtime
+ * is not terminated. It performs garbage collection
+ * every second, after terminating
+ * it frees garbage collector*/
 void* GCThread(void* ptr) {
 	YRuntime* runtime = (YRuntime*) ptr;
 	GarbageCollector* gc = runtime->gc;
 	while (runtime->state == RuntimeRunning) {
-		sleep(1); //TODO
+		sleep(1);
 
+		// Lock runtime
 		runtime->state = RuntimePaused;
 		MUTEX_LOCK(&runtime->runtime_mutex);
 
+		// Mark all root objects
 		MARK(runtime->global_scope);
 		for (size_t i = 0; i < runtime->thread_size; i++) {
 			if (runtime->threads[i] != NULL) {
@@ -107,7 +116,9 @@ void* GCThread(void* ptr) {
 		MARKTYPE(StringType);
 #undef MARKTYPE
 
+		// Collect garbage
 		gc->collect(gc);
+		// Unlock runtime
 		runtime->state = RuntimeRunning;
 	}
 	gc->free(gc);
@@ -115,6 +126,7 @@ void* GCThread(void* ptr) {
 	return NULL;
 }
 
+// Invoke procedure in new thread
 YValue* Runtime_interpret(int32_t pid, YRuntime* runtime) {
 	YThread* th = newThread(runtime);
 	YValue* out = invoke(pid, runtime->global_scope, NULL, th);
@@ -128,6 +140,7 @@ YValue* Runtime_interpret(int32_t pid, YRuntime* runtime) {
 	return out;
 }
 
+// Wait while there are working threads
 void Runtime_wait(YRuntime* runtime) {
 	while (runtime->thread_count > 1)
 		YIELD();
@@ -189,6 +202,7 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 	return out;
 }
 
+// Create new runtime
 YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	YRuntime* runtime = malloc(sizeof(YRuntime));
 	runtime->debugger = debug;
@@ -288,6 +302,7 @@ wchar_t* toString(YValue* v, YThread* th) {
 	return v->type->oper.toString(v, th);
 }
 
+// Work with the symbol map
 int32_t getSymbolId(SymbolMap* map, wchar_t* wsym) {
 	for (size_t i = 0; i < map->size; i++)
 		if (wcscmp(map->map[i].symbol, wsym) == 0)

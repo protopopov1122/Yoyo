@@ -128,7 +128,7 @@ YArray* newCharSequence(YString* str, YThread* th) {
 	return (YArray*) cseq;
 }
 
-#define STR_INIT NativeLambda* nlam = (NativeLambda*) l;\
+#define STR_INIT NativeLambda* nlam = (NativeLambda*) lambda;\
                 YString* str = (YString*) nlam->object;
 
 YOYO_FUNCTION(_String_charAt) {
