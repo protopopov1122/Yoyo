@@ -33,8 +33,28 @@ YOYO_FUNCTION(Lambda_signature) {
 	return (YValue*) lmbd->signature(lmbd, th);
 }
 
+YOYO_FUNCTION(Lambda_call) {
+	YLambda* lmbd = (YLambda*) ((NativeLambda*) lambda)->object;
+	return invokeLambda(lmbd, args, argc, th);
+}
+
+YOYO_FUNCTION(Lambda_callArray) {
+	YLambda* lmbd = (YLambda*) ((NativeLambda*) lambda)->object;
+	if (args[0]->type->type!=ArrayT)
+		return getNull(th);
+	YArray* array = (YArray*) args[0];
+	YValue** arr_args = malloc(sizeof(YValue*)*array->size(array, th));
+	for (size_t i=0;i<array->size(array, th);i++)
+		arr_args[i] = array->get(array, i, th);
+	YValue* ret = invokeLambda(lmbd, arr_args, array->size(array, th), th);
+	free(arr_args);
+	return ret;
+}
+
 YValue* Lambda_readProperty(int32_t key, YValue* v, YThread* th) {
 	NEW_METHOD(L"signature", Lambda_signature, 0, v);
+	NEW_METHOD(L"call", Lambda_call, -1, v);
+	NEW_METHOD(L"callArray", Lambda_callArray, 1, v);
 	return Common_readProperty(key, v, th);
 }
 
