@@ -31,7 +31,7 @@ void* launch_new_thread(void* ptr) {
 	return NULL;
 }
 
-YOYO_FUNCTION(Threads_newThread) {
+YOYO_FUNCTION(YSTD_THREADS_NEW_THREAD) {
 	if (args[0]->type->type == LambdaT) {
 		YLambda* lambda = (YLambda*) args[0];
 		NewThread* nth = malloc(sizeof(NewThread));
@@ -43,80 +43,38 @@ YOYO_FUNCTION(Threads_newThread) {
 	return getNull(th);
 }
 
-YOYO_FUNCTION(Threads_yield) {
+YOYO_FUNCTION(YSTD_THREADS_YIELD) {
 	YIELD();
 	return getNull(th);
 }
 
-typedef struct YoyoMutex {
-	YObject object;
-
-	MUTEX mutex;
-} YoyoMutex;
-
-void YoyoMutex_mark(HeapObject* ptr) {
-	ptr->marked = true;
-}
-void YoyoMutex_free(HeapObject* ptr) {
-	YoyoMutex* mutex = (YoyoMutex*) ptr;
-	DESTROY_MUTEX(&mutex->mutex);
+void YoyoMutex_free(void* ptr) {
+	MUTEX* mutex = (MUTEX*) ptr;
+	DESTROY_MUTEX(mutex);
 	free(mutex);
 }
 
-YOYO_FUNCTION(YoyoMutex_lock) {
-	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) lambda)->object;
-	MUTEX_LOCK(&mutex->mutex);
+YOYO_FUNCTION(YSTD_THREADS_MUTEX_LOCK) {
+	MUTEX* mutex = (MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	MUTEX_LOCK(mutex);
 	return getNull(th);
 }
 
-YOYO_FUNCTION(YoyoMutex_unlock) {
-	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) lambda)->object;
-	MUTEX_UNLOCK(&mutex->mutex);
+YOYO_FUNCTION(YSTD_THREADS_MUTEX_UNLOCK) {
+	MUTEX* mutex = (MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	MUTEX_UNLOCK(mutex);
 	return getNull(th);
 }
 
-YOYO_FUNCTION(YoyoMutex_tryLock) {
-	YoyoMutex* mutex = (YoyoMutex*) ((NativeLambda*) lambda)->object;
-	return newBoolean(MUTEX_TRYLOCK(&mutex->mutex), th);
+YOYO_FUNCTION(YSTD_THREADS_MUTEX_TRYLOCK) {
+	MUTEX* mutex = (MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	return newBoolean(!MUTEX_TRYLOCK(mutex), th);
 }
 
-YValue* YoyoMutex_get(YObject* o, int32_t key, YThread* th) {
-	wchar_t* wstr = th->runtime->bytecode->getSymbolById(th->runtime->bytecode,
-			key);
-	if (wcscmp(wstr, L"lock") == 0)
-		return (YValue*) newNativeLambda(0, YoyoMutex_lock, (HeapObject*) o, th);
-	if (wcscmp(wstr, L"unlock") == 0)
-		return (YValue*) newNativeLambda(0, YoyoMutex_unlock, (HeapObject*) o,
-				th);
-	if (wcscmp(wstr, L"tryLock") == 0)
-		return (YValue*) newNativeLambda(0, YoyoMutex_tryLock, (HeapObject*) o,
-				th);
-	return getNull(th);
-}
-bool YoyoMutex_contains(YObject* o, int32_t key, YThread* th) {
-	wchar_t* wstr = th->runtime->bytecode->getSymbolById(th->runtime->bytecode,
-			key);
-	return wcscmp(wstr, L"lock") == 0 || wcscmp(wstr, L"unlock") == 0
-			|| wcscmp(wstr, L"tryLock") == 0;
-}
-void YoyoMutex_put(YObject* o, int32_t key, YValue* v, bool newF, YThread* th) {
 
-}
-void YoyoMutex_remove(YObject* o, int32_t key, YThread* th) {
-
-}
-
-YOYO_FUNCTION(Threads_newMutex) {
-	YoyoMutex* mutex = malloc(sizeof(YoyoMutex));
-	initHeapObject((HeapObject*) mutex, YoyoMutex_mark, YoyoMutex_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) mutex);
-	mutex->object.parent.type = &th->runtime->ObjectType;
-	NEW_MUTEX(&mutex->mutex);
-
-	mutex->object.get = YoyoMutex_get;
-	mutex->object.contains = YoyoMutex_contains;
-	mutex->object.put = YoyoMutex_put;
-	mutex->object.remove = YoyoMutex_remove;
-
-	return (YValue*) mutex;
+YOYO_FUNCTION(YSTD_THREADS_NEW_MUTEX) {
+	MUTEX* mutex = malloc(sizeof(MUTEX));
+	NEW_MUTEX(mutex);
+	YValue* ptr = newRawPointer(mutex, YoyoMutex_free, th);
+	return ptr;
 }
