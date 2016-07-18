@@ -8,30 +8,34 @@ threads = object {
 	yield: sys.native("YSTD_THREADS_YIELD",
 		sys.types.signature(sys.types.any), null)
 	def newMutex() {
-		mtx = sys.native("YSTD_THREADS_NEW_MUTEX", null, null)();
+		mtx = sys.native("YSTD_THREADS_NEW_MUTEX",
+			sys.types.signature(sys.types.any), null)();
 		return object {
-			lock: sys.native("YSTD_THREADS_MUTEX_LOCK", null, mtx)
-			unlock: sys.native("YSTD_THREADS_MUTEX_UNLOCK", null, mtx)
-			tryLock: sys.native("YSTD_THREADS_MUTEX_TRYLOCK", null, mtx)
+			lock: sys.native("YSTD_THREADS_MUTEX_LOCK",
+				sys.types.signature(sys.types.any), mtx)
+			unlock: sys.native("YSTD_THREADS_MUTEX_UNLOCK", 
+				sys.types.signature(sys.types.any), mtx)
+			tryLock: sys.native("YSTD_THREADS_MUTEX_TRYLOCK", 
+				sys.types.signature(sys.types.boolean), mtx)
 		}
 	}
 }
 
-io = object {
-	print: sys.native("Console_print",
+console = object {
+	print: sys.native("YSTD_CONSOLE_PRINT",
 		sys.types.signature(sys.types.any, sys.types.any), null)
-	println: sys.native("Console_println",
+	println: sys.native("YSTD_CONSOLE_PRINTLN",
 		sys.types.signature(sys.types.any, sys.types.any), null)
-	read: sys.native("Console_read",
+	read: sys.native("YSTD_CONSOLE_READ",
 		sys.types.signature(sys.types.string), null)
-	readLine: sys.native("Console_readLine",
+	readLine: sys.native("YSTD_CONSOLE_READLINE",
 		sys.types.signature(sys.types.string), null)
 }
 
-print=io.println;
-read=io.readLine;
+print=console.println;
+read=console.readLine;
 input = $(str) {
-	io.print(str);
+	console.print(str);
 	return read();
 }
 eval=sys.eval;

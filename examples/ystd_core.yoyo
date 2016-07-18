@@ -2,16 +2,16 @@
 in 'core.yoyo'*/
 
 // Basic console IO
-// print - alias for io.println
-// io.println - print string and newline character
-// io.print - print strin without new line
-// read - alias for io.readLine
-// io.readLine - reads line from standart input
-// io.read - reads character from standart input
-io.print("And she is buying a stairway to heaven");
-io.print("\n");
+// print - alias for console.println
+// console.println - print string and newline character
+// console.print - print strin without new line
+// read - alias for console.readLine
+// console.readLine - reads line from standart input
+// console.read - reads character from standart input
+console.print("And she is buying a stairway to heaven");
+console.print("\n");
 // These two lines are equal to input(s) function
-io.print("Enter your name: ");
+console.print("Enter your name: ");
 print("Hello, "+read());
 
 // Core system functions

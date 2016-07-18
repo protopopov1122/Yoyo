@@ -16,7 +16,7 @@
 
 #include "yoyo.h"
 
-YOYO_FUNCTION(Console_println) {
+YOYO_FUNCTION(YSTD_CONSOLE_PRINTLN) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	fprintf(runtime->env->out_stream, "%ls\n", wstr);
@@ -24,7 +24,7 @@ YOYO_FUNCTION(Console_println) {
 	free(wstr);
 	return getNull(th);
 }
-YOYO_FUNCTION(Console_print) {
+YOYO_FUNCTION(YSTD_CONSOLE_PRINT) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	fprintf(runtime->env->out_stream, "%ls", wstr);
@@ -32,12 +32,12 @@ YOYO_FUNCTION(Console_print) {
 	free(wstr);
 	return getNull(th);
 }
-YOYO_FUNCTION(Console_read) {
+YOYO_FUNCTION(YSTD_CONSOLE_READ) {
 	YRuntime* runtime = th->runtime;
 	wchar_t wstr[] = { getwc(runtime->env->in_stream), L'\0' };
 	return newString(wstr, th);
 }
-YOYO_FUNCTION(Console_readLine) {
+YOYO_FUNCTION(YSTD_CONSOLE_READLINE) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = readLine(runtime->env->in_stream);
 	YValue* ystr = newString(wstr, th);
