@@ -32,7 +32,7 @@ typedef struct ComplexObject {
 	size_t mixin_count;
 } ComplexObject;
 
-void ComplexObject_mark(HeapObject* ptr) {
+void ComplexObject_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ComplexObject* obj = (ComplexObject*) ptr;
 
@@ -41,7 +41,7 @@ void ComplexObject_mark(HeapObject* ptr) {
 		MARK(obj->mixins[i]);
 	}
 }
-void ComplexObject_free(HeapObject* ptr) {
+void ComplexObject_free(YoyoObject* ptr) {
 	ComplexObject* obj = (ComplexObject*) ptr;
 	free(obj->mixins);
 	free(obj);
@@ -90,7 +90,7 @@ YoyoType* ComplexObject_getType(YObject* o, int32_t key, YThread* th) {
 YObject* newComplexObject(YObject* base, YObject** mixins, size_t mixinc,
 		YThread* th) {
 	ComplexObject* obj = malloc(sizeof(ComplexObject));
-	initHeapObject(&obj->parent.parent.o, ComplexObject_mark,
+	initYoyoObject(&obj->parent.parent.o, ComplexObject_mark,
 			ComplexObject_free);
 	th->runtime->gc->registrate(th->runtime->gc, &obj->parent.parent.o);
 	obj->parent.parent.type = &th->runtime->ObjectType;

@@ -13,7 +13,7 @@
 
 #include "yoyo-jni/yoyo-jni.h"
 
-void JavaClass_mark(HeapObject* ptr) {
+void JavaClass_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 }
 void JavaClass_remove(YObject* o, int32_t key, YThread* th) {
@@ -65,8 +65,8 @@ YObject* newJavaClass(jobject java_class, JNIDefaultEnvironment* yenv,
 	JNIEnv* env;
 	yenv->getJNIEnv(yenv, &env);
 	JavaClass* object = malloc(sizeof(JavaClass));
-	initHeapObject((HeapObject*) object, JavaClass_mark, JavaClass_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) object);
+	initYoyoObject((YoyoObject*) object, JavaClass_mark, JavaClass_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) object);
 
 	object->yenv = yenv;
 	object->java_class = (*env)->NewGlobalRef(env, java_class);
@@ -84,7 +84,7 @@ YObject* newJavaClass(jobject java_class, JNIDefaultEnvironment* yenv,
 
 	return (YObject*) object;
 }
-void JavaClass_free(HeapObject* ptr) {
+void JavaClass_free(YoyoObject* ptr) {
 	JavaClass* object = (JavaClass*) ptr;
 	JNIDefaultEnvironment* yenv = object->yenv;
 	JNIEnv* env;

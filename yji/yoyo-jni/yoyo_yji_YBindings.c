@@ -56,11 +56,11 @@ JNIEXPORT void JNICALL Java_yoyo_yji_YBindings__1put(JNIEnv *env,
 JNIEXPORT void JNICALL Java_yoyo_yji_YBindings_init(JNIEnv *env,
 		jobject ybindings) {
 	YObject* obj = getObjectFromYBindings(env, ybindings);
-	((HeapObject*) obj)->linkc++;
+	((YoyoObject*) obj)->linkc++;
 }
 
 JNIEXPORT void JNICALL Java_yoyo_yji_YBindings_destroy(JNIEnv *env,
 		jobject ybindings) {
 	YObject* obj = getObjectFromYBindings(env, ybindings);
-	((HeapObject*) obj)->linkc--;
+	((YoyoObject*) obj)->linkc--;
 }

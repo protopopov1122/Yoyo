@@ -35,14 +35,14 @@ typedef struct ProcedureLambda {
 	YObject* scope;
 } ProcedureLambda;
 
-void ProcedureLambda_mark(HeapObject* ptr) {
+void ProcedureLambda_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ProcedureLambda* lmbd = (ProcedureLambda*) ptr;
 	MARK(lmbd->scope);
 	MARK(lmbd->lambda.sig);
 }
 
-void ProcedureLambda_free(HeapObject* ptr) {
+void ProcedureLambda_free(YoyoObject* ptr) {
 	ProcedureLambda* lmbd = (ProcedureLambda*) ptr;
 	free(lmbd->argids);
 	free(lmbd);
@@ -69,7 +69,7 @@ YLambda* newProcedureLambda(int32_t procid, YObject* scope, int32_t* argids,
 		YoyoLambdaSignature* sig, YThread* th) {
 	ProcedureLambda* lmbd = malloc(sizeof(ProcedureLambda));
 
-	initHeapObject(&lmbd->lambda.parent.o, ProcedureLambda_mark,
+	initYoyoObject(&lmbd->lambda.parent.o, ProcedureLambda_mark,
 			ProcedureLambda_free);
 	th->runtime->gc->registrate(th->runtime->gc, &lmbd->lambda.parent.o);
 

@@ -20,7 +20,7 @@
 #include "value.h"
 
 typedef struct YoyoSet {
-	HeapObject o;
+	YoyoObject o;
 
 	void (*add)(struct YoyoSet*, YValue*, YThread*);
 	bool (*contains)(struct YoyoSet*, YValue*, YThread*);
@@ -30,7 +30,7 @@ typedef struct YoyoSet {
 } YoyoSet;
 
 typedef struct YoyoMap {
-	HeapObject o;
+	YoyoObject o;
 
 	YValue* (*get)(struct YoyoMap*, YValue*, YThread*);
 	void (*put)(struct YoyoMap*, YValue*, YValue*, YThread*);

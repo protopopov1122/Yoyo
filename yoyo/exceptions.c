@@ -21,7 +21,7 @@
 
 YValue* Exception_toString(YLambda* l, YValue** args, size_t argc, YThread* th) {
 	YObject* exc = (YObject*) ((NativeLambda*) l)->object;
-	((HeapObject*) exc)->linkc++;
+	((YoyoObject*) exc)->linkc++;
 	YValue* baseVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"base"),
 			th);
 	wchar_t* base_s = toString(baseVal, th);
@@ -35,7 +35,7 @@ YValue* Exception_toString(YLambda* l, YValue** args, size_t argc, YThread* th) 
 	YValue* fileVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"file"),
 			th);
 	wchar_t* file_s = toString(fileVal, th);
-	((HeapObject*) exc)->linkc--;
+	((YoyoObject*) exc)->linkc--;
 
 	const char* fmt = "Exception<%ls> at %ls(%ls : %ls)";
 	size_t size = snprintf(NULL, 0, fmt, base_s, file_s, line_s, chPos_s);
@@ -56,7 +56,7 @@ YValue* Exception_toString(YLambda* l, YValue** args, size_t argc, YThread* th) 
 }
 YValue* TraceFrame_toString(YLambda* l, YValue** args, size_t argc, YThread* th) {
 	YObject* exc = (YObject*) ((NativeLambda*) l)->object;
-	((HeapObject*) exc)->linkc++;
+	((YoyoObject*) exc)->linkc++;
 	YValue* lineVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"line"),
 			th);
 	wchar_t* line_s = toString(lineVal, th);
@@ -66,7 +66,7 @@ YValue* TraceFrame_toString(YLambda* l, YValue** args, size_t argc, YThread* th)
 	YValue* fileVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"file"),
 			th);
 	wchar_t* file_s = toString(fileVal, th);
-	((HeapObject*) exc)->linkc--;
+	((YoyoObject*) exc)->linkc--;
 
 	const char* fmt = "%ls(%ls : %ls)";
 	size_t size = snprintf(NULL, 0, fmt, file_s, line_s, chPos_s);
@@ -125,7 +125,7 @@ YValue* newException(YValue* base, YThread* th) {
 	CodeTableEntry* entry = proc->getCodeTableEntry(proc, pc);
 	if (entry != NULL) {
 		YObject* obj = th->runtime->newObject(NULL, th);
-		((HeapObject*) obj)->linkc++;
+		((YoyoObject*) obj)->linkc++;
 		obj->put(obj, getSymbolId(&th->runtime->symbols, L"base"), base, true,
 				th);
 		obj->put(obj, getSymbolId(&th->runtime->symbols, L"line"),
@@ -138,10 +138,10 @@ YValue* newException(YValue* base, YThread* th) {
 		obj->put(obj, getSymbolId(&th->runtime->symbols,
 		TO_STRING),
 				(YValue*) newNativeLambda(0, Exception_toString,
-						(HeapObject*) obj, th), true, th);
+						(YoyoObject*) obj, th), true, th);
 
 		YArray* trace = newArray(th);
-		((HeapObject*) trace)->linkc++;
+		((YoyoObject*) trace)->linkc++;
 		obj->put(obj, getSymbolId(&th->runtime->symbols, L"trace"),
 				(YValue*) trace, true, th);
 		ExecutionFrame* frame = th->frame;
@@ -154,7 +154,7 @@ YValue* newException(YValue* base, YThread* th) {
 			CodeTableEntry* nentry = proc->getCodeTableEntry(nproc, frame->pc);
 			if (nentry != NULL) {
 				YObject* frobj = th->runtime->newObject(NULL, th);
-				((HeapObject*) frobj)->linkc++;
+				((YoyoObject*) frobj)->linkc++;
 				trace->add(trace, (YValue*) frobj, th);
 				frobj->put(frobj, getSymbolId(&th->runtime->symbols, L"line"),
 						newInteger(nentry->line, th), true, th);
@@ -167,15 +167,15 @@ YValue* newException(YValue* base, YThread* th) {
 										nentry->file), th), true, th);
 				frobj->put(frobj, getSymbolId(&th->runtime->symbols, TO_STRING),
 						(YValue*) newNativeLambda(0, TraceFrame_toString,
-								(HeapObject*) frobj, th), true, th);
-				((HeapObject*) frobj)->linkc--;
+								(YoyoObject*) frobj, th), true, th);
+				((YoyoObject*) frobj)->linkc--;
 			}
 			frame = frame->prev;
 		}
-		((HeapObject*) trace)->linkc--;
+		((YoyoObject*) trace)->linkc--;
 		trace->toString = Trace_toString;
 
-		((HeapObject*) obj)->linkc--;
+		((YoyoObject*) obj)->linkc--;
 		MUTEX_UNLOCK(&th->runtime->runtime_mutex);
 		return (YValue*) obj;
 	}

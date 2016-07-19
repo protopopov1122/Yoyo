@@ -16,10 +16,10 @@
 
 #include "../headers/yoyo/gc.h"
 
-HeapObject* initHeapObject(HeapObject* o, void (*mark)(HeapObject*),
-		void (*hfree)(HeapObject*)) {
+YoyoObject* initYoyoObject(YoyoObject* o, void (*mark)(YoyoObject*),
+		void (*hfree)(YoyoObject*)) {
 	if (o == NULL)
-		o = malloc(sizeof(HeapObject));
+		o = malloc(sizeof(YoyoObject));
 	o->marked = false;
 	o->linkc = 0;
 	o->free = hfree;
@@ -32,7 +32,7 @@ HeapObject* initHeapObject(HeapObject* o, void (*mark)(HeapObject*),
 typedef struct PlainGC {
 	GarbageCollector gc;
 
-	HeapObject** objects;
+	YoyoObject** objects;
 	size_t used;
 	size_t size;
 } PlainGC;
@@ -40,7 +40,7 @@ typedef struct PlainGC {
 void plain_gc_collect(GarbageCollector* _gc) {
 	PlainGC* gc = (PlainGC*) _gc;
 	const clock_t MAX_AGE = CLOCKS_PER_SEC;
-	HeapObject** newHeap = malloc(gc->size * sizeof(HeapObject*)); /* Pointers to all necesarry objects are
+	YoyoObject** newHeap = malloc(gc->size * sizeof(YoyoObject*)); /* Pointers to all necesarry objects are
 	 moved to another memory area to
 	 prevent pointer array fragmentation*/
 	size_t nextIndex = 0;
@@ -66,14 +66,14 @@ void plain_gc_collect(GarbageCollector* _gc) {
 
 	if (gc->used * 2.5 < gc->size && gc->used > 1000) {
 		gc->size = gc->used * 2.5;
-		newHeap = realloc(newHeap, gc->size * sizeof(HeapObject*));
+		newHeap = realloc(newHeap, gc->size * sizeof(YoyoObject*));
 	}
-	memset(&newHeap[gc->used], 0, sizeof(HeapObject*) * (gc->size - gc->used));
+	memset(&newHeap[gc->used], 0, sizeof(YoyoObject*) * (gc->size - gc->used));
 	free(gc->objects);
 	gc->objects = newHeap;
 }
 
-void plain_gc_mark(GarbageCollector* _gc, HeapObject** roots, size_t rootc) {
+void plain_gc_mark(GarbageCollector* _gc, YoyoObject** roots, size_t rootc) {
 	PlainGC* gc = (PlainGC*) _gc;
 	for (size_t i = 0; i < gc->size; i++) {
 		if (gc->objects[i] != NULL)
@@ -94,7 +94,7 @@ void plain_gc_free(GarbageCollector* _gc) {
 	free(gc);
 }
 
-void plain_gc_registrate(GarbageCollector* _gc, HeapObject* o) {
+void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 	PlainGC* gc = (PlainGC*) _gc;
 	MUTEX_LOCK(&gc->gc.access_mutex);
 	bool all = false;
@@ -107,9 +107,9 @@ void plain_gc_registrate(GarbageCollector* _gc, HeapObject* o) {
 	}
 	if (!all) {
 		size_t newSize = gc->size + gc->size / 10;
-		gc->objects = realloc(gc->objects, sizeof(HeapObject*) * newSize);
+		gc->objects = realloc(gc->objects, sizeof(YoyoObject*) * newSize);
 		memset(&gc->objects[gc->size + 1], 0,
-				sizeof(HeapObject*) * (newSize - gc->size - 1));
+				sizeof(YoyoObject*) * (newSize - gc->size - 1));
 		gc->objects[gc->size] = o;
 		gc->size = newSize;
 	}
@@ -121,7 +121,7 @@ GarbageCollector* newPlainGC(size_t isize) {
 
 	gc->size = isize;
 	gc->used = 0;
-	gc->objects = calloc(1, sizeof(HeapObject*) * isize);
+	gc->objects = calloc(1, sizeof(YoyoObject*) * isize);
 	NEW_MUTEX(&gc->gc.access_mutex);
 	gc->gc.collect = plain_gc_collect;
 	gc->gc.free = plain_gc_free;
@@ -129,9 +129,9 @@ GarbageCollector* newPlainGC(size_t isize) {
 
 	return (GarbageCollector*) gc;
 }
-void markAtomic(HeapObject* o) {
+void markAtomic(YoyoObject* o) {
 	o->marked = true;
 }
-HeapObject* initAtomicHeapObject(HeapObject* o, void (*ofree)(HeapObject*)) {
-	return initHeapObject(o, markAtomic, ofree);
+YoyoObject* initAtomicYoyoObject(YoyoObject* o, void (*ofree)(YoyoObject*)) {
+	return initYoyoObject(o, markAtomic, ofree);
 }

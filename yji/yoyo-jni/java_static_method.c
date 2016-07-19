@@ -13,7 +13,7 @@
 
 #include "yoyo-jni/yoyo-jni.h"
 
-void JavaStaticMethod_mark(HeapObject* ptr) {
+void JavaStaticMethod_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 }
 YValue* JavaStaticMethod_exec(YLambda* l, YValue** args, size_t argc,
@@ -57,9 +57,9 @@ YLambda* newJavaStaticMethod(jobject java_static_method,
 	yenv->getJNIEnv(yenv, &env);
 	(*env)->PushLocalFrame(env, 10);
 	JavaStaticMethod* method = malloc(sizeof(JavaStaticMethod));
-	initHeapObject((HeapObject*) method, JavaStaticMethod_mark,
+	initYoyoObject((YoyoObject*) method, JavaStaticMethod_mark,
 			JavaStaticMethod_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) method);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) method);
 	method->lambda.parent.type = &th->runtime->LambdaType;
 	method->yenv = yenv;
 	method->java_static_method = (*env)->NewGlobalRef(env, java_static_method);
@@ -69,7 +69,7 @@ YLambda* newJavaStaticMethod(jobject java_static_method,
 	(*env)->PopLocalFrame(env, NULL);
 	return (YLambda*) method;
 }
-void JavaStaticMethod_free(HeapObject* ptr) {
+void JavaStaticMethod_free(YoyoObject* ptr) {
 	JavaStaticMethod* method = (JavaStaticMethod*) ptr;
 	JNIDefaultEnvironment* yenv = method->yenv;
 	JNIEnv* env;

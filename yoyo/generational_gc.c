@@ -33,7 +33,7 @@
  * 	pool is reallocated*/
 
 typedef struct ObjectGeneration {
-	HeapObject** pool;
+	YoyoObject** pool;
 	size_t size;
 	size_t capacity;
 	bool need_gc;
@@ -60,17 +60,17 @@ void GenerationalGC_free(GarbageCollector* _gc) {
 	free(gc);
 }
 
-void generation_registrate(ObjectGeneration* gen, HeapObject* ptr) {
+void generation_registrate(ObjectGeneration* gen, YoyoObject* ptr) {
 	ptr->cycle = 0;
 	if (gen->size + 2 >= gen->capacity) {
 		gen->capacity = gen->capacity * 1.1 + 100;
-		gen->pool = realloc(gen->pool, sizeof(HeapObject*) * gen->capacity);
+		gen->pool = realloc(gen->pool, sizeof(YoyoObject*) * gen->capacity);
 		gen->need_gc = true;
 	}
 	gen->pool[gen->size++] = ptr;
 }
 
-void GenerationalGC_registrate(GarbageCollector* _gc, HeapObject* ptr) {
+void GenerationalGC_registrate(GarbageCollector* _gc, YoyoObject* ptr) {
 	MUTEX_LOCK(&_gc->access_mutex);
 	GenerationalGC* gc = (GenerationalGC*) _gc;
 	generation_registrate(&gc->generations[0], ptr);
@@ -82,10 +82,10 @@ void generation_collect(GenerationalGC* gc, ObjectGeneration* gen) {
 		return;
 	const clock_t MAX_AGE = CLOCKS_PER_SEC;
 	gen->need_gc = false;
-	HeapObject** newPool = malloc(sizeof(HeapObject*) * gen->capacity);
+	YoyoObject** newPool = malloc(sizeof(YoyoObject*) * gen->capacity);
 	size_t newSize = 0;
 	for (size_t i = 0; i < gen->size; i++) {
-		HeapObject* ptr = gen->pool[i];
+		YoyoObject* ptr = gen->pool[i];
 		if ((!ptr->marked) && ptr->linkc == 0
 				&& clock() - ptr->age >= MAX_AGE) {
 			ptr->free(ptr);
@@ -104,7 +104,7 @@ void generation_collect(GenerationalGC* gc, ObjectGeneration* gen) {
 	gen->size = newSize;
 	if (gen->size * 2 < gen->capacity && gen->capacity > 1000) {
 		gen->capacity = gen->size * 2;
-		gen->pool = realloc(gen->pool, sizeof(HeapObject*) * gen->capacity);
+		gen->pool = realloc(gen->pool, sizeof(YoyoObject*) * gen->capacity);
 	}
 }
 
@@ -125,7 +125,7 @@ GarbageCollector* newGenerationalGC(size_t gen_cap, uint16_t step) {
 		gc->generations[i].capacity = gen_cap;
 		gc->generations[i].size = 0;
 		gc->generations[i].need_gc = false;
-		gc->generations[i].pool = malloc(sizeof(HeapObject*) * gen_cap);
+		gc->generations[i].pool = malloc(sizeof(YoyoObject*) * gen_cap);
 		gc->generations[i].next_gen =
 				i + 1 < gc->generation_count ? &gc->generations[i + 1] : NULL;
 	}

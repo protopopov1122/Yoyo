@@ -18,7 +18,7 @@ YOYO_FUNCTION(YSTD_TIME_DATE) {
 	time_t t = (time_t) getInteger(args[0]);
 	struct tm* ctm = localtime(&t);
 	YObject* ytm = th->runtime->newObject(NULL, th);
-	((HeapObject*) ytm)->linkc++;
+	((YoyoObject*) ytm)->linkc++;
 
 	ADD_FIELD(ytm, L"day", newInteger(ctm->tm_mday, th), th);
 	ADD_FIELD(ytm, L"month", newInteger(ctm->tm_mon + 1, th), th);
@@ -28,7 +28,7 @@ YOYO_FUNCTION(YSTD_TIME_DATE) {
 	ADD_FIELD(ytm, L"hour", newInteger(ctm->tm_hour, th), th);
 	ADD_FIELD(ytm, L"time", args[0], th);
 
-	((HeapObject*) ytm)->linkc--;
+	((YoyoObject*) ytm)->linkc--;
 	return (YValue*) ytm;
 }
 
@@ -36,7 +36,7 @@ YOYO_FUNCTION(YSTD_TIME_GMDATE) {
 	time_t t = (time_t) getInteger(args[0]);
 	struct tm* ctm = gmtime(&t);
 	YObject* ytm = th->runtime->newObject(NULL, th);
-	((HeapObject*) ytm)->linkc++;
+	((YoyoObject*) ytm)->linkc++;
 
 	ADD_FIELD(ytm, L"day", newInteger(ctm->tm_mday, th), th);
 	ADD_FIELD(ytm, L"month", newInteger(ctm->tm_mon + 1, th), th);
@@ -46,6 +46,6 @@ YOYO_FUNCTION(YSTD_TIME_GMDATE) {
 	ADD_FIELD(ytm, L"hour", newInteger(ctm->tm_hour, th), th);
 	ADD_FIELD(ytm, L"time", args[0], th);
 
-	((HeapObject*) ytm)->linkc--;
+	((YoyoObject*) ytm)->linkc--;
 	return (YValue*) ytm;
 }

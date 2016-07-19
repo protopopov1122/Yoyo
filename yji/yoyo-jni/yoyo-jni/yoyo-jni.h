@@ -73,18 +73,18 @@ typedef struct JavaStaticMethod {
 } JavaStaticMethod;
 
 YObject* newJavaObject(jobject, JNIDefaultEnvironment*, YThread*);
-void JavaObject_free(HeapObject* ptr);
+void JavaObject_free(YoyoObject* ptr);
 
 YLambda* newJavaMethod(jobject, JNIDefaultEnvironment*, YThread*);
-void JavaMethod_free(HeapObject* ptr);
+void JavaMethod_free(YoyoObject* ptr);
 
 YArray* newJavaArray(jobject, JNIDefaultEnvironment*, YThread*);
-void JavaArray_free(HeapObject* ptr);
+void JavaArray_free(YoyoObject* ptr);
 
 YObject* newJavaClass(jobject, JNIDefaultEnvironment*, YThread*);
-void JavaClass_free(HeapObject* ptr);
+void JavaClass_free(YoyoObject* ptr);
 
 YLambda* newJavaStaticMethod(jobject, JNIDefaultEnvironment*, YThread*);
-void JavaStaticMethod_free(HeapObject* ptr);
+void JavaStaticMethod_free(YoyoObject* ptr);
 
 #endif

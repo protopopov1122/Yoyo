@@ -150,7 +150,7 @@ void Runtime_wait(YRuntime* runtime) {
  * If lambda is variable argument then create array of last arguments.
  * Invoke lambda.*/
 YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
-	((HeapObject*) l)->linkc++; // To prevent lambda garbage collection
+	((YoyoObject*) l)->linkc++; // To prevent lambda garbage collection
 	YValue** args = NULL;
 
 	/*Check if argument count equals lambda argument count and
@@ -158,7 +158,7 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 	if (l->sig->argc != argc && l->sig->argc != -1) {
 		if (!(l->sig->vararg && l->sig->argc - 1 <= argc)) {
 			throwException(L"LambdaArgumentMismatch", NULL, 0, th);
-			((HeapObject*) l)->linkc--;
+			((YoyoObject*) l)->linkc--;
 			return getNull(th);
 		}
 	}
@@ -189,7 +189,7 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 				throwException(L"Wrong argument type", &wstr, 1, th);
 				free(wstr);
 				free(args);
-				((HeapObject*) l)->linkc--;
+				((YoyoObject*) l)->linkc--;
 				return getNull(th);
 			}
 		}
@@ -198,7 +198,7 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 	// Invoke lambda
 	YValue* out = l->execute(l, args, l->sig->argc != -1 ? l->sig->argc : argc,
 			th);
-	((HeapObject*) l)->linkc--;
+	((YoyoObject*) l)->linkc--;
 	free(args);
 	return out;
 }
@@ -245,7 +245,7 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->Constants.pool = th->runtime->newObject(NULL, th);
 	runtime->AbstractObject = th->runtime->newObject(NULL, th);
 	ADD_FIELD(runtime->global_scope, L"sys",
-			yili_getSystem(runtime->CoreThread), th);
+			Yoyo_SystemObject(runtime->CoreThread), th);
 
 	NEW_THREAD(&runtime->gc_thread, GCThread, runtime);
 

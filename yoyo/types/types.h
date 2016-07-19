@@ -23,7 +23,7 @@
 #define CHECK_TYPE(t1, v1, v2) (v1->type->type==t1||v2->type->type==t1)
 
 #define NEW_PROPERTY(name, prop) if (key==getSymbolId(&th->runtime->symbols, name)) return prop;
-#define NEW_METHOD(name, proc, argc, ptr) NEW_PROPERTY(name, (YValue*) newNativeLambda(argc, proc, (HeapObject*) ptr, th))
+#define NEW_METHOD(name, proc, argc, ptr) NEW_PROPERTY(name, (YValue*) newNativeLambda(argc, proc, (YoyoObject*) ptr, th))
 
 void Int_type_init(YRuntime*);
 void Float_type_init(YRuntime*);

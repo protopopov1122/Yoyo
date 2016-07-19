@@ -22,7 +22,7 @@
 #include "../yoyo/runtime.h"
 
 typedef struct YValue {
-	HeapObject o;
+	YoyoObject o;
 	YType* type;
 } YValue;
 
@@ -109,7 +109,7 @@ YObject* newComplexObject(YObject*, YObject**, size_t, YThread*);
 YArray* newArray(YThread* th);
 
 YLambda* newNativeLambda(size_t,
-		YValue* (*)(YLambda*, YValue**, size_t, YThread*), HeapObject*,
+		YValue* (*)(YLambda*, YValue**, size_t, YThread*), YoyoObject*,
 		YThread*);
 YLambda* newOverloadedLambda(YLambda**, size_t, YLambda*, YThread*);
 typedef struct YoyoType {
@@ -160,7 +160,7 @@ YoyoType* newNotNullType(YoyoType*, YThread*);
 typedef struct NativeLambda {
 	YLambda lambda;
 
-	HeapObject* object;
+	YoyoObject* object;
 } NativeLambda;
 
 typedef struct YRawPointer {

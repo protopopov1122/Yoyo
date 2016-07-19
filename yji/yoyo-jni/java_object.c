@@ -13,10 +13,10 @@
 
 #include "yoyo-jni/yoyo-jni.h"
 
-void JavaObject_mark(HeapObject* ptr) {
+void JavaObject_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 }
-void JavaObject_free(HeapObject* ptr) {
+void JavaObject_free(YoyoObject* ptr) {
 	JavaObject* object = (JavaObject*) ptr;
 	JNIDefaultEnvironment* yenv = object->yenv;
 	JNIEnv* env;
@@ -88,8 +88,8 @@ YObject* newJavaObject(jobject jobj, JNIDefaultEnvironment* yenv, YThread* th) {
 	JNIEnv* env;
 	yenv->getJNIEnv(yenv, &env);
 	JavaObject* object = malloc(sizeof(JavaObject));
-	initHeapObject((HeapObject*) object, JavaObject_mark, JavaObject_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) object);
+	initYoyoObject((YoyoObject*) object, JavaObject_mark, JavaObject_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) object);
 
 	object->yenv = yenv;
 	object->java_object = (*env)->NewGlobalRef(env, jobj);

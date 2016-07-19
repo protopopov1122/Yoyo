@@ -37,17 +37,17 @@ bool AtomicType_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 					&& ((AtomicType*) t2)->atomic == ((AtomicType*) t1)->atomic);
 }
 
-void AtomicType_mark(HeapObject* ptr) {
+void AtomicType_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 }
-void AtomicType_free(HeapObject* ptr) {
+void AtomicType_free(YoyoObject* ptr) {
 	free(ptr);
 }
 
 YoyoType* newAtomicType(ValueType a, YThread* th) {
 	AtomicType* type = calloc(1, sizeof(AtomicType));
-	initHeapObject((HeapObject*) type, AtomicType_mark, AtomicType_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) type);
+	initYoyoObject((YoyoObject*) type, AtomicType_mark, AtomicType_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) type);
 	type->type.parent.type = &th->runtime->DeclarationType;
 
 	type->atomic = a;
@@ -147,7 +147,7 @@ bool Interface_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 	return true;
 }
 
-void InterfaceType_mark(HeapObject* ptr) {
+void InterfaceType_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YoyoInterface* i = (YoyoInterface*) ptr;
 	for (size_t j = 0; j < i->parent_count; j++)
@@ -155,7 +155,7 @@ void InterfaceType_mark(HeapObject* ptr) {
 	for (size_t j = 0; j < i->attr_count; j++)
 		MARK(i->attrs[j].type);
 }
-void InterfaceType_free(HeapObject* t) {
+void InterfaceType_free(YoyoObject* t) {
 	YoyoInterface* i = (YoyoInterface*) t;
 	free(i->parents);
 	free(i->attrs);
@@ -166,8 +166,8 @@ void InterfaceType_free(HeapObject* t) {
 YoyoType* newInterface(YoyoInterface** parents, size_t pcount,
 		YoyoAttribute* attrs, size_t count, YThread* th) {
 	YoyoInterface* i = calloc(1, sizeof(YoyoInterface));
-	initHeapObject((HeapObject*) i, InterfaceType_mark, InterfaceType_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) i);
+	initYoyoObject((YoyoObject*) i, InterfaceType_mark, InterfaceType_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) i);
 	i->type.parent.type = &th->runtime->DeclarationType;
 
 	size_t realPCount = 0;
@@ -222,13 +222,13 @@ typedef struct YoyoTypeMix {
 	size_t length;
 } YoyoTypeMix;
 
-void TypeMix_mark(HeapObject* ptr) {
+void TypeMix_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YoyoTypeMix* mix = (YoyoTypeMix*) ptr;
 	for (size_t i = 0; i < mix->length; i++)
 		MARK(mix->types[i]);
 }
-void TypeMix_free(HeapObject* ptr) {
+void TypeMix_free(YoyoObject* ptr) {
 	YoyoTypeMix* mix = (YoyoTypeMix*) ptr;
 	free(mix->type.string);
 	free(mix->types);
@@ -261,8 +261,8 @@ bool TypeMix_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 
 YoyoType* newTypeMix(YoyoType** types, size_t len, YThread* th) {
 	YoyoTypeMix* mix = malloc(sizeof(YoyoTypeMix));
-	initHeapObject((HeapObject*) mix, TypeMix_mark, TypeMix_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) mix);
+	initYoyoObject((YoyoObject*) mix, TypeMix_mark, TypeMix_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) mix);
 	mix->type.parent.type = &th->runtime->DeclarationType;
 
 	StringBuilder* sb = newStringBuilder(L"");
@@ -291,13 +291,13 @@ typedef struct ArrayType {
 	size_t count;
 } ArrayType;
 
-void ArrayType_mark(HeapObject* ptr) {
+void ArrayType_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ArrayType* arr = (ArrayType*) ptr;
 	for (size_t i = 0; i < arr->count; i++)
 		MARK(arr->types[i]);
 }
-void ArrayType_free(HeapObject* ptr) {
+void ArrayType_free(YoyoObject* ptr) {
 	ArrayType* arr = (ArrayType*) ptr;
 	free(arr->types);
 	free(arr->type.string);
@@ -338,8 +338,8 @@ bool ArrayType_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 
 YoyoType* newArrayType(YoyoType** types, size_t count, YThread* th) {
 	ArrayType* arr = malloc(sizeof(ArrayType));
-	initHeapObject((HeapObject*) arr, ArrayType_mark, ArrayType_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) arr);
+	initYoyoObject((YoyoObject*) arr, ArrayType_mark, ArrayType_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) arr);
 	arr->type.parent.type = &th->runtime->DeclarationType;
 
 	StringBuilder* sb = newStringBuilder(L"[");
@@ -363,14 +363,14 @@ YoyoType* newArrayType(YoyoType** types, size_t count, YThread* th) {
 	return (YoyoType*) arr;
 }
 
-void LambdaSignature_mark(HeapObject* ptr) {
+void LambdaSignature_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YoyoLambdaSignature* sig = (YoyoLambdaSignature*) ptr;
 	MARK(sig->ret);
 	for (int32_t i = 0; i < sig->argc; i++)
 		MARK(sig->args[i]);
 }
-void LambdaSignature_free(HeapObject* ptr) {
+void LambdaSignature_free(YoyoObject* ptr) {
 	YoyoLambdaSignature* sig = (YoyoLambdaSignature*) ptr;
 	free(sig->args);
 	free(sig->type.string);
@@ -406,9 +406,9 @@ bool LambdaSignature_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 YoyoLambdaSignature* newLambdaSignature(int32_t argc, bool vararg,
 		YoyoType** args, YoyoType* ret, YThread* th) {
 	YoyoLambdaSignature* sig = calloc(1, sizeof(YoyoLambdaSignature));
-	initHeapObject((HeapObject*) sig, LambdaSignature_mark,
+	initYoyoObject((YoyoObject*) sig, LambdaSignature_mark,
 			LambdaSignature_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) sig);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) sig);
 	sig->type.parent.type = &th->runtime->DeclarationType;
 
 	sig->type.verify = LambdaSignature_verify;
@@ -451,12 +451,12 @@ typedef struct NotNullType {
 
 	YoyoType* ytype;
 } NotNullType;
-void NotNull_mark(HeapObject* ptr) {
+void NotNull_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	NotNullType* nnt = (NotNullType*) ptr;
 	MARK(nnt->ytype);
 }
-void NotNull_free(HeapObject* ptr) {
+void NotNull_free(YoyoObject* ptr) {
 	free(ptr);
 }
 bool NotNull_verify(YoyoType* t, YValue* val, YThread* th) {
@@ -482,8 +482,8 @@ bool NotNull_compatible(YoyoType* t, YoyoType* t2, YThread* th) {
 
 YoyoType* newNotNullType(YoyoType* type, YThread* th) {
 	NotNullType* nnt = malloc(sizeof(NotNullType));
-	initHeapObject((HeapObject*) nnt, NotNull_mark, NotNull_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) nnt);
+	initYoyoObject((YoyoObject*) nnt, NotNull_mark, NotNull_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) nnt);
 	nnt->type.parent.type = &th->runtime->DeclarationType;
 
 	nnt->ytype = type;

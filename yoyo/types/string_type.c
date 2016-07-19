@@ -49,12 +49,12 @@ typedef struct CharSequence {
 
 	YString* str;
 } CharSequence;
-void CharSequence_mark(HeapObject* ptr) {
+void CharSequence_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	CharSequence* seq = (CharSequence*) ptr;
 	MARK(seq->str);
 }
-void CharSequence_free(HeapObject* ptr) {
+void CharSequence_free(YoyoObject* ptr) {
 	free(ptr);
 }
 size_t CharSequence_size(YArray* a, YThread* th) {
@@ -111,8 +111,8 @@ void CharSequence_remove(YArray* a, size_t index, YThread* th) {
 
 YArray* newCharSequence(YString* str, YThread* th) {
 	CharSequence* cseq = malloc(sizeof(CharSequence));
-	initHeapObject((HeapObject*) cseq, CharSequence_mark, CharSequence_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) cseq);
+	initYoyoObject((YoyoObject*) cseq, CharSequence_mark, CharSequence_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) cseq);
 	cseq->array.parent.type = &th->runtime->ArrayType;
 
 	cseq->str = str;

@@ -40,15 +40,15 @@ typedef struct YoyoHashMap {
 	MUTEX map_mutex;
 } YoyoHashMap;
 
-void YoyoHashMap_mark(HeapObject* ptr) {
+void YoyoHashMap_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YoyoHashMap* map = (YoyoHashMap*) ptr;
 	MUTEX_LOCK(&map->map_mutex);
 	for (size_t i = 0; i < map->size; i++) {
 		YoyoHashMapEntry* entry = map->entries[i];
 		while (entry != NULL) {
-			HeapObject* ko = (HeapObject*) entry->key;
-			HeapObject* vo = (HeapObject*) entry->value;
+			YoyoObject* ko = (YoyoObject*) entry->key;
+			YoyoObject* vo = (YoyoObject*) entry->value;
 			MARK(ko);
 			MARK(vo);
 			entry = entry->next;
@@ -56,7 +56,7 @@ void YoyoHashMap_mark(HeapObject* ptr) {
 	}
 	MUTEX_UNLOCK(&map->map_mutex);
 }
-void YoyoHashMap_free(HeapObject* ptr) {
+void YoyoHashMap_free(YoyoObject* ptr) {
 	YoyoHashMap* map = (YoyoHashMap*) ptr;
 	for (size_t i = 0; i < map->size; i++) {
 		YoyoHashMapEntry* entry = map->entries[i];
@@ -249,16 +249,16 @@ bool YoyoKeySet_contains(YoyoSet* s, YValue* v, YThread* th) {
 	YoyoKeySet* set = (YoyoKeySet*) s;
 	return set->map->contains(set->map, v, th);
 }
-void YoyoSetIter_mark(HeapObject* ptr) {
+void YoyoSetIter_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YoyoSetIter* iter = (YoyoSetIter*) ptr;
 	MARK(iter->set);
 }
 YoyoIterator* YoyoSet_iter(YoyoSet* s, YThread* th) {
 	YoyoSetIter* iter = malloc(sizeof(YoyoSetIter));
-	initHeapObject((HeapObject*) iter, YoyoSetIter_mark,
-			(void (*)(HeapObject*)) free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) iter);
+	initYoyoObject((YoyoObject*) iter, YoyoSetIter_mark,
+			(void (*)(YoyoObject*)) free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) iter);
 
 	iter->set = s;
 	iter->index = 0;
@@ -278,17 +278,17 @@ YValue* YoyoKeySet_entry(YoyoSet* s, size_t index, YThread* th) {
 	YoyoKeySet* set = (YoyoKeySet*) s;
 	return set->map->key(set->map, index, th);
 }
-void YoyoKeySet_mark(HeapObject* ptr) {
+void YoyoKeySet_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YoyoKeySet* set = (YoyoKeySet*) ptr;
-	HeapObject* ho = (HeapObject*) set->map;
+	YoyoObject* ho = (YoyoObject*) set->map;
 	MARK(ho);
 }
 YoyoSet* YoyoMap_keySet(YoyoMap* map, YThread* th) {
 	YoyoKeySet* set = malloc(sizeof(YoyoKeySet));
-	initHeapObject((HeapObject*) set, YoyoKeySet_mark,
-			(void (*)(HeapObject*)) free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) set);
+	initYoyoObject((YoyoObject*) set, YoyoKeySet_mark,
+			(void (*)(YoyoObject*)) free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) set);
 
 	set->map = map;
 	set->set.add = YoyoKeySet_add;
@@ -305,8 +305,8 @@ void YoyoHashSet_add(YoyoSet* s, YValue* v, YThread* th) {
 
 YoyoMap* newHashMap(YThread* th) {
 	YoyoHashMap* map = malloc(sizeof(YoyoHashMap));
-	initHeapObject((HeapObject*) map, YoyoHashMap_mark, YoyoHashMap_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) map);
+	initYoyoObject((YoyoObject*) map, YoyoHashMap_mark, YoyoHashMap_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) map);
 
 	map->size = 3;
 	map->full_size = 0;
@@ -347,17 +347,17 @@ typedef struct YList {
 	size_t length;
 } YList;
 
-void List_mark(HeapObject* ptr) {
+void List_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YList* list = (YList*) ptr;
 	ListEntry* e = list->list;
 	while (e != NULL) {
-		HeapObject* ho = (HeapObject*) e->value;
+		YoyoObject* ho = (YoyoObject*) e->value;
 		MARK(ho);
 		e = e->next;
 	}
 }
-void List_free(HeapObject* ptr) {
+void List_free(YoyoObject* ptr) {
 	YList* list = (YList*) ptr;
 	ListEntry* e = list->list;
 	while (e != NULL) {
@@ -481,8 +481,8 @@ void List_remove(YArray* a, size_t index, YThread* th) {
 
 YArray* newList(YThread* th) {
 	YList* list = malloc(sizeof(YList));
-	initHeapObject((HeapObject*) list, List_mark, List_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) list);
+	initYoyoObject((YoyoObject*) list, List_mark, List_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) list);
 	list->array.parent.type = &th->runtime->ArrayType;
 
 	list->length = 0;

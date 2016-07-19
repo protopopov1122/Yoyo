@@ -33,7 +33,7 @@ typedef struct DefaultArray {
 	MUTEX access_mutex;
 } DefaultArray;
 
-void DefaultArray_mark(HeapObject* ptr) {
+void DefaultArray_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	DefaultArray* arr = (DefaultArray*) ptr;
 	for (size_t i = 0; i < arr->size; i++) {
@@ -41,7 +41,7 @@ void DefaultArray_mark(HeapObject* ptr) {
 			MARK(arr->array[i]);
 	}
 }
-void DefaultArray_free(HeapObject* ptr) {
+void DefaultArray_free(YoyoObject* ptr) {
 	DefaultArray* arr = (DefaultArray*) ptr;
 	DESTROY_MUTEX(&arr->access_mutex);
 	free(arr->array);
@@ -135,10 +135,10 @@ typedef struct ArrayIterator {
 	YArray* array;
 	size_t index;
 } ArrayIterator;
-void ArrayIterator_mark(HeapObject* ptr) {
+void ArrayIterator_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ArrayIterator* iter = (ArrayIterator*) ptr;
-	HeapObject* ho = (HeapObject*) iter->array;
+	YoyoObject* ho = (YoyoObject*) iter->array;
 	MARK(ho);
 }
 void ArrayIterator_reset(YoyoIterator* i, YThread* th) {
@@ -157,9 +157,9 @@ YValue* ArrayIterator_next(YoyoIterator* i, YThread* th) {
 }
 YoyoIterator* Array_iter(YArray* array, YThread* th) {
 	ArrayIterator* iter = malloc(sizeof(ArrayIterator));
-	initHeapObject((HeapObject*) iter, ArrayIterator_mark,
-			(void (*)(HeapObject*)) free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) iter);
+	initYoyoObject((YoyoObject*) iter, ArrayIterator_mark,
+			(void (*)(YoyoObject*)) free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) iter);
 	iter->array = array;
 	iter->index = 0;
 	iter->iter.reset = ArrayIterator_reset;
@@ -173,8 +173,8 @@ YoyoIterator* Array_iter(YArray* array, YThread* th) {
 
 YArray* newArray(YThread* th) {
 	DefaultArray* arr = malloc(sizeof(DefaultArray));
-	initHeapObject(&arr->parent.parent.o, DefaultArray_mark, DefaultArray_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) arr);
+	initYoyoObject(&arr->parent.parent.o, DefaultArray_mark, DefaultArray_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) arr);
 	arr->parent.parent.type = &th->runtime->ArrayType;
 	arr->size = 0;
 	arr->capacity = 10;

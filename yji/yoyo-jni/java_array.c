@@ -13,7 +13,7 @@
 
 #include "yoyo-jni/yoyo-jni.h"
 
-void JavaArray_mark(HeapObject* ptr) {
+void JavaArray_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 }
 
@@ -88,8 +88,8 @@ YArray* newJavaArray(jobject java_array, JNIDefaultEnvironment* yenv,
 	yenv->getJNIEnv(yenv, &env);
 	(*env)->PushLocalFrame(env, 10);
 	JavaArray* array = malloc(sizeof(JavaArray));
-	initHeapObject((HeapObject*) array, JavaArray_mark, JavaArray_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) array);
+	initYoyoObject((YoyoObject*) array, JavaArray_mark, JavaArray_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) array);
 	array->array.parent.type = &th->runtime->ArrayType;
 	array->yenv = yenv;
 	array->java_array = (*env)->NewGlobalRef(env, java_array);
@@ -105,7 +105,7 @@ YArray* newJavaArray(jobject java_array, JNIDefaultEnvironment* yenv,
 	(*env)->PopLocalFrame(env, NULL);
 	return (YArray*) array;
 }
-void JavaArray_free(HeapObject* ptr) {
+void JavaArray_free(YoyoObject* ptr) {
 	JavaArray* array = (JavaArray*) ptr;
 	JNIDefaultEnvironment* yenv = array->yenv;
 	JNIEnv* env;

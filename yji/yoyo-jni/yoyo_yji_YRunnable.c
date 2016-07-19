@@ -54,12 +54,12 @@ JNIEXPORT jobject JNICALL Java_yoyo_yji_YRunnable__1invoke(JNIEnv *env,
 
 JNIEXPORT void JNICALL Java_yoyo_yji_YRunnable_init(JNIEnv *env,
 		jobject yrunnable) {
-	HeapObject* ptr = (HeapObject*) getLambdaFromYRunnable(env, yrunnable);
+	YoyoObject* ptr = (YoyoObject*) getLambdaFromYRunnable(env, yrunnable);
 	ptr->linkc++;
 }
 
 JNIEXPORT void JNICALL Java_yoyo_yji_YRunnable_destroy(JNIEnv *env,
 		jobject yrunnable) {
-	HeapObject* ptr = (HeapObject*) getLambdaFromYRunnable(env, yrunnable);
+	YoyoObject* ptr = (YoyoObject*) getLambdaFromYRunnable(env, yrunnable);
 	ptr->linkc--;
 }

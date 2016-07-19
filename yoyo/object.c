@@ -323,14 +323,14 @@ YoyoType* TreeObject_getType(YObject* o, int32_t key, YThread* th) {
 	return th->runtime->NullType.TypeConstant;
 }
 
-void TreeObject_mark(HeapObject* ptr) {
+void TreeObject_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	TreeObject* obj = (TreeObject*) ptr;
 	if (obj->super != NULL)
 		MARK(obj->super);
 	Leave_mark(obj->root);
 }
-void TreeObject_free(HeapObject* ptr) {
+void TreeObject_free(YoyoObject* ptr) {
 	TreeObject* obj = (TreeObject*) ptr;
 	DESTROY_MUTEX(&obj->access_mutex);
 	Leave_free(obj->root);
@@ -526,24 +526,24 @@ YoyoType* HashMapObject_getType(YObject* o, int32_t key, YThread* th) {
 	return th->runtime->NullType.TypeConstant;
 }
 
-void HashMapObject_mark(HeapObject* ptr) {
+void HashMapObject_mark(YoyoObject* ptr) {
 	HashMapObject* obj = (HashMapObject*) ptr;
 	ptr->marked = true;
 	if (obj->super != NULL) {
-		HeapObject* super = (HeapObject*) obj->super;
+		YoyoObject* super = (YoyoObject*) obj->super;
 		MARK(super);
 	}
 	for (size_t i = 0; i < obj->map_size; i++) {
 		AOEntry* entry = obj->map[i];
 		while (entry != NULL) {
-			HeapObject* ho = (HeapObject*) entry->value;
+			YoyoObject* ho = (YoyoObject*) entry->value;
 			MARK(ho);
 			entry = entry->next;
 		}
 	}
 }
 
-void HashMapObject_free(HeapObject* ptr) {
+void HashMapObject_free(YoyoObject* ptr) {
 	HashMapObject* obj = (HashMapObject*) ptr;
 	for (size_t i = 0; i < obj->map_size; i++) {
 		AOEntry* entry = obj->map[i];
@@ -567,7 +567,7 @@ YObject* newTreeObject(YObject* parent, YThread* th) {
 		TreeObjectAlloc = newMemoryAllocator(sizeof(TreeObject), 250);
 	}
 	TreeObject* obj = TreeObjectAlloc->alloc(TreeObjectAlloc);
-	initHeapObject(&obj->parent.parent.o, TreeObject_mark, TreeObject_free);
+	initYoyoObject(&obj->parent.parent.o, TreeObject_mark, TreeObject_free);
 	th->runtime->gc->registrate(th->runtime->gc, &obj->parent.parent.o);
 	NEW_MUTEX(&obj->access_mutex);
 	obj->parent.parent.type = &th->runtime->ObjectType;
@@ -594,7 +594,7 @@ YObject* newHashObject(YObject* parent, YThread* th) {
 		HashObjectAlloc = newMemoryAllocator(sizeof(HashMapObject), 250);
 	}
 	HashMapObject* obj = HashObjectAlloc->alloc(HashObjectAlloc);
-	initHeapObject(&obj->parent.parent.o, HashMapObject_mark,
+	initYoyoObject(&obj->parent.parent.o, HashMapObject_mark,
 			HashMapObject_free);
 	th->runtime->gc->registrate(th->runtime->gc, &obj->parent.parent.o);
 	NEW_MUTEX(&obj->access_mutex);

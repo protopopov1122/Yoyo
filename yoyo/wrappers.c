@@ -23,12 +23,12 @@ typedef struct ArraySlice {
 	size_t start;
 	size_t end;
 } ArraySlice;
-void Slice_mark(HeapObject* ptr) {
+void Slice_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ArraySlice* slice = (ArraySlice*) ptr;
 	MARK(slice->source);
 }
-void Slice_free(HeapObject* ptr) {
+void Slice_free(YoyoObject* ptr) {
 	free(ptr);
 }
 size_t Slice_size(YArray* arr, YThread* th) {
@@ -92,8 +92,8 @@ void Slice_insert(YArray* arr, size_t index, YValue* val, YThread* th) {
 }
 YArray* newSlice(YArray* array, size_t start, size_t end, YThread* th) {
 	ArraySlice* slice = malloc(sizeof(ArraySlice));
-	initHeapObject((HeapObject*) slice, Slice_mark, Slice_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) slice);
+	initYoyoObject((YoyoObject*) slice, Slice_mark, Slice_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) slice);
 	slice->array.parent.type = &th->runtime->ArrayType;
 	slice->array.size = Slice_size;
 	slice->array.toString = NULL;
@@ -112,12 +112,12 @@ typedef struct ArrayTuple {
 
 	YArray* source;
 } ArrayTuple;
-void ArrayTuple_mark(HeapObject* ptr) {
+void ArrayTuple_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ArrayTuple* tuple = (ArrayTuple*) ptr;
 	MARK(tuple->source);
 }
-void ArrayTuple_free(HeapObject* ptr) {
+void ArrayTuple_free(YoyoObject* ptr) {
 	free(ptr);
 }
 size_t ArrayTuple_size(YArray* a, YThread* th) {
@@ -146,8 +146,8 @@ void ArrayTuple_remove(YArray* a, size_t index, YThread* th) {
 }
 YArray* newTuple(YArray* arr, YThread* th) {
 	ArrayTuple* tuple = malloc(sizeof(ArrayTuple));
-	initHeapObject((HeapObject*) tuple, ArrayTuple_mark, ArrayTuple_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) tuple);
+	initYoyoObject((YoyoObject*) tuple, ArrayTuple_mark, ArrayTuple_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) tuple);
 	tuple->array.parent.type = &th->runtime->ArrayType;
 	tuple->array.toString = NULL;
 	tuple->source = arr;
@@ -166,12 +166,12 @@ typedef struct ROObject {
 	YObject* src;
 } ROObject;
 
-void ROObject_mark(HeapObject* ptr) {
+void ROObject_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ROObject* obj = (ROObject*) ptr;
 	MARK(obj->src);
 }
-void ROObject_free(HeapObject* ptr) {
+void ROObject_free(YoyoObject* ptr) {
 	free(ptr);
 }
 YValue* ROObject_get(YObject* o, int32_t id, YThread* th) {
@@ -201,8 +201,8 @@ YoyoType* ROObject_getType(YObject* o, int32_t id, YThread* th) {
 
 YObject* newReadonlyObject(YObject* o, YThread* th) {
 	ROObject* obj = malloc(sizeof(ROObject));
-	initHeapObject((HeapObject*) obj, ROObject_mark, ROObject_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) obj);
+	initYoyoObject((YoyoObject*) obj, ROObject_mark, ROObject_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) obj);
 	obj->object.parent.type = &th->runtime->ObjectType;
 
 	obj->src = o;
@@ -221,7 +221,7 @@ YObject* newReadonlyObject(YObject* o, YThread* th) {
 
 #define NEW_METHOD(name, proc, argc, obj, ptr, th) obj->put(obj, getSymbolId(\
                                                     &th->runtime->symbols, name), (YValue*) newNativeLambda(argc, proc,\
-                                                                                    (HeapObject*) ptr, th),\
+                                                                                    (YoyoObject*) ptr, th),\
                                                             true, th);
 #define INIT_HASHMAP YoyoMap* map = (YoyoMap*) ((NativeLambda*) lambda)->object;
 YOYO_FUNCTION(Map_size) {
@@ -316,7 +316,7 @@ typedef struct IteratorWrapper {
 	YObject* object;
 } IteratorWrapper;
 
-void IteratorWrapper_mark(HeapObject* ptr) {
+void IteratorWrapper_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	IteratorWrapper* iter = (IteratorWrapper*) ptr;
 	MARK(iter->object);
@@ -361,9 +361,9 @@ void IteratorWrapper_reset(YoyoIterator* i, YThread* th) {
 
 YoyoIterator* newYoyoIterator(YObject* obj, YThread* th) {
 	IteratorWrapper* iter = malloc(sizeof(IteratorWrapper));
-	initHeapObject((HeapObject*) iter, IteratorWrapper_mark,
-			(void (*)(HeapObject*)) free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) iter);
+	initYoyoObject((YoyoObject*) iter, IteratorWrapper_mark,
+			(void (*)(YoyoObject*)) free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) iter);
 
 	iter->object = obj;
 	iter->iter.next = IteratorWrapper_next;
@@ -397,13 +397,13 @@ YValue* YoyoIterator_get(YObject* o, int32_t id, YThread* th) {
 
 	if (id == next_id)
 		return (YValue*) newNativeLambda(0, DefYoyoIterator_next,
-				(HeapObject*) iter, th);
+				(YoyoObject*) iter, th);
 	if (id == hasNext_id)
 		return (YValue*) newNativeLambda(0, DefYoyoIterator_hasNext,
-				(HeapObject*) iter, th);
+				(YoyoObject*) iter, th);
 	if (id == reset_id)
 		return (YValue*) newNativeLambda(0, DefYoyoIterator_reset,
-				(HeapObject*) iter, th);
+				(YoyoObject*) iter, th);
 	return getNull(th);
 }
 bool YoyoIterator_contains(YObject* o, int32_t id, YThread* th) {
@@ -446,7 +446,7 @@ typedef struct ArrayObject {
 	YObject* object;
 } ArrayObject;
 
-void ArrayObject_mark(HeapObject* ptr) {
+void ArrayObject_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	ArrayObject* array = (ArrayObject*) ptr;
 	MARK(array->object);
@@ -528,9 +528,9 @@ void ArrayObject_remove(YArray* a, size_t index, YThread* th) {
 
 YArray* newArrayObject(YObject* obj, YThread* th) {
 	ArrayObject* array = malloc(sizeof(ArrayObject));
-	initHeapObject((HeapObject*) array, ArrayObject_mark,
-			(void (*)(HeapObject*)) free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) array);
+	initYoyoObject((YoyoObject*) array, ArrayObject_mark,
+			(void (*)(YoyoObject*)) free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) array);
 	array->array.parent.type = &th->runtime->ArrayType;
 	array->object = obj;
 

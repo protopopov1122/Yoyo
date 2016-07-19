@@ -83,11 +83,22 @@ wchar_t* getSymbolById(SymbolMap*, int32_t);
 InputStream* yfileinput(FILE*);
 FILE* search_file(wchar_t*, wchar_t**, size_t);
 
-#define ADD_METHOD(obj, name, fn, argc, th) obj->put(obj, th->runtime->bytecode->getSymbolId(\
-                                                th->runtime->bytecode, name), (YValue*) newNativeLambda(argc, fn,\
-                                                                                              (HeapObject*) obj, th),\
-                                                        true, th);
-#define ADD_FIELD(obj, name, value, th) obj->put(obj, th->runtime->bytecode->getSymbolId(\
-                                                th->runtime->bytecode, name), (YValue*) value, true, th);
+#ifndef __cplusplus
+#define YOYO_FUNCTION(name) YValue* name(YLambda* lambda,\
+	YValue** args, size_t argc, YThread* th)
+#else
+#define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* lambda,\
+	YValue** args, size_t argc, YThread* th)
+#endif
+#define YOYOID(wstr, th) getSymbolId(&th->runtime->symbols, wstr)
+
+#define ADD_METHOD(obj, name, fn, argc, th) obj->put(obj, YOYOID(name, th),\
+													(YValue*) newNativeLambda(argc, fn,\
+                                                    (YoyoObject*) obj, th),\
+                                                    true, th);
+#define ADD_FIELD(obj, name, value, th) obj->put(obj, YOYOID(\
+                                                	name, th),\
+											(YValue*) value, true, th);
+#define TYPE(value, t) value->type->type==t
 
 #endif

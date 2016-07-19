@@ -19,31 +19,31 @@
 
 #include "../yoyo/core.h"
 
-typedef struct HeapObject {
+typedef struct YoyoObject {
 	bool marked;
-	void (*mark)(struct HeapObject*);
+	void (*mark)(struct YoyoObject*);
 	uint16_t linkc;
-	void (*free)(struct HeapObject*);
+	void (*free)(struct YoyoObject*);
 
 	clock_t age;
 	uint32_t cycle;
-} HeapObject;
+} YoyoObject;
 
 typedef struct GarbageCollector {
 	void (*collect)(struct GarbageCollector*);
 	void (*free)(struct GarbageCollector*);
-	void (*registrate)(struct GarbageCollector*, HeapObject*);
+	void (*registrate)(struct GarbageCollector*, YoyoObject*);
 
 	MUTEX access_mutex;
 } GarbageCollector;
 
-HeapObject* initHeapObject(HeapObject*, void (*)(HeapObject*),
-		void (*)(HeapObject*));
+YoyoObject* initYoyoObject(YoyoObject*, void (*)(YoyoObject*),
+		void (*)(YoyoObject*));
 
 GarbageCollector* newPlainGC(size_t);
 GarbageCollector* newGenerationalGC(size_t, uint16_t);
-HeapObject* initAtomicHeapObject(HeapObject*, void (*)(HeapObject*));
+YoyoObject* initAtomicYoyoObject(YoyoObject*, void (*)(YoyoObject*));
 
-#define MARK(ptr) if (ptr!=NULL&&!((HeapObject*) ptr)->marked) ((HeapObject*) ptr)->mark((HeapObject*) ptr);
+#define MARK(ptr) if (ptr!=NULL&&!((YoyoObject*) ptr)->marked) ((YoyoObject*) ptr)->mark((YoyoObject*) ptr);
 
 #endif

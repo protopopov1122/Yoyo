@@ -13,10 +13,10 @@
 
 #include "yoyo-jni/yoyo-jni.h"
 
-void JavaMethod_mark(HeapObject* ptr) {
+void JavaMethod_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 }
-void JavaMethod_free(HeapObject* ptr) {
+void JavaMethod_free(YoyoObject* ptr) {
 	JavaMethod* method = (JavaMethod*) ptr;
 	JNIDefaultEnvironment* yenv = method->yenv;
 	JNIEnv* env;
@@ -65,8 +65,8 @@ YLambda* newJavaMethod(jobject jmeth, JNIDefaultEnvironment* yenv, YThread* th) 
 	yenv->getJNIEnv(yenv, &env);
 	(*env)->PushLocalFrame(env, 10);
 	JavaMethod* method = malloc(sizeof(JavaMethod));
-	initHeapObject((HeapObject*) method, JavaMethod_mark, JavaMethod_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) method);
+	initYoyoObject((YoyoObject*) method, JavaMethod_mark, JavaMethod_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) method);
 	method->lambda.parent.type = &th->runtime->LambdaType;
 	method->yenv = yenv;
 	method->java_method = (*env)->NewGlobalRef(env, jmeth);

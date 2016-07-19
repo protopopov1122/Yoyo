@@ -25,13 +25,13 @@ typedef struct OverloadedLambda {
 	YLambda* defLambda;
 } OverloadedLambda;
 
-void OverloadedLambda_free(HeapObject* ptr) {
+void OverloadedLambda_free(YoyoObject* ptr) {
 	OverloadedLambda* lmbd = (OverloadedLambda*) ptr;
 	free(lmbd->lambdas);
 	free(lmbd);
 }
 
-void OverloadedLambda_mark(HeapObject* ptr) {
+void OverloadedLambda_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	OverloadedLambda* lmbd = (OverloadedLambda*) ptr;
 	for (size_t i = 0; i < lmbd->count; i++)
@@ -83,9 +83,9 @@ YoyoType* OverloadedLambda_signature(YLambda* l, YThread* th) {
 
 YLambda* newOverloadedLambda(YLambda** l, size_t c, YLambda* def, YThread* th) {
 	OverloadedLambda* lmbd = malloc(sizeof(OverloadedLambda));
-	initHeapObject((HeapObject*) lmbd, OverloadedLambda_mark,
+	initYoyoObject((YoyoObject*) lmbd, OverloadedLambda_mark,
 			OverloadedLambda_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) lmbd);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) lmbd);
 	lmbd->count = c;
 	lmbd->lambdas = malloc(sizeof(YLambda*) * c);
 	for (size_t i = 0; i < c; i++)

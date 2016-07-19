@@ -24,17 +24,17 @@
 MemoryAllocator* IntAlloc = NULL;
 
 /*Procedures to free different values*/
-void freeAtomicData(HeapObject* o) {
+void freeAtomicData(YoyoObject* o) {
 	free(o);
 }
 
-void freeStringData(HeapObject* o) {
+void freeStringData(YoyoObject* o) {
 	YString* str = (YString*) o;
 	free(str->value);
 	free(str);
 }
 
-void freeInteger(HeapObject* ptr) {
+void freeInteger(YoyoObject* ptr) {
 	IntAlloc->unuse(IntAlloc, ptr);
 }
 
@@ -45,7 +45,7 @@ YValue* getNull(YThread* th) {
 	if (th->runtime->Constants.NullPtr != NULL)
 		return th->runtime->Constants.NullPtr;
 	YValue* out = malloc(sizeof(YValue));
-	initAtomicHeapObject(&out->o, freeAtomicData);
+	initAtomicYoyoObject(&out->o, freeAtomicData);
 	th->runtime->gc->registrate(th->runtime->gc, &out->o);
 	out->type = &th->runtime->NullType;
 	th->runtime->Constants.NullPtr = out;
@@ -76,7 +76,7 @@ YValue* newIntegerValue(int64_t value, YThread* th) {
 	if (IntAlloc == NULL)
 		IntAlloc = newMemoryAllocator(sizeof(YInteger), 100);
 	YInteger* out = IntAlloc->alloc(IntAlloc);
-	initAtomicHeapObject(&out->parent.o, freeInteger);
+	initAtomicYoyoObject(&out->parent.o, freeInteger);
 	th->runtime->gc->registrate(th->runtime->gc, &out->parent.o);
 	out->parent.type = &th->runtime->IntType;
 	out->value = value;
@@ -96,7 +96,7 @@ YValue* newInteger(int64_t value, YThread* th) {
 }
 YValue* newFloat(double value, YThread* th) {
 	YFloat* out = malloc(sizeof(YFloat));
-	initAtomicHeapObject(&out->parent.o, freeAtomicData);
+	initAtomicYoyoObject(&out->parent.o, freeAtomicData);
 	th->runtime->gc->registrate(th->runtime->gc, &out->parent.o);
 	out->parent.type = &th->runtime->FloatType;
 	out->value = value;
@@ -104,7 +104,7 @@ YValue* newFloat(double value, YThread* th) {
 }
 YValue* newBooleanValue(bool value, YThread* th) {
 	YBoolean* out = malloc(sizeof(YBoolean));
-	initAtomicHeapObject(&out->parent.o, freeAtomicData);
+	initAtomicYoyoObject(&out->parent.o, freeAtomicData);
 	th->runtime->gc->registrate(th->runtime->gc, &out->parent.o);
 	out->parent.type = &th->runtime->BooleanType;
 	out->value = value;
@@ -116,7 +116,7 @@ YValue* newBoolean(bool b, YThread* th) {
 }
 YValue* newString(wchar_t* value, YThread* th) {
 	YString* out = malloc(sizeof(YString));
-	initAtomicHeapObject(&out->parent.o, freeStringData);
+	initAtomicYoyoObject(&out->parent.o, freeStringData);
 	th->runtime->gc->registrate(th->runtime->gc, &out->parent.o);
 	out->parent.type = &th->runtime->StringType;
 
@@ -127,7 +127,7 @@ YValue* newString(wchar_t* value, YThread* th) {
 	return (YValue*) out;
 }
 
-void NativeLambda_mark(HeapObject* ptr) {
+void NativeLambda_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	NativeLambda* lmbd = (NativeLambda*) ptr;
 	if (lmbd->object != NULL)
@@ -135,7 +135,7 @@ void NativeLambda_mark(HeapObject* ptr) {
 	MARK(lmbd->lambda.sig);
 }
 
-void NativeLambda_free(HeapObject* ptr) {
+void NativeLambda_free(YoyoObject* ptr) {
 	NativeLambda* lmbd = (NativeLambda*) ptr;
 	free(lmbd);
 }
@@ -145,10 +145,10 @@ YoyoType* NativeLambda_signature(YLambda* l, YThread* th) {
 }
 
 YLambda* newNativeLambda(size_t argc,
-		YValue* (*exec)(YLambda*, YValue**, size_t, YThread*), HeapObject* obj,
+		YValue* (*exec)(YLambda*, YValue**, size_t, YThread*), YoyoObject* obj,
 		YThread* th) {
 	NativeLambda* out = malloc(sizeof(NativeLambda));
-	initHeapObject(&out->lambda.parent.o, NativeLambda_mark, NativeLambda_free);
+	initYoyoObject(&out->lambda.parent.o, NativeLambda_mark, NativeLambda_free);
 	th->runtime->gc->registrate(th->runtime->gc, &out->lambda.parent.o);
 	out->lambda.parent.type = &th->runtime->LambdaType;
 	out->lambda.execute = exec;
@@ -182,7 +182,7 @@ void RawPointer_setType(YObject* o, int32_t id, YoyoType* t, YThread* th) {
 YoyoType* RawPointer_getType(YObject* o, int32_t id, YThread* th) {
 	return th->runtime->NullType.TypeConstant;
 }
-void RawPointer_free(HeapObject* ptr) {
+void RawPointer_free(YoyoObject* ptr) {
 	YRawPointer* raw = (YRawPointer*) ptr;
 	raw->free(raw->ptr);
 	free(raw);
@@ -191,8 +191,8 @@ void RawPointer_free(HeapObject* ptr) {
 YValue* newRawPointer(void* ptr, void(*freeptr)(void*), YThread* th)
 {
 	YRawPointer* raw = malloc(sizeof(YRawPointer));
-	initAtomicHeapObject((HeapObject*) raw, RawPointer_free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) raw);
+	initAtomicYoyoObject((YoyoObject*) raw, RawPointer_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) raw);
 	raw->obj.parent.type = &th->runtime->ObjectType;
 
 	raw->ptr = ptr;

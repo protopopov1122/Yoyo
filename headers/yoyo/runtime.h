@@ -28,13 +28,6 @@
 #define READ_INDEX L"#readIndex"
 #define WRITE_INDEX L"#writeIndex"
 #define EQUALS L"equals"
-#ifndef __cplusplus
-#define YOYO_FUNCTION(name) YValue* name(YLambda* lambda,\
-	YValue** args, size_t argc, YThread* th)
-#else
-#define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* lambda,\
-	YValue** args, size_t argc, YThread* th)
-#endif
 
 #define COMPARE_EQUALS 1
 #define COMPARE_NOT_EQUALS (1 << 1)
@@ -196,7 +189,7 @@ typedef struct YRuntime {
 	void (*wait)(YRuntime*);
 } YRuntime;
 
-YObject* yili_getSystem(YThread*);
+YObject* Yoyo_SystemObject(YThread*);
 YValue* invokeLambda(YLambda*, YValue**, size_t, YThread*);
 YThread* newThread(YRuntime*);
 YRuntime* newRuntime(Environment*, YDebug*);

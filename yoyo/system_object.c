@@ -56,8 +56,8 @@ void YArgs_remove(YArray* arr, size_t index, YThread* th) {
 
 YOYO_FUNCTION(YSTD_SYSTEM_ARGS) {
 	YArgs* yargs = malloc(sizeof(YArgs));
-	initAtomicHeapObject((HeapObject*) yargs, (void (*)(HeapObject*)) free);
-	th->runtime->gc->registrate(th->runtime->gc, (HeapObject*) yargs);
+	initAtomicYoyoObject((YoyoObject*) yargs, (void (*)(YoyoObject*)) free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) yargs);
 	yargs->array.parent.type = &th->runtime->ArrayType;
 
 	yargs->array.size = YArgs_size;
@@ -223,7 +223,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
 	}
 	free(wstr);
 	NativeLambda* lmbd = (NativeLambda*) newNativeLambda(-1, clb,
-			(HeapObject*) args[2], th);
+			(YoyoObject*) args[2], th);
 	lmbd->lambda.sig = sig;
 	return (YValue*) lmbd;
 }
@@ -241,7 +241,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_SHARED_LIBRARY) {
 	return getNull(th);
 }
 
-YObject* yili_getSystem(YThread* th) {
+YObject* Yoyo_SystemObject(YThread* th) {
 	YObject* sys = th->runtime->newObject(NULL, th);
 	sys->put(sys, th->runtime->bytecode->getSymbolId(th->runtime->bytecode, L"imported")
 			,(YValue*)th->runtime->newObject(NULL, th), true, th);
