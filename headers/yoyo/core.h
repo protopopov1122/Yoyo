@@ -90,7 +90,9 @@ FILE* search_file(wchar_t*, wchar_t**, size_t);
 #define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* lambda,\
 	YValue** args, size_t argc, YThread* th)
 #endif
+#define FUN_OBJECT (((NativeLambda*) lambda)->object)
 #define YOYOID(wstr, th) getSymbolId(&th->runtime->symbols, wstr)
+#define YOYOSYM(id, th) getSymbolById(&th->runtime->symbols, id)
 
 #define TYPE(value, t) value->type->type==t
 #define OBJECT_GET(obj, id, th) obj->get(obj, YOYOID(id, th), th)
@@ -107,8 +109,8 @@ FILE* search_file(wchar_t*, wchar_t**, size_t);
 													NEW_LAMBDA(fn, argc, \
 															obj, th),\
                                                     th)
-#define INTEGER(name, value) int64_t name = getInteger(value);
-#define FLOAT(name, value) double name = getFloat(value);
+#define INTEGER(name, value) int64_t name = getInteger((YValue*) value);
+#define FLOAT(name, value) double name = getFloat((YValue*) value);
 #define BOOLEAN(name, val) bool name = ((YBoolean*) val)->value;
 #define STRING(name, val) wchar_t* name = ((YString*) val)->value;
 #define TOSTRING(name, val, th) wchar_t* name = toString(val, th);
