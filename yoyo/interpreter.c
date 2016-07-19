@@ -349,8 +349,8 @@ YValue* execute(YThread* th) {
 							((YBoolean*) vvararg)->value : false;
 			// Get argument count and types
 			size_t argc = (size_t) popInt(th);
-			int32_t* argids = malloc(sizeof(int32_t) * argc);
-			YoyoType** argTypes = malloc(sizeof(YoyoType*) * argc);
+			int32_t* argids = calloc(1, sizeof(int32_t) * argc);
+			YoyoType** argTypes = calloc(1, sizeof(YoyoType*) * argc);
 			for (size_t i = argc - 1; i < argc; i--) {
 				argids[i] = (int32_t) popInt(th);
 				YValue* val = pop(th);

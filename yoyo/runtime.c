@@ -181,8 +181,8 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 	}
 
 	/*Check each argument type*/
-	if (l->sig->args != NULL)
-		for (size_t i = 0; i < argc; i++) {
+	if (l->sig->args != NULL) {
+		for (size_t i = 0; i < argc && i<l->sig->argc; i++) {
 			if (l->sig->args[i] != NULL
 					&& !l->sig->args[i]->verify(l->sig->args[i], args[i], th)) {
 				wchar_t* wstr = toString(args[i], th);
@@ -193,6 +193,7 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 				return getNull(th);
 			}
 		}
+	}
 
 	// Invoke lambda
 	YValue* out = l->execute(l, args, l->sig->argc != -1 ? l->sig->argc : argc,

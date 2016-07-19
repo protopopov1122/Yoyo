@@ -14,7 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "../../yoyo/types/types.h"
+#include "yoyo/types/types.h"
 
 wchar_t* Lambda_toString(YValue* obj, YThread* th) {
 	YLambda* l = (YLambda*) obj;
