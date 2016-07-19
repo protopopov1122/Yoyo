@@ -20,13 +20,13 @@ YOYO_FUNCTION(YSTD_TIME_DATE) {
 	YObject* ytm = th->runtime->newObject(NULL, th);
 	((YoyoObject*) ytm)->linkc++;
 
-	ADD_FIELD(ytm, L"day", newInteger(ctm->tm_mday, th), th);
-	ADD_FIELD(ytm, L"month", newInteger(ctm->tm_mon + 1, th), th);
-	ADD_FIELD(ytm, L"year", newInteger(ctm->tm_year + 1900, th), th);
-	ADD_FIELD(ytm, L"second", newInteger(ctm->tm_sec, th), th);
-	ADD_FIELD(ytm, L"minute", newInteger(ctm->tm_min, th), th);
-	ADD_FIELD(ytm, L"hour", newInteger(ctm->tm_hour, th), th);
-	ADD_FIELD(ytm, L"time", args[0], th);
+	OBJECT_NEW(ytm, L"day", newInteger(ctm->tm_mday, th), th);
+	OBJECT_NEW(ytm, L"month", newInteger(ctm->tm_mon + 1, th), th);
+	OBJECT_NEW(ytm, L"year", newInteger(ctm->tm_year + 1900, th), th);
+	OBJECT_NEW(ytm, L"second", newInteger(ctm->tm_sec, th), th);
+	OBJECT_NEW(ytm, L"minute", newInteger(ctm->tm_min, th), th);
+	OBJECT_NEW(ytm, L"hour", newInteger(ctm->tm_hour, th), th);
+	OBJECT_NEW(ytm, L"time", args[0], th);
 
 	((YoyoObject*) ytm)->linkc--;
 	return (YValue*) ytm;
@@ -38,13 +38,13 @@ YOYO_FUNCTION(YSTD_TIME_GMDATE) {
 	YObject* ytm = th->runtime->newObject(NULL, th);
 	((YoyoObject*) ytm)->linkc++;
 
-	ADD_FIELD(ytm, L"day", newInteger(ctm->tm_mday, th), th);
-	ADD_FIELD(ytm, L"month", newInteger(ctm->tm_mon + 1, th), th);
-	ADD_FIELD(ytm, L"year", newInteger(ctm->tm_year + 1900, th), th);
-	ADD_FIELD(ytm, L"second", newInteger(ctm->tm_sec, th), th);
-	ADD_FIELD(ytm, L"minute", newInteger(ctm->tm_min, th), th);
-	ADD_FIELD(ytm, L"hour", newInteger(ctm->tm_hour, th), th);
-	ADD_FIELD(ytm, L"time", args[0], th);
+	OBJECT_NEW(ytm, L"day", newInteger(ctm->tm_mday, th), th);
+	OBJECT_NEW(ytm, L"month", newInteger(ctm->tm_mon + 1, th), th);
+	OBJECT_NEW(ytm, L"year", newInteger(ctm->tm_year + 1900, th), th);
+	OBJECT_NEW(ytm, L"second", newInteger(ctm->tm_sec, th), th);
+	OBJECT_NEW(ytm, L"minute", newInteger(ctm->tm_min, th), th);
+	OBJECT_NEW(ytm, L"hour", newInteger(ctm->tm_hour, th), th);
+	OBJECT_NEW(ytm, L"time", args[0], th);
 
 	((YoyoObject*) ytm)->linkc--;
 	return (YValue*) ytm;

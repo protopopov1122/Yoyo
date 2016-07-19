@@ -244,7 +244,7 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->global_scope = th->runtime->newObject(NULL, th);
 	runtime->Constants.pool = th->runtime->newObject(NULL, th);
 	runtime->AbstractObject = th->runtime->newObject(NULL, th);
-	ADD_FIELD(runtime->global_scope, L"sys",
+	OBJECT_NEW(runtime->global_scope, L"sys",
 			Yoyo_SystemObject(runtime->CoreThread), th);
 
 	NEW_THREAD(&runtime->gc_thread, GCThread, runtime);

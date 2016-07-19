@@ -242,20 +242,19 @@ YOYO_FUNCTION(YSTD_SYSTEM_SHARED_LIBRARY) {
 }
 
 YObject* Yoyo_SystemObject(YThread* th) {
-	YObject* sys = th->runtime->newObject(NULL, th);
-	sys->put(sys, th->runtime->bytecode->getSymbolId(th->runtime->bytecode, L"imported")
-			,(YValue*)th->runtime->newObject(NULL, th), true, th);
+	YObject* sys = NEW_OBJECT(NULL, th);
+	OBJECT_NEW(sys, L"imported", NEW_OBJECT(NULL, th), th);
 
-	ADD_METHOD(sys, L"eval", YSTD_SYSTEM_EVAL, 1, th);
-	ADD_METHOD(sys, L"load", YSTD_SYSTEM_LOAD, 1, th);
-	ADD_METHOD(sys, L"loadLibrary", YSTD_SYSTEM_LOAD_LIBRARY, 1, th);
-	ADD_METHOD(sys, L"import", YSTD_SYSTEM_IMPORT, 1, th);
-	ADD_METHOD(sys, L"yji", YSTD_SYSTEM_YJI, 0, th);
-	ADD_METHOD(sys, L"exit", YSTD_SYSTEM_EXIT, 0, th);
-	ADD_METHOD(sys, L"native", YSTD_SYSTEM_NATIVE, 3, th);
-	ADD_METHOD(sys, L"sharedLibrary", YSTD_SYSTEM_SHARED_LIBRARY, 1, th);
-	ADD_METHOD(sys, L"args", YSTD_SYSTEM_ARGS, 0, th);
-	ADD_FIELD(sys, L"platform", newString(PLATFORM, th), th);
+	METHOD(sys, L"eval", YSTD_SYSTEM_EVAL, 1, th);
+	METHOD(sys, L"load", YSTD_SYSTEM_LOAD, 1, th);
+	METHOD(sys, L"loadLibrary", YSTD_SYSTEM_LOAD_LIBRARY, 1, th);
+	METHOD(sys, L"import", YSTD_SYSTEM_IMPORT, 1, th);
+	METHOD(sys, L"yji", YSTD_SYSTEM_YJI, 0, th);
+	METHOD(sys, L"exit", YSTD_SYSTEM_EXIT, 0, th);
+	METHOD(sys, L"native", YSTD_SYSTEM_NATIVE, 3, th);
+	METHOD(sys, L"sharedLibrary", YSTD_SYSTEM_SHARED_LIBRARY, 1, th);
+	METHOD(sys, L"args", YSTD_SYSTEM_ARGS, 0, th);
+	OBJECT_NEW(sys, L"platform", newString(PLATFORM, th), th);
 
 	return sys;
 }

@@ -92,13 +92,30 @@ FILE* search_file(wchar_t*, wchar_t**, size_t);
 #endif
 #define YOYOID(wstr, th) getSymbolId(&th->runtime->symbols, wstr)
 
-#define ADD_METHOD(obj, name, fn, argc, th) obj->put(obj, YOYOID(name, th),\
-													(YValue*) newNativeLambda(argc, fn,\
-                                                    (YoyoObject*) obj, th),\
-                                                    true, th);
-#define ADD_FIELD(obj, name, value, th) obj->put(obj, YOYOID(\
-                                                	name, th),\
-											(YValue*) value, true, th);
 #define TYPE(value, t) value->type->type==t
+#define OBJECT_GET(obj, id, th) obj->get(obj, YOYOID(id, th), th)
+#define OBJECT_PUT(obj, id, value, th) obj->put(obj, YOYOID(id, th),\
+										(YValue*) value, false, th)
+#define OBJECT_NEW(obj, id, value, th) obj->put(obj, YOYOID(id, th),\
+										(YValue*) value, true, th)
+#define OBJECT_HAS(obj, id, th) obj->contains(obj, YOYOID(id, th), th)
+#define NEW_OBJECT(super, th) th->runtime->newObject(super, th)
+
+#define NEW_LAMBDA(fn, argc, ptr, th) newNativeLambda(argc, fn, (YoyoObject*) ptr, th)
+
+#define METHOD(obj, name, fn, argc, th) OBJECT_NEW(obj, name,\
+													NEW_LAMBDA(fn, argc, \
+															obj, th),\
+                                                    th)
+#define INTEGER(name, value) int64_t name = getInteger(value);
+#define FLOAT(name, value) double name = getFloat(value);
+#define BOOLEAN(name, val) bool name = ((YBoolean*) val)->value;
+#define STRING(name, val) wchar_t* name = ((YString*) val)->value;
+#define TOSTRING(name, val, th) wchar_t* name = toString(val, th);
+#define OBJECT(name, val) YObject* name = (YObject*) val;
+#define ARRAY(name, val) YArray* name = (YArray*) val;
+#define LAMBDA(name, val) YLambda* name = (YLambda*) val;
+
+
 
 #endif
