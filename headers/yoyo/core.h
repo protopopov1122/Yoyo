@@ -101,22 +101,21 @@ FILE* search_file(wchar_t*, wchar_t**, size_t);
 #define OBJECT_NEW(obj, id, value, th) obj->put(obj, YOYOID(id, th),\
 										(YValue*) value, true, th)
 #define OBJECT_HAS(obj, id, th) obj->contains(obj, YOYOID(id, th), th)
-#define NEW_OBJECT(super, th) th->runtime->newObject(super, th)
+#define OBJECT(super, th) th->runtime->newObject(super, th)
 
-#define NEW_LAMBDA(fn, argc, ptr, th) newNativeLambda(argc, fn, (YoyoObject*) ptr, th)
+#define LAMBDA(fn, argc, ptr, th) newNativeLambda(argc, fn, (YoyoObject*) ptr, th)
 
 #define METHOD(obj, name, fn, argc, th) OBJECT_NEW(obj, name,\
-													NEW_LAMBDA(fn, argc, \
+													LAMBDA(fn, argc, \
 															obj, th),\
                                                     th)
-#define INTEGER(name, value) int64_t name = getInteger((YValue*) value);
-#define FLOAT(name, value) double name = getFloat((YValue*) value);
-#define BOOLEAN(name, val) bool name = ((YBoolean*) val)->value;
-#define STRING(name, val) wchar_t* name = ((YString*) val)->value;
-#define TOSTRING(name, val, th) wchar_t* name = toString(val, th);
-#define OBJECT(name, val) YObject* name = (YObject*) val;
-#define ARRAY(name, val) YArray* name = (YArray*) val;
-#define LAMBDA(name, val) YLambda* name = (YLambda*) val;
+#define CAST_INTEGER(name, value) int64_t name = getInteger((YValue*) value);
+#define CAST_FLOAT(name, value) double name = getFloat((YValue*) value);
+#define CAST_BOOLEAN(name, val) bool name = ((YBoolean*) val)->value;
+#define CAST_STRING(name, val) wchar_t* name = ((YString*) val)->value;
+#define CAST_OBJECT(name, val) YObject* name = (YObject*) val;
+#define CAST_ARRAY(name, val) YArray* name = (YArray*) val;
+#define CAST_LAMBDA(name, val) YLambda* name = (YLambda*) val;
 
 
 

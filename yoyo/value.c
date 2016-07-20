@@ -86,7 +86,7 @@ YValue* newIntegerValue(int64_t value, YThread* th) {
  * Else it is created by newIntegerValue, saved to cache
  * and returned.*/
 YValue* newInteger(int64_t value, YThread* th) {
-	size_t index = (value % INT_POOL_SIZE) * (value < 0 ? -1 : 1);
+	size_t index = ((uint64_t) value % INT_POOL_SIZE);
 	YInteger* i = th->runtime->Constants.IntPool[index];
 	if (i == NULL || i->value != value) {
 		i = (YInteger*) newIntegerValue(value, th);

@@ -242,8 +242,8 @@ YOYO_FUNCTION(YSTD_SYSTEM_SHARED_LIBRARY) {
 }
 
 YObject* Yoyo_SystemObject(YThread* th) {
-	YObject* sys = NEW_OBJECT(NULL, th);
-	OBJECT_NEW(sys, L"imported", NEW_OBJECT(NULL, th), th);
+	YObject* sys = OBJECT(NULL, th);
+	OBJECT_NEW(sys, L"imported", OBJECT(NULL, th), th);
 
 	METHOD(sys, L"eval", YSTD_SYSTEM_EVAL, 1, th);
 	METHOD(sys, L"load", YSTD_SYSTEM_LOAD, 1, th);

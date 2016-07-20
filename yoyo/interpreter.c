@@ -23,10 +23,8 @@
 /*Assign certain register value. If value is NULL then
  * assigned is Null.*/
 void setRegister(YValue* v, size_t reg, YThread* th) {
-	if (v == NULL)
-		v = getNull(th);
 	if (reg < th->frame->regc)
-		th->frame->regs[reg] = v;
+		th->frame->regs[reg] = v!=NULL ? v : getNull(th);
 }
 /*Push value to frames stack. If stack is full it's being reallocated.*/
 void push(YValue* v, YThread* th) {
@@ -41,9 +39,10 @@ void push(YValue* v, YThread* th) {
 /*Return value popped from stack or Null if stack is empty.*/
 YValue* pop(YThread* th) {
 	ExecutionFrame* frame = th->frame;
-	if (frame->stack_offset == 0)
+	if (frame->stack_offset != 0)
+		return frame->stack[--frame->stack_offset];
+	else
 		return getNull(th);
-	return frame->stack[--frame->stack_offset];
 }
 /*Pop value from stack. If it's integer return it, else return 0*/
 int64_t popInt(YThread* th) {
