@@ -5,32 +5,7 @@
 #include "node.h"
 
 typedef enum {
-	OpeningBraceToken,
-	ClosingBraceToken,
-	OpeningParentheseToken,
-	ClosingParentheseToken,
-	OpeningBracketToken,
-	ClosingBracketToken,
-	PlusToken,
-	MinusToken,
-	MultiplyToken,
-	DivideToken,
-	ModuloToken,
-	AndToken,
-	OrToken,
-	XorToken,
-	NotToken,
-	LogicalNotToken,
-	LesserToken,
-	GreaterToken,
-	DotToken,
-	QueryToken,
-	ColonToken,
-	SemicolonToken,
-	AssignToken,
-	CommaToken,
-	DollarSignToken,
-	AtToken
+	ColonOperator	
 } yoperator_t;
 
 typedef enum {
@@ -102,7 +77,7 @@ typedef struct Grammar {
 	GrammarRule bitwise;
 	GrammarRule comparison;
 	GrammarRule logical_not;
-	GrammarRule logical;
+	GrammarRule logical_ops;
 	GrammarRule expr;
 	GrammarRule expression;
 	GrammarRule statement;
@@ -141,6 +116,7 @@ YNode* parse(ParseHandle*);
 #define NewReduce(name) YNode* name(ParseHandle* handle)
 #define NewRule(grammar, name, v, r) grammar->name.validate = v;\
 									 grammar->name.reduce = r;
+#define Validate(name, handle) (handle->grammar.name.validate(handle))
 #define AssertToken(token, t) (token.type==t)
 #define AssertOperator(token, oper) (AssertToken(token, TokenOperator)&&\
 									token.value.op==oper)
@@ -177,21 +153,21 @@ YNode* parse(ParseHandle*);
 #define ExpectOperator(token, o, mess, stmt, parser) Expect(token.type==TokenOperator&&\
 														token.value.op== o,\
                                                        mess, stmt, parser);
-#define ExpectKeyword(token, kw, mess, stmt, parser) Expect(token!=NULL&&token->type==KeywordToken&&\
-                                                        ((KeywordToken*) token)->keyword == kw,\
-                                                         mess, stmt, parser);
-#define ExpectNode(name, mess, stmt, parser, env) Expect(parser->grammar.name.validate(parser, env),\
-                                                         mess, stmt, parser);
-#define Reduce(dest, name, stmt, parser, env) {\
-                                                *(dest) = parser->grammar.name.reduce(parser, env);\
+#define ExpectKeyword(token, k, mess, stmt, handle) Expect(token.type==TokenKeyword&&\
+                                                        	token.value.kw == k,\
+                                                         mess, stmt, handle);
+#define ExpectNode(name, mess, stmt, handle) Expect(handle->grammar.name.validate(handle),\
+                                                         mess, stmt, handle);
+#define Reduce(dest, name, stmt, handle) {\
+                                                *(dest) = handle->grammar.name.reduce(handle);\
                                                 if (*(dest)==NULL) {\
                                                     stmt;\
                                                     return NULL;\
                                                 }\
                                             }
-#define ExpectReduce(dest, name, mess, stmt, parser, env) {\
-                                                        ExpectNode(name, mess, stmt, parser, env);\
-                                                        Reduce(dest, name, stmt, parser, env);\
+#define ExpectReduce(dest, name, mess, stmt, handle) {\
+                                                        ExpectNode(name, mess, stmt, handle);\
+                                                        Reduce(dest, name, stmt, handle);\
                                                         }
 
 #endif

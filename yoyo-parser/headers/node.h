@@ -350,7 +350,6 @@ YNode* newUsingNode(YNode**, size_t, YNode*);
 YNode* newWithNode(YNode*, YNode*);
 YNode* newFunctionNode(int32_t, YLambdaNode*);
 YNode* newBlockNode(YNode**, size_t, YFunctionBlock*, size_t);
-YNode* newRootNode(YNode**, size_t, YFunctionBlock*, size_t);
 
 #define NewNode(ptr, nodeStruct, nodeType, freePtr) *(ptr) = malloc(sizeof(nodeStruct));\
                                                     (*(ptr))->node.type = nodeType;\

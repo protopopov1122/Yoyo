@@ -3,16 +3,9 @@
 struct {
 	wchar_t ch;
 	yoperator_t op;
-} OPERATORS[] = { { L',', CommaToken }, { L'.', DotToken }, { L'{',
-		OpeningBraceToken }, { L'}', ClosingBraceToken }, { L'(',
-		OpeningParentheseToken }, { L')', ClosingParentheseToken }, { L'[',
-		OpeningBracketToken }, { L']', ClosingBracketToken }, { L'>',
-		GreaterToken }, { L'<', LesserToken }, { L'+', PlusToken }, { L'-',
-		MinusToken }, { L'*', MultiplyToken }, { L'/', DivideToken }, { L'%',
-		ModuloToken }, { L'=', AssignToken }, { L'|', OrToken }, { L'&',
-		AndToken }, { L'^', XorToken }, { L';', SemicolonToken }, { L':',
-		ColonToken }, { L'?', QueryToken }, { L'!', LogicalNotToken }, { L'~',
-		NotToken }, { L'$', DollarSignToken }, { L'@', AtToken } };
+} OPERATORS[] = { 
+	{L';', ColonOperator}	
+};
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);
 /*Keywords and their string representatives*/
 struct {
