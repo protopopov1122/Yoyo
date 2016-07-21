@@ -41,6 +41,8 @@ libyoyo=$(libyoyo_$(target))
 
 jyoyo=jyoyo.jar
 
+parser:
+	$(cc) $(cflags) -o parser ../yoyo-parser/*.c
 yoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -o $(yoyo) $(c_source) 
