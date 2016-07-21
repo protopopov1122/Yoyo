@@ -113,7 +113,36 @@ NewValidate(Reference_validate) {
 }
 NewReduce(Reference_reduce) {
 	YNode* node;
+	ExtractCoords(file, line, charPos, handle);
     ExpectReduce(&node, factor, L"Expected expression", ;, handle);
+    while (AssertOperator(handle->tokens[0], DotOperator)||
+            AssertOperator(handle->tokens[0], OpeningBracketOperator)) {
+        if (AssertOperator(handle->tokens[0], DotOperator)) {
+            shift(handle);
+            ExpectToken(handle->tokens[0], TokenIdentifier, L"Expected identifier", node->free(node);, handle);
+            wchar_t* id = handle->tokens[0].value.id;
+            shift(handle);
+            node = newFieldReferenceNode(node, id);
+        } else if (AssertOperator(handle->tokens[0], OpeningBracketOperator)) {
+            shift(handle);
+            YNode* left;
+            ExpectReduce(&left, expression, L"Expected expression", node->free(node), handle);
+            if (AssertOperator(handle->tokens[0], ColonOperator)) {
+                shift(handle);
+                YNode* right;
+                ExpectReduce(&right, expression, L"Expected expression", {node->free(node); left->free(left);}, handle);
+                ExpectOperator(handle->tokens[0], ClosingBracketOperator, L"Expected ']'", {node->free(node);
+                    right->free(right); left->free(left);}, handle);
+                shift(handle);
+                node = newSubseqReferenceNode(node, left, right);
+            } else {
+                ExpectOperator(handle->tokens[0], ClosingBracketOperator, L"Expected ']'", {node->free(node); left->free(left);}, handle);
+                shift(handle);
+                node = newIndexReferenceNode(node, left);
+            }
+        }
+    }
+	SetCoords(node, file, line, charPos);
     return node;
 }
 
@@ -357,7 +386,7 @@ NewValidate(Statement_validate) {
 NewReduce(Statement_reduce) {
 	YNode* node;
 	ExpectReduce(&node, expression, L"Expected expression", ;, handle);
-	if (AssertOperator(handle->tokens[0], ColonOperator))
+	if (AssertOperator(handle->tokens[0], SemicolonOperator))
 		shift(handle);
 	return node;
 }

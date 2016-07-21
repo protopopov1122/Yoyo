@@ -19,7 +19,11 @@ typedef enum {
     XorOperator,
     AssignOperator,
     LogicalNotOperator,
-	ColonOperator	
+    DotOperator,
+    OpeningBracketOperator,
+    ClosingBracketOperator,
+    ColonOperator,
+	SemicolonOperator	
 } yoperator_t;
 
 typedef enum {

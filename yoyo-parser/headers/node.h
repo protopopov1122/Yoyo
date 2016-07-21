@@ -111,7 +111,7 @@ typedef struct YSubsequenceReferenceNode {
 typedef struct YFieldReferenceNode {
 	YNode node;
 	YNode* object;
-	int32_t field;
+	wchar_t* field;
 } YFieldReferenceNode;
 
 typedef struct YCallNode {
@@ -322,7 +322,7 @@ YNode* newIdentifierReferenceNode(wchar_t*);
 YNode* newIndexReferenceNode(YNode*, YNode*);
 YNode* newSubseqReferenceNode(YNode*, YNode*, YNode*);
 YNode* newLambdaNode(int32_t*, YNode**, ssize_t, bool, YNode*, YNode*);
-YNode* newFieldReferenceNode(YNode*, int32_t);
+YNode* newFieldReferenceNode(YNode*, wchar_t*);
 YNode* newCallNode(YNode*, YNode**, size_t);
 YNode* newFilledArray(YNode**, size_t);
 YNode* newGeneratedArray(YNode*, YNode*);

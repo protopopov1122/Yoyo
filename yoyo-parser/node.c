@@ -301,7 +301,7 @@ YNode* newSubseqReferenceNode(YNode* arr, YNode* from, YNode* to) {
 	ref->to = to;
 	return (YNode*) ref;
 }
-YNode* newFieldReferenceNode(YNode* obj, int32_t fid) {
+YNode* newFieldReferenceNode(YNode* obj, wchar_t* fid) {
 	YFieldReferenceNode* ref;
 	NewNode(&ref, YFieldReferenceNode, FieldReferenceN, FieldReference_free);
 	ref->object = obj;
@@ -590,6 +590,27 @@ void pseudocode(YNode* nd, FILE* out) {
 			}
 		}
 		break;
+        case FieldReferenceN: {
+            YFieldReferenceNode* fn = (YFieldReferenceNode*) nd;
+            pseudocode(fn->object, out);
+            printf("field %ls\n", fn->field);
+        }
+        break;
+        case ArrayReferenceN: {
+            YArrayReferenceNode* in = (YArrayReferenceNode*) nd;
+            pseudocode(in->array, out);
+            pseudocode(in->index, out);
+            printf("index\n");
+        }
+        break;
+        case SubsequenceN: {
+            YSubsequenceReferenceNode* sn = (YSubsequenceReferenceNode*) nd;
+            pseudocode(sn->array, out);
+            pseudocode(sn->from, out);
+            pseudocode(sn->to, out);
+            printf("subseq\n");
+        }
+        break;
 		case BlockN: {
 			YBlockNode* block = (YBlockNode*) nd;
 			fprintf(out, "begin\n");

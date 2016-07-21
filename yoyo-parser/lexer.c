@@ -18,7 +18,11 @@ struct {
     {L'^', XorOperator},
     {L'=', AssignOperator},
     {L'!', LogicalNotOperator},
-	{L';', ColonOperator}	
+    {L'.', DotOperator},
+    {L'[', OpeningBracketOperator},
+    {L']', ClosingBracketOperator},
+    {L':', ColonOperator},
+	{L';', SemicolonOperator}	
 };
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);
 /*Keywords and their string representatives*/
