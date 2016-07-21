@@ -358,4 +358,6 @@ YNode* newBlockNode(YNode**, size_t, YFunctionBlock*, size_t);
 													(*(ptr))->node.charPos = -1;\
 													(*(ptr))->node.fileName = NULL;
 
+void pseudocode(YNode*, FILE*);
+
 #endif

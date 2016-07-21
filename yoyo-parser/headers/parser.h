@@ -5,6 +5,13 @@
 #include "node.h"
 
 typedef enum {
+	MultiplyOperator,
+	DivideOperator,
+	ModuloOperator,
+	PlusOperator,
+	MinusOperator,
+	OpeningParentheseOperator,
+	ClosingParentheseOperator,
 	ColonOperator	
 } yoperator_t;
 

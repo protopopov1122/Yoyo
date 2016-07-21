@@ -494,3 +494,60 @@ YNode* newBlockNode(YNode** bl, size_t len, YFunctionBlock* fcs, size_t fcc) {
 	block->funcs_count = fcc;
 	return (YNode*) block;
 }
+
+void pseudocode(YNode* nd, FILE* out) {
+	switch (nd->type) {
+		case ConstantN: {
+			yconstant_t cnst = ((YConstantNode*) nd)->id;
+			switch (cnst.type) {
+				case Int64Constant:
+					fprintf(out, "push_integer %"PRId64"\n", cnst.value.i64);
+				break;
+				default:
+				break;
+			}
+		}
+		break;
+		case IdentifierReferenceN: {
+			wchar_t* id = ((YIdentifierReferenceNode*) nd)->id;
+			fprintf(out, "push_local_variable %ls\n", id);
+		}
+		break;
+		case BinaryN: {
+			YBinaryNode* bin = (YBinaryNode*) nd;
+			pseudocode(bin->right, out);
+			pseudocode(bin->left, out);
+			switch (bin->operation) {
+				case Multiply:
+					fprintf(out, "multiply\n");
+				break;
+				case Divide:
+					fprintf(out, "divide\n");
+				break;
+				case Modulo:
+					fprintf(out, "modulo\n");
+				break;
+				case Add:
+					fprintf(out, "add\n");
+				break;
+				case Subtract:
+					fprintf(out, "subtract\n");
+				break;
+				default:
+				break;
+			}
+		}
+		break;
+		case BlockN: {
+			YBlockNode* block = (YBlockNode*) nd;
+			fprintf(out, "begin\n");
+			for (size_t i=0;i<block->length;i++)
+				pseudocode(block->block[i], out);
+			fprintf(out, "end\n");
+		}
+		break;
+		default:
+			break;
+	}
+}
+

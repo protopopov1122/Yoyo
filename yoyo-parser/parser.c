@@ -88,14 +88,22 @@ NewReduce(Interface_reduce) {
 
 NewValidate(Factor_validate) {
 	return Validate(identifier, handle)||
-            Validate(constant, handle);
+         	Validate(constant, handle)||
+					AssertOperator(handle->tokens[0], OpeningParentheseOperator);
 }
 NewReduce(Factor_reduce) {
+	YNode* out = NULL;
 	if (Validate(identifier, handle))
-		return handle->grammar.identifier.reduce(handle);
-	if (Validate(constant, handle))
-		return handle->grammar.constant.reduce(handle);
-	return NULL;
+		out = handle->grammar.identifier.reduce(handle);
+	else if (Validate(constant, handle))
+		out = handle->grammar.constant.reduce(handle);
+	else if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+		shift(handle);
+		ExpectReduce(&out, expression, L"Expected expression", ;, handle);
+		ExpectOperator(handle->tokens[0], ClosingParentheseOperator, L"Expected ')'", ;, handle);
+		shift(handle);
+	}
+	return out;
 }
 
 NewValidate(Reference_validate) {
@@ -129,8 +137,23 @@ NewValidate(Mul_div_validate) {
 	return Validate(power, handle);
 }
 NewReduce(Mul_div_reduce) {
-	YNode* node;
+		YNode* node;
     ExpectReduce(&node, power, L"Expected expression", ;, handle);
+		while (AssertOperator(handle->tokens[0], MultiplyOperator)||
+						AssertOperator(handle->tokens[0], DivideOperator)||
+						AssertOperator(handle->tokens[0], ModuloOperator)) {
+					YBinaryOperation op;
+					if (AssertOperator(handle->tokens[0], MultiplyOperator))
+						op = Multiply;
+					if (AssertOperator(handle->tokens[0], DivideOperator))
+						op = Divide;
+					if (AssertOperator(handle->tokens[0], ModuloOperator))
+						op = Modulo;
+					shift(handle);
+					YNode* left;
+					ExpectReduce(&left, power, L"Expected expression", node->free(node);, handle);
+					node = newBinaryNode(op, left, node);					
+		}
     return node;
 }
 
@@ -138,8 +161,20 @@ NewValidate(Add_sub_validate) {
 	return Validate(mul_div, handle);
 }
 NewReduce(Add_sub_reduce) {
-	YNode* node;
+		YNode* node;
     ExpectReduce(&node, mul_div, L"Expected expression", ;, handle);
+		while (AssertOperator(handle->tokens[0], PlusOperator)||
+						AssertOperator(handle->tokens[0], MinusOperator)) {
+					YBinaryOperation op;
+					if (AssertOperator(handle->tokens[0], PlusOperator))
+						op = Add;
+					if (AssertOperator(handle->tokens[0], MinusOperator))
+						op = Subtract;
+					shift(handle);
+					YNode* left;
+					ExpectReduce(&left, mul_div, L"Expected expression", node->free(node);, handle);
+					node = newBinaryNode(op, left, node);					
+		}
     return node;
 }
 
@@ -238,7 +273,6 @@ NewReduce(Root_reduce) {
 		else
 			ParseError(L"Expected statement or function", freestmt, handle);
 	}
-	printf("%zu\n", length);
 	return newBlockNode(root, length, NULL, 0 );
 }
 
@@ -295,8 +329,11 @@ int main(int argc, char** argv) {
 	shift(&handle);
 	shift(&handle);
 
-	parse(&handle);
+	YNode* node = parse(&handle);
 
 	fclose(fd);
+
+	pseudocode(node, stdout);
+	node->free(node);
 	return 0;
 }

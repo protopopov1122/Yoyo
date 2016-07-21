@@ -4,6 +4,13 @@ struct {
 	wchar_t ch;
 	yoperator_t op;
 } OPERATORS[] = { 
+	{L'*', MultiplyOperator},
+	{L'/', DivideOperator},
+	{L'%', ModuloOperator},
+	{L'+', PlusOperator},
+	{L'-', MinusOperator},
+	{L'(', OpeningParentheseOperator},
+	{L')', ClosingParentheseOperator},
 	{L';', ColonOperator}	
 };
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);
