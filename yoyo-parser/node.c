@@ -496,6 +496,7 @@ YNode* newBlockNode(YNode** bl, size_t len, YFunctionBlock* fcs, size_t fcc) {
 }
 
 void pseudocode(YNode* nd, FILE* out) {
+	//fprintf(out, "\t\t\tstart: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
 	switch (nd->type) {
 		case ConstantN: {
 			yconstant_t cnst = ((YConstantNode*) nd)->id;
@@ -513,6 +514,18 @@ void pseudocode(YNode* nd, FILE* out) {
 			fprintf(out, "push_local_variable %ls\n", id);
 		}
 		break;
+        case UnaryN: {
+            YUnaryNode* un = (YUnaryNode*) un;
+            pseudocode(un->argument, out);
+            switch (un->operation) {
+                case LogicalNot:
+                    fprintf(out, "logical-not\n");
+                break;
+                default:
+                    break;
+            }
+        }
+        break;
 		case BinaryN: {
 			YBinaryNode* bin = (YBinaryNode*) nd;
 			pseudocode(bin->right, out);
@@ -533,6 +546,45 @@ void pseudocode(YNode* nd, FILE* out) {
 				case Subtract:
 					fprintf(out, "subtract\n");
 				break;
+				case ShiftLeft:
+					fprintf(out, "shl\n");
+				break;
+				case ShiftRight:
+					fprintf(out, "shr\n");
+				break;
+				case And:
+					fprintf(out, "and\n");
+				break;
+				case Or:
+					fprintf(out, "or\n");
+				break;
+				case Xor:
+					fprintf(out, "xor\n");
+				break;
+				case BEquals:
+					fprintf(out, "equals\n");
+				break;
+				case NotEquals:
+					fprintf(out, "not-equals\n");
+				break;
+				case GreaterOrEquals:
+					fprintf(out, "greater-or-equals\n");
+				break;
+				case LesserOrEquals:
+					fprintf(out, "lesser-or-equals\n");
+				break;
+				case Greater:
+					fprintf(out, "greater\n");
+				break;
+				case Lesser:
+					fprintf(out, "lesser\n");
+				break;
+				case LogicalAnd:
+					fprintf(out, "logical-and\n");
+				break;
+				case LogicalOr:
+					fprintf(out, "logical-or\n");
+				break;
 				default:
 				break;
 			}
@@ -549,5 +601,6 @@ void pseudocode(YNode* nd, FILE* out) {
 		default:
 			break;
 	}
+	//fprintf(out, "\t\t\tend: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
 }
 

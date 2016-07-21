@@ -11,6 +11,13 @@ struct {
 	{L'-', MinusOperator},
 	{L'(', OpeningParentheseOperator},
 	{L')', ClosingParentheseOperator},
+	{L'>', GreaterOperator},
+	{L'<', LesserOperator},
+    {L'&', AndOperator},
+    {L'|', OrOperator},
+    {L'^', XorOperator},
+    {L'=', AssignOperator},
+    {L'!', LogicalNotOperator},
 	{L';', ColonOperator}	
 };
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);

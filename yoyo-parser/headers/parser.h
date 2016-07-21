@@ -12,6 +12,13 @@ typedef enum {
 	MinusOperator,
 	OpeningParentheseOperator,
 	ClosingParentheseOperator,
+    GreaterOperator,
+    LesserOperator,
+    AndOperator,
+    OrOperator,
+    XorOperator,
+    AssignOperator,
+    LogicalNotOperator,
 	ColonOperator	
 } yoperator_t;
 
