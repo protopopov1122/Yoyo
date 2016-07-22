@@ -159,7 +159,7 @@ void Yoyo_main(char** argv, int argc) {
 		runtime->CoreThread);
 
 	/* Executes specified file only if 'core.yoyo' is found and valid */
-	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {
+	if (true) {//Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {
 		runtime->debugger = debug;
 		Yoyo_interpret_file(ycenv->bytecode, runtime, file);
 	}

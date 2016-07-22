@@ -22,9 +22,7 @@ extern "C" {
 
 #include "yoyo-runtime.h"
 #include "interpreter.h"
-#include "yoyoc/yoyoc.h"
-#include "yoyoc/node.h"
-#include "yoyoc/codegen.h"
+#include "yoyoc.h"
 
 bool Yoyo_interpret_file(ILBytecode*, YRuntime*, wchar_t*);
 void Yoyo_main(char** argv, int argc);

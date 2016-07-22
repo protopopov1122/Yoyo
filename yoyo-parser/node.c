@@ -495,7 +495,7 @@ YNode* newBlockNode(YNode** bl, size_t len, YFunctionBlock* fcs, size_t fcc) {
 	return (YNode*) block;
 }
 
-void pseudocode(YNode* nd, FILE* out) {
+/*void pseudocode(YNode* nd, FILE* out) {
 	//fprintf(out, "\t\t\tstart: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
 	switch (nd->type) {
 		case ConstantN: {
@@ -515,7 +515,7 @@ void pseudocode(YNode* nd, FILE* out) {
 		}
 		break;
         case UnaryN: {
-            YUnaryNode* un = (YUnaryNode*) un;
+            YUnaryNode* un = (YUnaryNode*) nd;
             pseudocode(un->argument, out);
             switch (un->operation) {
                 case LogicalNot:
@@ -611,6 +611,18 @@ void pseudocode(YNode* nd, FILE* out) {
             printf("subseq\n");
         }
         break;
+
+		case ConditionN: {
+			YConditionNode* cn = (YConditionNode*) nd;
+			pseudocode(cn->cond, out);
+			pseudocode(cn->body, out);
+			fprintf(out, "if\n");
+			if (cn->elseBody!=NULL) {
+				pseudocode(cn->elseBody, out);
+				fprintf(out, "else\n");
+			}
+		}
+		break;
 		case BlockN: {
 			YBlockNode* block = (YBlockNode*) nd;
 			fprintf(out, "begin\n");
@@ -623,5 +635,5 @@ void pseudocode(YNode* nd, FILE* out) {
 			break;
 	}
 	//fprintf(out, "\t\t\tend: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
-}
+}*/
 

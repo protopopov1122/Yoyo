@@ -24,8 +24,8 @@ c_platform=$(c_platform_$(target))
 
 misc=
 
-cflags=$(c_lang) $(opt) $(dbg) -I.. -I../yoyo-runtime -I../yoyo-runtime/headers -I../yoyoc -I../yoyo-vm/headers $(c_platform) $(misc)
-c_source=../yoyo-vm/*.c ../YStd/native/*.c ../yoyoc/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c
+cflags=$(c_lang) $(opt) $(dbg) -I.. -I../yoyo-runtime -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers $(c_platform) $(misc)
+c_source=../yoyo-vm/*.c ../YStd/native/*.c ../yoyo-parser/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c
 
 yoyo_linux=yoyo
 yoyo_win=yoyo.exe

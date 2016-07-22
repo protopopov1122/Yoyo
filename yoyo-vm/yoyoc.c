@@ -14,13 +14,10 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "yoyoc/yoyoc.h"
-
-#include "stringbuilder.h"
-#include "value.h"
-#include "yoyoc/token.h"
-#include "yoyoc/yparse.h"
-#include "yoyoc/codegen.h"
+#include "yoyoc.h"
+#include "yoyo-runtime.h"
+#include "parser.h"
+#include "codegen.h"
 
 typedef struct StringInputStream {
 	InputStream is;
@@ -55,7 +52,7 @@ CompilationResult YoyoC_parse(Environment* _env, YRuntime* runtime,
 		CompilationResult res = { .pid = -1, .log = NULL };
 		return res;
 	}
-	return yoyoc(env, yfileinput(_env->getFile(_env, wpath)), wpath);
+	return yoyoc(env, _env->getFile(_env, wpath), wpath);
 }
 wint_t SIS_get(InputStream* is) {
 	StringInputStream* sis = (StringInputStream*) is;
@@ -80,16 +77,12 @@ CompilationResult YoyoC_eval(Environment* _env, YRuntime* runtime,
 		CompilationResult res = { .pid = -1, .log = NULL };
 		return res;
 	}
-	StringInputStream* is = malloc(sizeof(StringInputStream));
-	wchar_t* cp = malloc(sizeof(wchar_t) * (wcslen(wstr) + 1));
-	wcscpy(cp, wstr);
-	cp[wcslen(wstr)] = L'\0';
-	is->wstr = cp;
-	is->offset = 0;
-	is->is.get = SIS_get;
-	is->is.unget = SIS_unget;
-	is->is.close = SIS_close;
-	return yoyoc(env, (InputStream*) is, L"<eval>");
+	FILE* tmpf = tmpfile();
+	fprintf(tmpf, "%ls", wstr);
+	rewind(tmpf);
+	CompilationResult res = yoyoc(env, tmpf, L"<eval>");
+	fclose(tmpf);
+	return res;
 }
 wchar_t* YoyoC_getenv(Environment* _env, wchar_t* wkey) {
 	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
@@ -161,20 +154,33 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	return env;
 }
 
-CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* is, wchar_t* name) {
-	YParser parser;
+CompilationResult yoyoc(YoyoCEnvironment* env, FILE* input, wchar_t* name) {
+	ParseHandle handle;
 	FILE* errfile = tmpfile();
-	parser.err_file = errfile!=NULL ? errfile : stdout;
-	yparse(env, ylex(env, is, name), &parser);
-	if (parser.err_flag || parser.root == NULL) {
-		if (parser.root != NULL)
-			parser.root->free(parser.root);
-		fflush(parser.err_file);
-		rewind(parser.err_file);
+	handle.error_stream = errfile;
+	handle.input = input;
+	handle.charPos = 0;
+	handle.line = 1;
+	handle.fileName = name;
+	handle.constants = NULL;
+	handle.constants_size = 0;
+	handle.symbols = NULL;
+	handle.symbols_size = 0;
+	handle.error_flag = false;
+	shift(&handle);
+	shift(&handle);
+	shift(&handle);
+	shift(&handle);
+	YNode* root = parse(&handle);
+	if (handle.error_flag || root == NULL) {
+		if (root != NULL)
+			root->free(root);
+		fflush(handle.error_stream);
+		rewind(handle.error_stream);
 		char* buffer = NULL;
 		size_t len = 0;
 		int ch;
-		while ((ch = fgetc(parser.err_file)) != EOF) {
+		while ((ch = fgetc(handle.error_stream)) != EOF) {
 			buffer = realloc(buffer, sizeof(char) * (++len));
 			buffer[len - 1] = (char) ch;
 		}
@@ -188,7 +194,13 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* is, wchar_t* name) {
 		free(buffer);
 		if (errfile!=NULL)
 			fclose(errfile);
-
+		for (size_t i=0;i<handle.constants_size;i++)
+			if (handle.constants[i].type==WcsConstant)
+				free(handle.constants[i].value.wcs);
+		free(handle.constants);
+		for (size_t i=0;i<handle.symbols_size;i++)
+			free(handle.symbols[i]);
+		free(handle.symbols);
 		return res;
 	}
 	bool cont = false;
@@ -206,15 +218,15 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* is, wchar_t* name) {
 		env->files[env->files_size] = NULL;
 		env->files_size++;
 	}
-	int32_t pid = ycompile(env, parser.root, parser.err_file);
-	fflush(parser.err_file);
+	int32_t pid = ycompile(env, root, handle.error_stream);
+	fflush(handle.error_stream);
 	wchar_t* wlog = NULL;
-	if (ftell(parser.err_file) != 0) {
-		rewind(parser.err_file);
+	if (ftell(handle.error_stream) != 0) {
+		rewind(handle.error_stream);
 		size_t len = 0;
 		char* log = NULL;
 		int ch;
-		while ((ch = fgetc(parser.err_file)) != EOF) {
+		while ((ch = fgetc(handle.error_stream)) != EOF) {
 			log = realloc(log, sizeof(char) * (++len));
 			log[len - 1] = (char) ch;
 		}
@@ -228,5 +240,12 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* is, wchar_t* name) {
 	if (errfile!=NULL)
 		fclose(errfile);
 	CompilationResult res = { .log = wlog, .pid = pid };
+	for (size_t i=0;i<handle.constants_size;i++)
+		if (handle.constants[i].type==WcsConstant)
+			free(handle.constants[i].value.wcs);
+	free(handle.constants);
+	for (size_t i=0;i<handle.symbols_size;i++)
+		free(handle.symbols[i]);
+	free(handle.symbols);
 	return res;
 }

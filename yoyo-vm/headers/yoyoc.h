@@ -38,6 +38,6 @@ typedef struct YoyoCEnvironment {
 } YoyoCEnvironment;
 
 YoyoCEnvironment* newYoyoCEnvironment(ILBytecode*);
-CompilationResult yoyoc(YoyoCEnvironment*, InputStream*, wchar_t*);
+CompilationResult yoyoc(YoyoCEnvironment*, FILE*, wchar_t*);
 
 #endif

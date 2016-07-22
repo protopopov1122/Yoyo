@@ -51,10 +51,10 @@ NewReduce(Identifier_reduce) {
 	return node;
 }
 
-NewValidate(Array_validate) {
+NewValidate(Parser_Array_validate) {
     return false;
 }
-NewReduce(Array_reduce) {
+NewReduce(Parser_Array_reduce) {
     return NULL;
 }
 
@@ -327,11 +327,11 @@ NewReduce(Logical_not_reduce) {
 	ExtractCoords(file, line, charPos, handle);
     if (AssertOperator(handle->tokens[0], LogicalNotOperator)) {
         shift(handle);
-//        ExpectReduce(&node, comparison, L"Expected expression", ;, handle);
- //       node = newUnaryNode(LogicalNot, node);
-    }// else {*/
         ExpectReduce(&node, comparison, L"Expected expression", ;, handle);
-    //}
+       node = newUnaryNode(LogicalNot, node);
+    } else {
+        ExpectReduce(&node, comparison, L"Expected expression", ;, handle);
+    }
     SetCoords(node, file, line, charPos);
     return node;
 }
@@ -363,12 +363,28 @@ NewReduce(Logical_ops_reduce) {
 }
 
 NewValidate(Expr_validate) {
-	return Validate(logical_ops, handle);
+	return Validate(logical_ops, handle)||
+					AssertKeyword(handle->tokens[0], IfKeyword);
 }
 NewReduce(Expr_reduce) {
 	YNode* node;
-    ExpectReduce(&node, logical_ops, L"Expected expression", ;, handle);
-    return node;
+	ExtractCoords(file, line, charPos, handle);
+	if (AssertKeyword(handle->tokens[0], IfKeyword)) {
+		shift(handle);
+		YNode* cond;
+		YNode* body;
+		YNode* elseBody = NULL;
+		ExpectReduce(&cond, expression, L"Expected expression", ;, handle);
+		ExpectReduce(&body, statement, L"Expected statement", cond->free(cond);, handle);
+		if (AssertKeyword(handle->tokens[0], ElseKeyword)) {
+			shift(handle);
+			ExpectReduce(&elseBody, statement, L"Expected statement", {cond->free(cond); body->free(body);}, handle);
+		}
+		node = newConditionNode(cond, body, elseBody);
+	} else
+  	ExpectReduce(&node, logical_ops, L"Expected expression", ;, handle);
+	SetCoords(node, file, line, charPos);
+  return node;
 }
 
 NewValidate(Expression_validate) {
@@ -395,6 +411,7 @@ NewValidate(Root_validate) {
 	return true;
 }
 NewReduce(Root_reduce) {
+	ExtractCoords(file, line, charPos, handle);
 	YNode** root = NULL;
 	size_t length = 0;
 #define freestmt {\
@@ -412,7 +429,9 @@ NewReduce(Root_reduce) {
 		else
 			ParseError(L"Expected statement or function", freestmt, handle);
 	}
-	return newBlockNode(root, length, NULL, 0 );
+	YNode* rootNode = newBlockNode(root, length, NULL, 0 );
+	SetCoords(rootNode, file, line, charPos);
+	return rootNode;
 }
 
 void initGrammar(Grammar* g) {
@@ -420,7 +439,7 @@ void initGrammar(Grammar* g) {
 	NewRule(g, identifier, Identifier_validate, Identifier_reduce);
 	NewRule(g, lambda, Lambda_validate, Lambda_reduce);
 	NewRule(g, object, Object_validate, Object_reduce);
-	NewRule(g, array, Array_validate, Array_reduce);
+	NewRule(g, array, Parser_Array_validate, Parser_Array_reduce);
 	NewRule(g, overload, Overload_validate, Overload_reduce);
 	NewRule(g, interface, Interface_validate, Interface_reduce);
 	NewRule(g, factor, Factor_validate, Factor_reduce);
@@ -444,7 +463,7 @@ YNode* parse(ParseHandle* handle) {
 	initGrammar(&handle->grammar);
 	return handle->grammar.root.reduce(handle);
 }
-
+/*
 int main(int argc, char** argv) {
 	argc--; argv++;
 	if (argc==0) {
@@ -464,25 +483,16 @@ int main(int argc, char** argv) {
 	handle.line = 1;
 	handle.error_flag = false;
 
-	/*int i=20;
-	while (i) {
-	for (size_t j=0;j<handle.constants_size;j++)
-		if (handle.constants[j].type==WcsConstant)
-			free(handle.constants[j].value.wcs);
-	free(handle.constants);
-	handle.constants = NULL;
-	handle.constants_size = 0;*/
 	shift(&handle);
 	shift(&handle);
 	shift(&handle);
 	shift(&handle);
 	YNode* node = parse(&handle);
 
-	//rewind(fd);
 	fclose(fd);
 
 	pseudocode(node, stdout);
 	node->free(node);
-	//}
 	return 0;
 }
+*/

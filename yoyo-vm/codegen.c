@@ -14,7 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "yoyoc/codegen.h"
+#include "yoyoc.h"
+#include "codegen.h"
 #include "opcodes.h"
 
 #define GET_BIT(n, offset) ((n>>offset)&1)
@@ -392,7 +393,7 @@ YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	if (node->type == IdentifierReferenceN) {
 		YIdentifierReferenceNode* ref = (YIdentifierReferenceNode*) node;
 		YIdentifierModifier* mod = malloc(sizeof(YIdentifierModifier));
-		mod->id = ref->id;
+		mod->id = env->bytecode->getSymbolId(env->bytecode, ref->id);
 		mod->mod.setter = Identifier_setter;
 		mod->mod.remover = Identifier_remover;
 		mod->mod.typeSetter = Identifier_setType;
@@ -401,7 +402,7 @@ YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	} else if (node->type == FieldReferenceN) {
 		YFieldReferenceNode* ref = (YFieldReferenceNode*) node;
 		YFieldModifier* mod = malloc(sizeof(YFieldModifier));
-		mod->id = ref->field;
+		mod->id = env->bytecode->getSymbolId(env->bytecode, ref->field);
 		mod->object = ref->object;
 		mod->mod.setter = Field_setter;
 		mod->mod.remover = Field_remover;
@@ -453,14 +454,28 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	switch (node->type) {
 	case ConstantN: {
 		int32_t reg = proc->nextRegister(proc);
-		int32_t cid = ((YConstantNode*) node)->id;
+		yconstant_t cnst = ((YConstantNode*) node)->id;
+		int32_t cid = -1;
+		if (cnst.type==Int64Constant)
+			cid = builder->bc->addIntegerConstant(builder->bc,
+					cnst.value.i64);
+		if (cnst.type==BoolConstant)
+			cid = builder->bc->addBooleanConstant(builder->bc,
+					cnst.value.boolean);
+		if (cnst.type==Fp64Constant)
+			cid = builder->bc->addFloatConstant(builder->bc,
+					cnst.value.fp64);
+		if (cnst.type==WcsConstant)
+			cid = builder->bc->addStringConstant(builder->bc,
+					cnst.value.wcs);
 		proc->append(proc, VM_LoadConstant, reg, cid, -1);
 		output = reg;
 	}
 		break;
 	case IdentifierReferenceN: {
 		int32_t reg = proc->nextRegister(proc);
-		int32_t id = ((YIdentifierReferenceNode*) node)->id;
+		int32_t id = env->bytecode->getSymbolId(env->bytecode,
+				((YIdentifierReferenceNode*) node)->id);
 		proc->append(proc, VM_GetField, reg, 0, id);
 		output = reg;
 	}
@@ -534,7 +549,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	case FieldReferenceN: {
 		YFieldReferenceNode* fref = (YFieldReferenceNode*) node;
 		int32_t obj = ytranslate(builder, env, fref->object);
-		proc->append(proc, VM_GetField, obj, obj, fref->field);
+		proc->append(proc, VM_GetField, obj, obj,
+				env->bytecode->getSymbolId(env->bytecode, fref->field));
 		output = obj;
 	}
 		break;
@@ -1341,7 +1357,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	size_t length = proc->proc->code_length - startLen;
 	if (node->line != -1 && node->charPos != -1)
 		proc->proc->addCodeTableEntry(proc->proc, node->line, node->charPos,
-				startLen, length, node->fname);
+				startLen, length, env->bytecode->getSymbolId(env->bytecode,
+						node->fileName));
 	return output;
 }
 

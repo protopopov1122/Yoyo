@@ -17,7 +17,8 @@
 #ifndef YOYOC_CODEGEN_H
 #define YOYOC_CODEGEN_H
 
-#include "yparse.h"
+#include "parser.h"
+#include "bytecode.h"
 
 typedef struct YCodeGen YCodeGen;
 
@@ -73,7 +74,7 @@ typedef struct YCodeGen {
 } YCodeGen;
 
 #define CompilationError(file, msg, node, bc) fprintf(file, "%ls at %ls(%" PRId32 ":%" PRId32 ")\n", msg,\
-	bc->getSymbolById(bc, node->fname), node->line, node->charPos);
+					node->fileName, node->line, node->charPos);
 
 int32_t ycompile(YoyoCEnvironment*, YNode*, FILE*);
 YModifier* ymodifier(YCodeGen*, YoyoCEnvironment*, YNode*);
