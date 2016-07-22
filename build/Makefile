@@ -24,8 +24,8 @@ c_platform=$(c_platform_$(target))
 
 misc=
 
-cflags=$(c_lang) $(opt) $(dbg) -I.. -I../yoyo-runtime -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers $(c_platform) $(misc)
-c_source=../yoyo-vm/*.c ../YStd/native/*.c ../yoyo-parser/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c
+cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers $(c_platform) $(misc)
+c_source=../yoyo-util/*.c ../yoyo-vm/*.c ../YStd/native/*.c ../yoyo-parser/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c
 
 yoyo_linux=yoyo
 yoyo_win=yoyo.exe
@@ -42,8 +42,6 @@ libyoyo=$(libyoyo_$(target))
 jyoyo=jyoyo.jar
 
 
-parser:
-	$(cc) $(cflags) -o parser ../yoyo-parser/*.c
 yoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -o $(yoyo) $(c_source) 

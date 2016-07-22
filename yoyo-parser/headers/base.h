@@ -15,6 +15,7 @@
 #include <locale.h>
 #include <limits.h>
 #include <unistd.h>
+#include "util.h"
 
 typedef struct yconstant_t {
 	enum {

@@ -46,37 +46,6 @@ FILE* search_file(wchar_t* wname, wchar_t** wpaths, size_t sz) {
 	return fd;
 }
 
-typedef struct FileInputStream {
-	InputStream is;
-	FILE* file;
-} FileInputStream;
-
-wint_t FIS_get(InputStream* is) {
-	FileInputStream* fis = (FileInputStream*) is;
-	wint_t out = fgetwc(fis->file);
-	return out;
-}
-void FIS_unget(InputStream* is, wint_t ch) {
-	FileInputStream* fis = (FileInputStream*) is;
-	ungetwc(ch, fis->file);
-}
-void FIS_close(InputStream* is) {
-	FileInputStream* fis = (FileInputStream*) is;
-	fclose(fis->file);
-	free(fis);
-}
-
-InputStream* yfileinput(FILE* file) {
-	if (file == NULL)
-		return NULL;
-	FileInputStream* is = malloc(sizeof(FileInputStream));
-	is->file = file;
-	is->is.get = FIS_get;
-	is->is.unget = FIS_unget;
-	is->is.close = FIS_close;
-	return (InputStream*) is;
-}
-
 wchar_t* readLine(FILE* stream) {
 	wchar_t* wstr = NULL;
 	size_t size = 0;

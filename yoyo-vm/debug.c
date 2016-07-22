@@ -262,11 +262,17 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					}
 				} else CMD(req, L"procs") {
 					ILBytecode* bc = dbg->bytecode;
+					size_t pcount = 0;
+					for (size_t i=0;i<bc->procedure_count;i++)
+						if (bc->procedures[i]!=NULL)
+							pcount++;
 					fprintf(th->runtime->env->out_stream,
-							"Procedure count: "SIZE_T"\n", bc->procedure_count);
+							"Procedure count: "SIZE_T"\n", pcount);
 					for (size_t i = 0;
 							i < dbg->bytecode->procedure_count; i++) {
 						ILProcedure* proc = dbg->bytecode->procedures[i];
+						if (proc==NULL)
+							continue;
 						if (((ExecutionFrame*) th->frame)->proc->id == proc->id)
 							fprintf(th->runtime->env->out_stream, "*");
 						fprintf(th->runtime->env->out_stream,
@@ -278,7 +284,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					if (argc == 3)
 						pid = wcstoul(argv[2], NULL, 0);
 					ILBytecode* bc = dbg->bytecode;
-					if (pid != -1 && pid < bc->procedure_count) {
+					if (pid != -1 && pid < bc->procedure_count &&
+								bc->procedures[pid]!=NULL) {
 						ILProcedure* proc = bc->procedures[pid];
 						fprintf(th->runtime->env->out_stream,
 								"Procedure #%"PRIu32":\n", proc->id);
@@ -317,8 +324,12 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					}
 				} else CMD(req, L"bytecode") {
 					ILBytecode* bc = dbg->bytecode;
+					size_t pcount = 0;
+					for (size_t i=0;i<bc->procedure_count;i++)
+						if (bc->procedures[i]!=NULL)
+							pcount++;
 					fprintf(th->runtime->env->out_stream,
-							"Procedure count: "SIZE_T"\n", bc->procedure_count);
+							"Procedure count: "SIZE_T"\n", pcount);
 					fprintf(th->runtime->env->out_stream,
 							"Constant pool size: %"PRIu32"\n",
 							bc->constants.size);
@@ -403,12 +414,9 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 		} else CMD(argv[0], L"eval") {
 			if (argc > 1) {
 				wchar_t* code = &origLine[wcslen(L"eval") + 1];
-				FILE* fd = tmpfile();
-				fprintf(fd, "%ls", code);
-				rewind(fd);
 				th->runtime->state = RuntimeRunning;
 				YValue* val  = th->runtime->env->eval(th->runtime->env,
-						th->runtime, fd, L"<eval>",
+						th->runtime, string_input_stream(code), L"<eval>",
 						(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 				if (th->exception != NULL) {
 					wchar_t* wstr = toString(th->exception, th);
@@ -422,7 +430,6 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					free(wstr);
 				}	
 				th->runtime->state = RuntimePaused;
-				fclose(fd);
 			}
 		} else CMD(argv[0], L"trace") {
 			ExecutionFrame* frame = ((ExecutionFrame*) th->frame);
@@ -496,19 +503,15 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 					if (dbbp->condition != NULL) {
 						/* Checks if breakpoint has condition and
 						 * executes this condition */
-						FILE* fd = tmpfile();
-						fprintf(fd, "%ls", dbbp->condition);
-						rewind(fd);
 						th->runtime->state = RuntimeRunning;
 						YValue* val = th->runtime->env->eval(th->runtime->env, th->runtime,
-							fd, L"<eval>",
+							string_input_stream(dbbp->condition), L"<eval>",
 							(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 						th->exception = NULL;
 						if (val->type->type == BooleanT) {
 							exec = ((YBoolean*) val)->value;
 						}
 						th->runtime->state = RuntimePaused;
-						fclose(fd);
 					}
 					if (exec) {
 						wchar_t* sym = dbg->bytecode->getSymbolById(

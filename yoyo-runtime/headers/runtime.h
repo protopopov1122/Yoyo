@@ -109,7 +109,7 @@ typedef struct Environment {
 
 	void (*free)(struct Environment*, struct YRuntime*);
 	YObject* (*system)(struct Environment*, YRuntime*);
-	YValue* (*eval)(struct Environment*, YRuntime*, FILE*, wchar_t*, YObject*);
+	YValue* (*eval)(struct Environment*, YRuntime*, InputStream*, wchar_t*, YObject*);
 	wchar_t* (*getDefined)(struct Environment*, wchar_t*);
 	void (*define)(struct Environment*, wchar_t*, wchar_t*);
 	FILE* (*getFile)(struct Environment*, wchar_t*);

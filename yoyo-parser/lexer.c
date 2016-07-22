@@ -52,10 +52,7 @@ bool isOperator(wchar_t ch) {
 }
 
 wint_t readwc(ParseHandle* handle) {
-	wchar_t ch;
-	fscanf(handle->input, "%lc", &ch);
-	if (feof(handle->input))
-		return WEOF;
+	wint_t ch = handle->input->read(handle->input);
 	if (ch=='\n') {
 		handle->lastCharPos = handle->charPos;
 		handle->charPos = 0;
@@ -70,7 +67,7 @@ void unreadwc(wint_t ch, ParseHandle* handle) {
 		handle->line--;
 	} else
 		handle->charPos--;
-	ungetwc(ch, handle->input);
+	handle->input->unread(ch, handle->input);
 }
 
 ytoken lex(ParseHandle* handle) {
@@ -92,7 +89,7 @@ ytoken lex(ParseHandle* handle) {
 				} while (ch!=WEOF&&!(ch==L'*'&&nextc==L'/'));
 				ch = readwc(handle);
 			} else {
-				ungetwc(nextc, handle->input);
+				unreadwc(nextc, handle);
 			}
 
 		}

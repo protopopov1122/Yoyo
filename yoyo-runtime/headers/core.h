@@ -29,6 +29,7 @@
 #include <math.h>
 #include <locale.h>
 #include <limits.h>
+#include "util.h"
 #include "external.h"
 
 typedef struct GarbageCollector GarbageCollector;
@@ -61,12 +62,6 @@ typedef enum {
 	AnyT = 0
 } ValueType;
 
-typedef struct InputStream {
-	wint_t (*get)(struct InputStream*);
-	void (*unget)(struct InputStream*, wint_t);
-	void (*close)(struct InputStream*);
-} InputStream;
-
 typedef struct SymbolMapEntry {
 	int32_t id;
 	wchar_t* symbol;
@@ -80,7 +75,6 @@ typedef struct SymbolMap {
 int32_t getSymbolId(SymbolMap*, wchar_t*);
 wchar_t* getSymbolById(SymbolMap*, int32_t);
 
-InputStream* yfileinput(FILE*);
 FILE* search_file(wchar_t*, wchar_t**, size_t);
 
 #ifndef __cplusplus

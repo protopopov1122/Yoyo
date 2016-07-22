@@ -32,7 +32,7 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 	} else {
 		YThread* th = newThread(runtime);
 		runtime->env->eval(runtime->env, runtime,
-			runtime->env->getFile(runtime->env, wpath), wpath,
+			file_input_stream(runtime->env->getFile(runtime->env, wpath)), wpath,
 			NULL); 
 		if (th->exception!=NULL) {
 			YValue* e = th->exception;

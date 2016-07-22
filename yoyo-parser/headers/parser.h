@@ -105,7 +105,7 @@ typedef struct Grammar {
 } Grammar;
 
 typedef struct ParseHandle {
-	FILE* input;
+	InputStream* input;
 	FILE* error_stream;
 	wchar_t* fileName;
 

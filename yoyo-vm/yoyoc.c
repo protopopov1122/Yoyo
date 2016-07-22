@@ -41,12 +41,12 @@ YObject* YoyoC_system(Environment* env, YRuntime* runtime) {
 }
 
 YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
-		FILE* fd, wchar_t* wname, YObject* scope) {
+		InputStream* is, wchar_t* wname, YObject* scope) {
 	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
 	if (env->bytecode == NULL) {
 		env->bytecode = newBytecode(&runtime->symbols);
 	}
-	CompilationResult res = yoyoc(env, fd, wname);
+	CompilationResult res = yoyoc(env, is, wname);
 	YThread* th = newThread(runtime);
 	if (res.pid != -1) {
 		if (scope==NULL)
@@ -62,6 +62,7 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
 				obj->put(obj,
 					getSymbolId(&th->runtime->symbols,
 						L"log"), newString(res.log, th), true, th);
+				printf("%ls\n", res.log);
 			}
 		return getNull(th);
 	} else {
@@ -138,7 +139,7 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	return env;
 }
 
-CompilationResult yoyoc(YoyoCEnvironment* env, FILE* input, wchar_t* name) {
+CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input, wchar_t* name) {
 	ParseHandle handle;
 	FILE* errfile = tmpfile();
 	handle.error_stream = errfile;
@@ -156,6 +157,7 @@ CompilationResult yoyoc(YoyoCEnvironment* env, FILE* input, wchar_t* name) {
 	shift(&handle);
 	shift(&handle);
 	YNode* root = parse(&handle);
+	input->close(input);
 	if (handle.error_flag || root == NULL) {
 		if (root != NULL)
 			root->free(root);

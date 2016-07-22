@@ -99,7 +99,8 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 	wchar_t* wstr = toString(args[0], th);
 	YObject* lib = th->runtime->newObject(NULL, th);
 	runtime->env->eval(runtime->env, th->runtime,
-		runtime->env->getFile(runtime->env, wstr), wstr, lib);	
+		file_input_stream(runtime->env->getFile(runtime->env, wstr)),
+		wstr, lib);	
 	free(wstr);
 	return (YValue*) lib;
 }
@@ -107,7 +108,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	YValue* out = runtime->env->eval(runtime->env, th->runtime,
-		runtime->env->getFile(runtime->env, wstr), wstr,
+		file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
 		(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 	free(wstr);
 	return out;
@@ -126,7 +127,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 	}
 	YObject* lib = th->runtime->newObject(NULL, th);
 	runtime->env->eval(runtime->env, th->runtime,
-		runtime->env->getFile(runtime->env, wstr), wstr, lib);	
+		file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr, lib);	
 	free(wstr);
 	return (YValue*) lib;
 	free(wstr);
@@ -136,14 +137,10 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	FILE* fd = fopen("_temp.txt", "w+b");
-	fprintf(fd, "%ls", wstr);	
-	fflush(fd);
-	rewind(fd);
 	YValue* out = runtime->env->eval(runtime->env, runtime,
-		fd, wstr, (YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
+		string_input_stream(wstr),
+		wstr, (YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 	free(wstr);
-	fclose(fd);
 	return out;
 }
 
