@@ -116,7 +116,8 @@ NewReduce(Reference_reduce) {
 	ExtractCoords(file, line, charPos, handle);
     ExpectReduce(&node, factor, L"Expected expression", ;, handle);
     while (AssertOperator(handle->tokens[0], DotOperator)||
-            AssertOperator(handle->tokens[0], OpeningBracketOperator)) {
+            AssertOperator(handle->tokens[0], OpeningBracketOperator)||
+						AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
         if (AssertOperator(handle->tokens[0], DotOperator)) {
             shift(handle);
             ExpectToken(handle->tokens[0], TokenIdentifier, L"Expected identifier", node->free(node);, handle);
@@ -136,11 +137,34 @@ NewReduce(Reference_reduce) {
                 shift(handle);
                 node = newSubseqReferenceNode(node, left, right);
             } else {
-                ExpectOperator(handle->tokens[0], ClosingBracketOperator, L"Expected ']'", {node->free(node); left->free(left);}, handle);
+                ExpectOperator(handle->tokens[0], ClosingBracketOperator, L"Expected ']'",
+									{node->free(node); left->free(left);}, handle);
                 shift(handle);
                 node = newIndexReferenceNode(node, left);
             }
-        }
+        } else if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+					shift(handle);
+					YNode** args = NULL;
+					size_t len = 0;
+#define freestmt {\
+					for (size_t i=0;i<len;i++) args[i]->free(args[i]);\
+					free(args);\
+					node->free(node);\
+				}
+					while (!AssertOperator(handle->tokens[0], ClosingParentheseOperator)) {
+						YNode* n;
+						ExpectReduce(&n, expr, L"Expected expression", freestmt, handle);
+						args = realloc(args, sizeof(YNode*) * (++len));
+						args[len-1] = n;
+						if (AssertOperator(handle->tokens[0], CommaOperator))
+							shift(handle);
+						else if (!AssertOperator(handle->tokens[0], ClosingParentheseOperator))
+							ParseError(L"Expected ')' or ','", freestmt, handle);
+					}
+					shift(handle);
+					node = newCallNode(node, args, len);
+#undef freestmt
+				}
     }
 	SetCoords(node, file, line, charPos);
     return node;

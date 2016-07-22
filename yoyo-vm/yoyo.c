@@ -30,24 +30,16 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 		yerror(ErrorFileNotFound, wpath, runtime->CoreThread);
 		return false;
 	} else {
-		CompilationResult res = env->parse(env, runtime, wpath);
-		if (res.log != NULL) {
-			yerror(CompilationError, res.log, runtime->CoreThread);
-			free(res.log);
-			return false;
-		}
-		if (res.pid != -1) {
-			YThread* th = newThread(runtime);
-		  invoke(res.pid, bc, runtime->global_scope, NULL, th);
-			if (th->exception != NULL) {
-				wchar_t* wstr = toString(th->exception, th);
-				fprintf(runtime->env->out_stream, "%ls\n", wstr);
-				free(wstr);
-				th->exception = NULL;
-			}
-			bc->procedures[res.pid]->free(
-					bc->procedures[res.pid], bc);
-			th->free(th);
+		YThread* th = newThread(runtime);
+		runtime->env->eval(runtime->env, runtime,
+			runtime->env->getFile(runtime->env, wpath), wpath,
+			runtime->global_scope); 
+		if (th->exception!=NULL) {
+			YValue* e = th->exception;
+			th->exception = NULL;
+			wchar_t* wstr = toString(e, th);
+			fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
+			free(wstr);
 		}
 	}
 	return true;
@@ -165,6 +157,8 @@ void Yoyo_main(char** argv, int argc) {
 	}
 
 	/* Waits all threads to finish and frees resources */
+	YThread* current_th = newThread(runtime);
+	current_th->free(current_th);
 	runtime->wait(runtime);
 	runtime->free(runtime);
 	if (debug != NULL)

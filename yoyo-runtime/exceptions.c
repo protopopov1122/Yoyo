@@ -119,6 +119,9 @@ void throwException(wchar_t* msg, wchar_t** args, size_t argc, YThread* th) {
  * about source file, code line and char position,
  * stack trace(if available)*/
 YValue* newException(YValue* base, YThread* th) {
+	if (th->frame==NULL) {
+		return base;
+	}
 	MUTEX_LOCK(&th->runtime->runtime_mutex);
 	SourceIdentifier sid = th->frame->get_source_id(th->frame);
 	if (sid.file!=-1) {

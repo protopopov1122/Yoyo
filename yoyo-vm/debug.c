@@ -403,32 +403,26 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 		} else CMD(argv[0], L"eval") {
 			if (argc > 1) {
 				wchar_t* code = &origLine[wcslen(L"eval") + 1];
-				CompilationResult res = th->runtime->env->eval(th->runtime->env,
-						th->runtime, code);
-				if (res.log != NULL) {
-					fprintf(th->runtime->env->out_stream, "%ls", res.log);
-					free(res.log);
+				FILE* fd = tmpfile();
+				fprintf(fd, "%ls", code);
+				rewind(fd);
+				th->runtime->state = RuntimeRunning;
+				YValue* val  = th->runtime->env->eval(th->runtime->env,
+						th->runtime, fd, L"<eval>",
+						(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
+				if (th->exception != NULL) {
+					wchar_t* wstr = toString(th->exception, th);
+					fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
+					free(wstr);
+					th->exception = NULL;
 				}
-				if (res.pid != -1) {
-					th->runtime->state = RuntimeRunning;
-					YValue* val = invoke(res.pid, dbg->bytecode, (YObject*) ((ExecutionFrame*) th->frame)->regs[0],
-					NULL, th);
-					if (th->exception != NULL) {
-						wchar_t* wstr = toString(th->exception, th);
-						fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
-						free(wstr);
-						th->exception = NULL;
-					}
-					if (val->type->type != AnyT) {
-						wchar_t* wstr = toString(val, th);
-						fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
-						free(wstr);
-					}
-					th->runtime->state = RuntimePaused;
-					ILProcedure* proc =
-							dbg->bytecode->procedures[res.pid];
-					proc->free(proc, dbg->bytecode);
-				}
+				if (val->type->type != AnyT) {
+					wchar_t* wstr = toString(val, th);
+					fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
+					free(wstr);
+				}	
+				th->runtime->state = RuntimePaused;
+				fclose(fd);
 			}
 		} else CMD(argv[0], L"trace") {
 			ExecutionFrame* frame = ((ExecutionFrame*) th->frame);
@@ -502,26 +496,19 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 					if (dbbp->condition != NULL) {
 						/* Checks if breakpoint has condition and
 						 * executes this condition */
-						CompilationResult res = th->runtime->env->eval(
-								th->runtime->env, th->runtime, dbbp->condition);
-						if (res.log != NULL) {
-							fprintf(th->runtime->env->out_stream, "%ls",
-									res.log);
-							free(res.log);
+						FILE* fd = tmpfile();
+						fprintf(fd, "%ls", dbbp->condition);
+						rewind(fd);
+						th->runtime->state = RuntimeRunning;
+						YValue* val = th->runtime->env->eval(th->runtime->env, th->runtime,
+							fd, L"<eval>",
+							(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
+						th->exception = NULL;
+						if (val->type->type == BooleanT) {
+							exec = ((YBoolean*) val)->value;
 						}
-						if (res.pid != -1) {
-							th->runtime->state = RuntimeRunning;
-							YValue* val = invoke(res.pid, dbg->bytecode,
-									(YObject*) ((ExecutionFrame*) th->frame)->regs[0], NULL, th);
-							th->exception = NULL;
-							if (val->type->type == BooleanT) {
-								exec = ((YBoolean*) val)->value;
-							}
-							th->runtime->state = RuntimePaused;
-							ILProcedure* proc =
-									dbg->bytecode->procedures[res.pid];
-							proc->free(proc, dbg->bytecode);
-						}
+						th->runtime->state = RuntimePaused;
+						fclose(fd);
 					}
 					if (exec) {
 						wchar_t* sym = dbg->bytecode->getSymbolById(

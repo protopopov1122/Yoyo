@@ -87,15 +87,13 @@ typedef struct LocalFrame {
 typedef struct YThread {
 	uint32_t id;
 	enum {
-		Core, Normal
-	} type;
-	enum {
 		Working, Paused
 	} state;
 
 	YValue* exception;
-
 	LocalFrame* frame;
+
+	THREAD self;
 
 	YRuntime* runtime;
 	void (*free)(YThread*);
@@ -111,9 +109,7 @@ typedef struct Environment {
 
 	void (*free)(struct Environment*, struct YRuntime*);
 	YObject* (*system)(struct Environment*, YRuntime*);
-	struct CompilationResult (*eval)(struct Environment*, YRuntime*, wchar_t*);
-	struct CompilationResult (*parse)(struct Environment*, struct YRuntime*,
-			wchar_t*);
+	YValue* (*eval)(struct Environment*, YRuntime*, FILE*, wchar_t*, YObject*);
 	wchar_t* (*getDefined)(struct Environment*, wchar_t*);
 	void (*define)(struct Environment*, wchar_t*, wchar_t*);
 	FILE* (*getFile)(struct Environment*, wchar_t*);

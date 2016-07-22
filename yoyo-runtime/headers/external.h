@@ -69,6 +69,8 @@ typedef CONDITION_VARIABLE COND;
 typedef pthread_t THREAD;
 #define NEW_THREAD(th, proc, value) pthread_create(th, NULL, proc, value)
 #define THREAD_EXIT(ptr) pthread_exit(ptr)
+#define THREAD_SELF() pthread_self()
+#define THREAD_EQUAL(t1, t2) pthread_equal(t1, t2)
 typedef pthread_mutex_t MUTEX;
 #define NEW_MUTEX(mutex) pthread_mutex_init(mutex, NULL)
 #define DESTROY_MUTEX(mutex) pthread_mutex_destroy(mutex)

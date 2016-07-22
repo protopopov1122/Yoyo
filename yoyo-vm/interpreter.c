@@ -111,7 +111,7 @@ YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope, YoyoType* r
 	frame.frame.prev = th->frame;
 	th->frame = (LocalFrame*) &frame;
 	// Call debugger if nescesarry
-	if (frame.frame.prev == NULL && th->type == Normal)
+	if (frame.frame.prev == NULL)
 		DEBUG(th->runtime->debugger, interpret_start, &procid, th);
 	DEBUG(th->runtime->debugger, enter_function, frame.frame.prev, th);
 
@@ -119,7 +119,7 @@ YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope, YoyoType* r
 	frame.pc = 0;	// For debug
 
 	// Call debugger if nescesarry
-	if (frame.frame.prev == NULL && th->type == Normal)
+	if (frame.frame.prev == NULL)
 		DEBUG(th->runtime->debugger, interpret_end, &procid, th);
 
 	// Free resources and remove frame from stack

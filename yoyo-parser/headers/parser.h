@@ -22,6 +22,7 @@ typedef enum {
     DotOperator,
     OpeningBracketOperator,
     ClosingBracketOperator,
+		CommaOperator,
     ColonOperator,
 	SemicolonOperator	
 } yoperator_t;

@@ -123,7 +123,7 @@ void* GCThread(void* ptr) {
 
 // Wait while there are working threads
 void Runtime_wait(YRuntime* runtime) {
-	while (runtime->thread_count > 1)
+	while (runtime->thread_count > 0)
 		YIELD();
 }
 /*Procedure used to invoke lambdas.
@@ -200,7 +200,6 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 		runtime->threads[i] = NULL;
 	runtime->thread_count = 0;
 	runtime->CoreThread = newThread(runtime);
-	runtime->CoreThread->type = Core;
 
 	runtime->gc = newGenerationalGC(1000, 3);
 	runtime->free = freeRuntime;
@@ -232,13 +231,17 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 }
 
 YThread* newThread(YRuntime* runtime) {
+	THREAD current_th = THREAD_SELF();
+	for (size_t i=0;i<runtime->thread_count;i++)
+		if (THREAD_EQUAL(current_th, runtime->threads[i]->self))
+				return runtime->threads[i];
 	YThread* th = malloc(sizeof(YThread));
 	th->runtime = runtime;
 	th->state = Working;
 	th->free = freeThread;
 	th->frame = NULL;
 	th->exception = NULL;
-	th->type = Normal;
+	th->self = THREAD_SELF();
 	MUTEX_LOCK(&runtime->runtime_mutex);
 
 	th->id = 0;

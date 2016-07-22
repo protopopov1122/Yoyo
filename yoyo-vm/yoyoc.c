@@ -19,12 +19,6 @@
 #include "parser.h"
 #include "codegen.h"
 
-typedef struct StringInputStream {
-	InputStream is;
-	wchar_t* wstr;
-	size_t offset;
-} StringInputStream;
-
 void YoyoC_free(Environment* _env, YRuntime* runtime) {
 	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
 	for (size_t i = 0; i < env->envvars_size; i++) {
@@ -45,44 +39,30 @@ YObject* YoyoC_system(Environment* env, YRuntime* runtime) {
 	YObject* obj = th->runtime->newObject(NULL, th);
 	return obj;
 }
-CompilationResult YoyoC_parse(Environment* _env, YRuntime* runtime,
-		wchar_t* wpath) {
+
+YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
+		FILE* fd, wchar_t* wname, YObject* scope) {
 	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
 	if (env->bytecode == NULL) {
-		CompilationResult res = { .pid = -1, .log = NULL };
-		return res;
+		env->bytecode = newBytecode(&runtime->symbols);
 	}
-	return yoyoc(env, _env->getFile(_env, wpath), wpath);
-}
-wint_t SIS_get(InputStream* is) {
-	StringInputStream* sis = (StringInputStream*) is;
-	if (sis->offset < wcslen(sis->wstr))
-		return (wint_t) sis->wstr[sis->offset++];
-	return WEOF;
-}
-void SIS_unget(InputStream* is, wint_t i) {
-	StringInputStream* sis = (StringInputStream*) is;
-	if (i != WEOF && sis->offset > 0)
-		sis->offset--;
-}
-void SIS_close(InputStream* is) {
-	StringInputStream* sis = (StringInputStream*) is;
-	free(sis->wstr);
-	free(sis);
-}
-CompilationResult YoyoC_eval(Environment* _env, YRuntime* runtime,
-		wchar_t* wstr) {
-	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
-	if (env->bytecode == NULL) {
-		CompilationResult res = { .pid = -1, .log = NULL };
-		return res;
+	CompilationResult res = yoyoc(env, fd, wname);
+	YThread* th = newThread(runtime);
+	if (res.pid != -1) {
+		YValue* out = invoke(res.pid, env->bytecode, scope, NULL, th);
+		ILProcedure* proc = env->bytecode->procedures[res.pid];
+		proc->free(proc, env->bytecode);
+		return out;
+	} else {
+			throwException(L"Eval", &wname, 1, th);
+			if (th->exception->type->type == ObjectT && res.log != NULL) {
+				YObject* obj = (YObject*) th->exception;
+				obj->put(obj,
+					getSymbolId(&th->runtime->symbols,
+						L"log"), newString(res.log, th), true, th);
+			}
+		return getNull(runtime->CoreThread);
 	}
-	FILE* tmpf = tmpfile();
-	fprintf(tmpf, "%ls", wstr);
-	rewind(tmpf);
-	CompilationResult res = yoyoc(env, tmpf, L"<eval>");
-	fclose(tmpf);
-	return res;
 }
 wchar_t* YoyoC_getenv(Environment* _env, wchar_t* wkey) {
 	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
@@ -137,7 +117,6 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	env->env.err_stream = stderr;
 	env->env.free = YoyoC_free;
 	env->env.system = YoyoC_system;
-	env->env.parse = YoyoC_parse;
 	env->env.eval = YoyoC_eval;
 	env->env.getDefined = YoyoC_getenv;
 	env->env.define = YoyoC_putenv;
