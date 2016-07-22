@@ -16,8 +16,8 @@
 
 #include "yoyoc/yoyoc.h"
 
-#include "../headers/yoyo/stringbuilder.h"
-#include "../headers/yoyo/value.h"
+#include "stringbuilder.h"
+#include "value.h"
 #include "yoyoc/token.h"
 #include "yoyoc/yparse.h"
 #include "yoyoc/codegen.h"

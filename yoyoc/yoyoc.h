@@ -14,18 +14,29 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
+#ifndef YOYOC_YOYOC_H
+#define YOYOC_YOYOC_H
+
 #include "yoyo-runtime.h"
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_MAP_NEW) {
-	YoyoMap* map = newHashMap(th);
-	return (YValue*) newYoyoMap(map, th);
-}
+typedef struct EnvEntry {
+	wchar_t* key;
+	wchar_t* value;
+} EnvEntry;
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_SET_NEW) {
-	YoyoSet* set = newHashSet(th);
-	return (YValue*) newYoyoSet(set, th);
-}
+typedef struct YoyoCEnvironment {
+	Environment env;
+	ILBytecode* bytecode;
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_LIST_NEW) {
-	return (YValue*) newList(th);
-}
+	EnvEntry* envvars;
+	size_t envvars_size;
+	wchar_t** PATH;
+	size_t PATH_size;
+	wchar_t** files;
+	size_t files_size;
+} YoyoCEnvironment;
+
+YoyoCEnvironment* newYoyoCEnvironment(ILBytecode*);
+CompilationResult yoyoc(YoyoCEnvironment*, InputStream*, wchar_t*);
+
+#endif

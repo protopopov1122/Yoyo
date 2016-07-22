@@ -14,18 +14,18 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "yoyo-runtime.h"
+#ifndef YILI_YOYO_H
+#define YILI_YOYO_H
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_MAP_NEW) {
-	YoyoMap* map = newHashMap(th);
-	return (YValue*) newYoyoMap(map, th);
-}
+#include "array.h"
+#include "core.h"
+#include "debug.h"
+#include "exceptions.h"
+#include "memalloc.h"
+#include "runtime.h"
+#include "stringbuilder.h"
+#include "value.h"
+#include "wrappers.h"
+#include "yerror.h"
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_SET_NEW) {
-	YoyoSet* set = newHashSet(th);
-	return (YValue*) newYoyoSet(set, th);
-}
-
-YOYO_FUNCTION(YSTD_COLLECTIONS_LIST_NEW) {
-	return (YValue*) newList(th);
-}
+#endif // YILI_YOYO_H

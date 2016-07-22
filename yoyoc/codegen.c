@@ -15,7 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "yoyoc/codegen.h"
-#include "yoyo/opcodes.h"
+#include "opcodes.h"
 
 #define GET_BIT(n, offset) ((n>>offset)&1)
 

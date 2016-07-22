@@ -15,7 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "yoyoc/yparse.h"
-#include "yoyo/bytecode.h"
+#include "bytecode.h"
 
 /*File contains procedures to  parse token stream and create
  * AST. It's LL-parser. Main parser structure contains

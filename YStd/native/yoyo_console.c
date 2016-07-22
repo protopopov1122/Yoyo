@@ -14,7 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "yoyo.h"
+#include "yoyo-runtime.h"
 
 YOYO_FUNCTION(YSTD_CONSOLE_PRINTLN) {
 	YRuntime* runtime = th->runtime;

@@ -14,18 +14,25 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "yoyo-runtime.h"
+#ifndef YILI_MEMALLOC_H
+#define YILI_MEMALLOC_H
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_MAP_NEW) {
-	YoyoMap* map = newHashMap(th);
-	return (YValue*) newYoyoMap(map, th);
-}
+#include "core.h"
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_SET_NEW) {
-	YoyoSet* set = newHashSet(th);
-	return (YValue*) newYoyoSet(set, th);
-}
+typedef struct MemoryAllocator {
+	void* (*alloc)(struct MemoryAllocator*);
+	void (*unuse)(struct MemoryAllocator*, void*);
+	void (*free)(struct MemoryAllocator*);
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_LIST_NEW) {
-	return (YValue*) newList(th);
-}
+	void** pool;
+	size_t pool_size;
+	size_t capacity;
+	size_t rate;
+	size_t size;
+
+	MUTEX mutex;
+} MemoryAllocator;
+
+MemoryAllocator* newMemoryAllocator(size_t, size_t);
+
+#endif

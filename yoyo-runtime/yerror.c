@@ -13,19 +13,23 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
+#include "yerror.h"
 
-#include "yoyo-runtime.h"
+/*
+ * yerror procedure is used to unify error print in program.
+ * Accepts error type and message, then formats message according
+ * to the type and prints to error stream*/
 
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_MAP_NEW) {
-	YoyoMap* map = newHashMap(th);
-	return (YValue*) newYoyoMap(map, th);
-}
-
-YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_SET_NEW) {
-	YoyoSet* set = newHashSet(th);
-	return (YValue*) newYoyoSet(set, th);
-}
-
-YOYO_FUNCTION(YSTD_COLLECTIONS_LIST_NEW) {
-	return (YValue*) newList(th);
+void yerror(ErrorType err, wchar_t* msg, YThread* th) {
+	switch (err) {
+	case CompilationError:
+		fprintf(th->runtime->env->err_stream, "%ls\n", msg);
+		break;
+	case ErrorFileNotFound:
+		fprintf(th->runtime->env->err_stream, "File '%ls' not found\n", msg);
+		break;
+	default:
+		fprintf(th->runtime->env->err_stream, "Error: %ls\n", msg);
+		break;
+	}
 }

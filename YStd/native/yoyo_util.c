@@ -1,4 +1,4 @@
-#include "yoyo.h"
+#include "yoyo-runtime.h"
 
 YOYO_FUNCTION(YSTD_UTIL_RAND) {
 	return newInteger(rand(), th);

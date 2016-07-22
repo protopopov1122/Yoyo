@@ -14,7 +14,7 @@
 #ifndef JNI_ENV_H
 #define JNI_ENV_H
 
-#include "../../../headers/yoyo/value.h"
+#include "value.h"
 #include "jni.h"
 
 YObject* JNIDefaultEnvironment_system(Environment*, YRuntime*);

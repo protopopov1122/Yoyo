@@ -13,8 +13,8 @@
 
 #include "yoyo-jni/yoyo_runtime_YRuntime.h"
 
-#include "../../headers/yoyo/runtime.h"
-#include "yoyo/interpreter.h"
+#include "runtime.h"
+#include "interpreter.h"
 #include "yoyo-jni/yoyo-jni.h"
 
 YRuntime* getRuntime(JNIEnv* env, jobject jruntime) {

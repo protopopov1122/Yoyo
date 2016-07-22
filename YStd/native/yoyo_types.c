@@ -1,4 +1,4 @@
-#include "yoyo.h"
+#include "yoyo-runtime.h"
 
 YOYO_FUNCTION(YSTD_TYPES_SIGNATURE) {
 	YoyoType* yret = th->runtime->NullType.TypeConstant;
