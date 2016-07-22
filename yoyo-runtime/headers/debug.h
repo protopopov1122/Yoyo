@@ -41,8 +41,6 @@ typedef struct YDebug {
 	void (*free)(struct YDebug*);
 } YDebug;
 
-YDebug* newDefaultDebugger();
-
 #define DEBUG(debug, proc, ptr, th) if (debug!=NULL&&debug->mode==Debug) {\
                                         th->runtime->state = RuntimePaused;\
                                         if (debug->proc!=NULL)\

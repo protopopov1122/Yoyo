@@ -14,13 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "runtime.h"
-
-#include "../types/types.h"
-
-#include "core.h"
-#include "stringbuilder.h"
-#include "interpreter.h"
+#include "yoyo-runtime.h"
+#include "types/types.h"
 
 /* File contains procedures to work
  * with runtime and perform garbage collection*/
@@ -36,7 +31,6 @@ void freeRuntime(YRuntime* runtime) {
 		if (runtime->threads[i] != NULL)
 			runtime->threads[i]->free(runtime->threads[i]);
 	free(runtime->threads);
-	freeBytecode(runtime->bytecode);
 	free(runtime);
 }
 void freeThread(YThread* th) {
@@ -127,20 +121,6 @@ void* GCThread(void* ptr) {
 	return NULL;
 }
 
-// Invoke procedure in new thread
-YValue* Runtime_interpret(int32_t pid, YRuntime* runtime) {
-	YThread* th = newThread(runtime);
-	YValue* out = invoke(pid, runtime->global_scope, NULL, th);
-	if (th->exception != NULL) {
-		wchar_t* wstr = toString(th->exception, th);
-		fprintf(runtime->env->out_stream, "%ls\n", wstr);
-		free(wstr);
-		th->exception = NULL;
-	}
-	th->free(th);
-	return out;
-}
-
 // Wait while there are working threads
 void Runtime_wait(YRuntime* runtime) {
 	while (runtime->thread_count > 1)
@@ -224,7 +204,6 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 
 	runtime->gc = newGenerationalGC(1000, 3);
 	runtime->free = freeRuntime;
-	runtime->interpret = Runtime_interpret;
 	runtime->newObject = newHashObject;
 	runtime->wait = Runtime_wait;
 
@@ -240,13 +219,10 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 
 	runtime->symbols.map = NULL;
 	runtime->symbols.size = 0;
-	runtime->bytecode = newBytecode(&runtime->symbols);
 
 	runtime->global_scope = th->runtime->newObject(NULL, th);
 	runtime->Constants.pool = th->runtime->newObject(NULL, th);
 	runtime->AbstractObject = th->runtime->newObject(NULL, th);
-	OBJECT_NEW(runtime->global_scope, L"sys",
-			Yoyo_SystemObject(runtime->CoreThread), th);
 
 	NEW_THREAD(&runtime->gc_thread, GCThread, runtime);
 

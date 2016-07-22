@@ -27,12 +27,12 @@ YOYO_FUNCTION(YSTD_TYPES_SIGNATURE) {
 }
 YOYO_FUNCTION(YSTD_TYPES_TYPES) {
 	YObject* obj = th->runtime->newObject(NULL, th);
-#define NEW_TYPE(obj, type, tname, th) obj->put(obj, th->runtime->bytecode->getSymbolId\
-                                                        (th->runtime->bytecode, tname),\
+#define NEW_TYPE(obj, type, tname, th) obj->put(obj, getSymbolId\
+                                                        (&th->runtime->symbols, tname),\
                                                  (YValue*) th->runtime->type.TypeConstant, true, th);
 
 	obj->put(obj,
-			th->runtime->bytecode->getSymbolId(th->runtime->bytecode, L"any"),
+			getSymbolId(&th->runtime->symbols, L"any"),
 			(YValue*) newAtomicType(AnyT, th), true, th);
 	NEW_TYPE(obj, DeclarationType, L"declaration", th);
 	NEW_TYPE(obj, ArrayType, L"array", th);

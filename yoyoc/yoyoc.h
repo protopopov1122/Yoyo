@@ -18,6 +18,7 @@
 #define YOYOC_YOYOC_H
 
 #include "yoyo-runtime.h"
+#include "interpreter.h"
 
 typedef struct EnvEntry {
 	wchar_t* key;

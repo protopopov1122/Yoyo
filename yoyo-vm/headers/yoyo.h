@@ -26,7 +26,7 @@ extern "C" {
 #include "yoyoc/node.h"
 #include "yoyoc/codegen.h"
 
-bool Yoyo_interpret_file(YRuntime*, wchar_t*);
+bool Yoyo_interpret_file(ILBytecode*, YRuntime*, wchar_t*);
 void Yoyo_main(char** argv, int argc);
 
 #ifdef __cplusplus

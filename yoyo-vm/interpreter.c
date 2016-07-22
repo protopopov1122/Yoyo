@@ -80,13 +80,14 @@ SourceIdentifier ExecutionFrame_get_source_id(LocalFrame* f) {
 }
 
 /*Initialize execution frame, assign it to thread and call execute method on it*/
-YValue* invoke(int32_t procid, YObject* scope, YoyoType* retType, YThread* th) {
+YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope, YoyoType* retType, YThread* th) {
 	ExecutionFrame frame;
 
 	// Init execution frame
 	frame.frame.mark = ExecutionFrame_mark;
 	frame.frame.get_source_id = ExecutionFrame_get_source_id;
-	ILProcedure* proc = th->runtime->bytecode->procedures[procid];
+	ILProcedure* proc = bytecode->procedures[procid];
+	frame.bytecode = bytecode;
 	frame.proc = proc;
 	frame.retType = retType;
 	frame.regc = proc->regc;
@@ -131,9 +132,9 @@ YValue* invoke(int32_t procid, YObject* scope, YoyoType* retType, YThread* th) {
 /*Procedure that interprets current frame bytecode
  * Uses loop with switch statement.*/
 YValue* execute(YThread* th) {
+	ExecutionFrame* frame = (ExecutionFrame*) th->frame;
 	YRuntime* runtime = th->runtime;
-	ILBytecode* bc = runtime->bytecode;
-	ExecutionFrame* frame = ((ExecutionFrame*) th->frame);
+	ILBytecode* bc = frame->bytecode;
 
 	while (frame->pc + 13 <= frame->proc->code_length) {
 		// If runtime is paused then execution should be paused too.
@@ -398,7 +399,7 @@ YValue* execute(YThread* th) {
 			YValue* sp = getRegister(iarg2, th);
 			if (sp->type->type == ObjectT) {
 				YObject* scope = (YObject*) sp;
-				YLambda* lmbd = newProcedureLambda(iarg1, scope, argids,
+				YLambda* lmbd = newProcedureLambda(iarg1, bc, scope, argids,
 						newLambdaSignature(argc, vararg, argTypes, retType, th),
 						th);
 				setRegister((YValue*) lmbd, iarg0, th);

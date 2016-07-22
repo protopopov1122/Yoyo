@@ -95,6 +95,8 @@ YOYO_FUNCTION(YSTD_SYSTEM_EXIT) {
 }
 
 YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
+	YObject* sys = (YObject*) ((NativeLambda*) lambda)->object;
+	ILBytecode* bytecode = (ILBytecode*) ((YRawPointer*) OBJECT_GET(sys, L"bytecode", th))->ptr;
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	CompilationResult res = runtime->env->parse(runtime->env, runtime, wstr);
@@ -102,16 +104,16 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 	if (res.pid != -1) {
 		YObject* libScope = th->runtime->newObject(th->runtime->global_scope,
 				th);
-		invoke(res.pid, libScope, NULL, th);
-		ILProcedure* proc = th->runtime->bytecode->procedures[res.pid];
-		proc->free(proc, th->runtime->bytecode);
+		invoke(res.pid, bytecode, libScope, NULL, th);
+		ILProcedure* proc = bytecode->procedures[res.pid];
+		proc->free(proc, bytecode);
 		out = (YValue*) libScope;
 	} else {
 		throwException(L"LoadModule", &wstr, 1, th);
 		if (th->exception->type->type == ObjectT && res.log != NULL) {
 			YObject* obj = (YObject*) th->exception;
 			obj->put(obj,
-					th->runtime->bytecode->getSymbolId(th->runtime->bytecode,
+					getSymbolId(&th->runtime->symbols,
 							L"log"), newString(res.log, th), true, th);
 		}
 	}
@@ -120,20 +122,22 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 	return out;
 }
 YOYO_FUNCTION(YSTD_SYSTEM_LOAD) {
+	YObject* sys = (YObject*) ((NativeLambda*) lambda)->object;
+	ILBytecode* bytecode = (ILBytecode*) ((YRawPointer*) OBJECT_GET(sys, L"bytecode", th))->ptr;
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	CompilationResult res = runtime->env->parse(runtime->env, runtime, wstr);
 	YValue* out = getNull(th);
 	if (res.pid != -1) {
-		out = invoke(res.pid, (YObject*) ((ExecutionFrame*) th->frame)->regs[0], NULL, th);
-		ILProcedure* proc = th->runtime->bytecode->procedures[res.pid];
-		proc->free(proc, th->runtime->bytecode);
+		out = invoke(res.pid, bytecode, (YObject*) ((ExecutionFrame*) th->frame)->regs[0], NULL, th);
+		ILProcedure* proc = bytecode->procedures[res.pid];
+		proc->free(proc, bytecode);
 	} else {
 		throwException(L"Load", &wstr, 1, th);
 		if (th->exception->type->type == ObjectT && res.log != NULL) {
 			YObject* obj = (YObject*) th->exception;
 			obj->put(obj,
-					th->runtime->bytecode->getSymbolId(th->runtime->bytecode,
+					getSymbolId(&th->runtime->symbols,
 							L"log"), newString(res.log, th), true, th);
 		}
 	}
@@ -142,12 +146,13 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD) {
 	return out;
 }
 YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
+	YObject* sys = (YObject*) ((NativeLambda*) lambda)->object;
+	ILBytecode* bytecode = (ILBytecode*) ((YRawPointer*) OBJECT_GET(sys, L"bytecode", th))->ptr;
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	YObject* sys = (YObject*) ((NativeLambda*) lambda)->object;
-	int32_t iid = th->runtime->bytecode->getSymbolId(th->runtime->bytecode, L"imported");
+	int32_t iid = getSymbolId(&runtime->symbols, L"imported");
 	YObject* loaded = (YObject*) sys->get(sys, iid, th);
-	int32_t id = runtime->bytecode->getSymbolId(runtime->bytecode, wstr);
+	int32_t id =  getSymbolId(&runtime->symbols, wstr);
 	if (loaded->contains(loaded, id, th))
 	{
 		free(wstr);
@@ -158,16 +163,16 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 	if (res.pid != -1) {
 		YObject* libScope = th->runtime->newObject(th->runtime->global_scope,
 				th);
-		invoke(res.pid, libScope, NULL, th);
-		ILProcedure* proc = th->runtime->bytecode->procedures[res.pid];
-		proc->free(proc, th->runtime->bytecode);
+		invoke(res.pid, bytecode, libScope, NULL, th);
+		ILProcedure* proc = bytecode->procedures[res.pid];
+		proc->free(proc, bytecode);
 		out = (YValue*) libScope;
 	} else {
 		throwException(L"LoadModule", &wstr, 1, th);
 		if (th->exception->type->type == ObjectT && res.log != NULL) {
 			YObject* obj = (YObject*) th->exception;
 			obj->put(obj,
-					th->runtime->bytecode->getSymbolId(th->runtime->bytecode,
+					getSymbolId(&th->runtime->symbols,
 							L"log"), newString(res.log, th), true, th);
 		}
 	}
@@ -177,20 +182,22 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 	return out;
 }
 YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
+	YObject* sys = (YObject*) ((NativeLambda*) lambda)->object;
+	ILBytecode* bytecode = (ILBytecode*) ((YRawPointer*) OBJECT_GET(sys, L"bytecode", th))->ptr;
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	CompilationResult res = runtime->env->eval(runtime->env, runtime, wstr);
 	YValue* out = getNull(th);
 	if (res.pid != -1) {
-		out = invoke(res.pid, (YObject*) ((ExecutionFrame*) th->frame)->regs[0], NULL, th);
-		ILProcedure* proc = th->runtime->bytecode->procedures[res.pid];
-		proc->free(proc, th->runtime->bytecode);
+		out = invoke(res.pid, bytecode, (YObject*) ((ExecutionFrame*) th->frame)->regs[0], NULL, th);
+		ILProcedure* proc = bytecode->procedures[res.pid];
+		proc->free(proc, bytecode);
 	} else {
 		throwException(L"Eval", &wstr, 1, th);
 		if (th->exception->type->type == ObjectT && res.log != NULL) {
 			YObject* obj = (YObject*) th->exception;
 			obj->put(obj,
-					th->runtime->bytecode->getSymbolId(th->runtime->bytecode,
+					getSymbolId(&runtime->symbols,
 							L"log"), newString(res.log, th), true, th);
 		}
 	}
@@ -241,8 +248,9 @@ YOYO_FUNCTION(YSTD_SYSTEM_SHARED_LIBRARY) {
 	return getNull(th);
 }
 
-YObject* Yoyo_SystemObject(YThread* th) {
+YObject*  Yoyo_SystemObject(ILBytecode* bc, YThread* th) {
 	YObject* sys = OBJECT(NULL, th);
+	OBJECT_NEW(sys, L"bytecode", newRawPointer(bc, free, th), th);
 	OBJECT_NEW(sys, L"imported", OBJECT(NULL, th), th);
 
 	METHOD(sys, L"eval", YSTD_SYSTEM_EVAL, 1, th);

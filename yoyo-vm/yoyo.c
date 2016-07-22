@@ -23,7 +23,7 @@ static YRuntime* RUNTIME = NULL;
  * execute bytecode by current runtime. Return boolean
  * indicating if translation was sucessful.
  * */
-bool Yoyo_interpret_file(YRuntime* runtime, wchar_t* wpath) {
+bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 	Environment* env = runtime->env;
 	FILE* file = env->getFile(env, wpath);
 	if (file == NULL) {
@@ -37,9 +37,17 @@ bool Yoyo_interpret_file(YRuntime* runtime, wchar_t* wpath) {
 			return false;
 		}
 		if (res.pid != -1) {
-			runtime->interpret(res.pid, runtime);
-			runtime->bytecode->procedures[res.pid]->free(
-					runtime->bytecode->procedures[res.pid], runtime->bytecode);
+			YThread* th = newThread(runtime);
+		  invoke(res.pid, bc, runtime->global_scope, NULL, th);
+			if (th->exception != NULL) {
+				wchar_t* wstr = toString(th->exception, th);
+				fprintf(runtime->env->out_stream, "%ls\n", wstr);
+				free(wstr);
+				th->exception = NULL;
+			}
+			bc->procedures[res.pid]->free(
+					bc->procedures[res.pid], bc);
+			th->free(th);
 		}
 	}
 	return true;
@@ -55,6 +63,7 @@ void Yoyo_main(char** argv, int argc) {
 	YoyoCEnvironment* ycenv = newYoyoCEnvironment(NULL);
 	Environment* env = (Environment*) ycenv;
 	YDebug* debug = NULL;
+	bool dbg = false;
 
 	env->argv = NULL;
 	env->argc = 0;
@@ -68,7 +77,7 @@ void Yoyo_main(char** argv, int argc) {
 				/* Arguments like --... (e.g. --debug) */
 				arg++;
 				if (strcmp(arg, "debug") == 0)
-					debug = newDefaultDebugger();
+					dbg = true;
 			} else if (arg[0] == 'D') {
 				/* Environment variable definitions.
 				 * Format: -Dkey=value */
@@ -141,13 +150,18 @@ void Yoyo_main(char** argv, int argc) {
 	env->addPath(env, libdir == NULL ? workdir : libdir);
 
 	YRuntime* runtime = newRuntime(env, NULL);
+	ycenv->bytecode = newBytecode(&runtime->symbols);
+	if (dbg)
+		debug = newDefaultDebugger(ycenv->bytecode);
 	RUNTIME = runtime;
-	ycenv->bytecode = runtime->bytecode;
+
+	OBJECT_NEW(runtime->global_scope, L"sys", Yoyo_SystemObject(ycenv->bytecode, runtime->CoreThread),
+		runtime->CoreThread);
 
 	/* Executes specified file only if 'core.yoyo' is found and valid */
-	if (Yoyo_interpret_file(runtime, L"core.yoyo")) {
+	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {
 		runtime->debugger = debug;
-		Yoyo_interpret_file(runtime, file);
+		Yoyo_interpret_file(ycenv->bytecode, runtime, file);
 	}
 
 	/* Waits all threads to finish and frees resources */

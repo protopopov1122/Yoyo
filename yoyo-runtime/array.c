@@ -14,10 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "array.h"
-
-#include "value.h"
-#include "interpreter.h"
+#include "yoyo-runtime.h"
 
 /*File contains default array implementation
  * and useful methods to work with

@@ -25,9 +25,20 @@
 /*Procedures used to interpret bytecode.
  * See virtual machine description and 'interpreter.c'.*/
 
+typedef struct CompilationResult {
+	int32_t pid;
+	wchar_t* log;
+} CompilationResult;
+
+typedef struct CatchBlock {
+	uint32_t pc;
+	struct CatchBlock* prev;
+} CatchBlock;
+
 typedef struct ExecutionFrame {
 	LocalFrame frame;
 
+	ILBytecode* bytecode;
 	size_t regc;
 
 	YValue** regs;
@@ -49,9 +60,13 @@ typedef struct ExecutionFrame {
 	void* breakpoint;
 } ExecutionFrame;
 
-YLambda* newProcedureLambda(int32_t, YObject*, int32_t*, YoyoLambdaSignature*,
+YObject* Yoyo_SystemObject(ILBytecode*, YThread*);
+YLambda* newProcedureLambda(int32_t, ILBytecode*, YObject*, int32_t*, YoyoLambdaSignature*,
 		YThread*);
-YValue* invoke(int32_t, YObject*, YoyoType*, YThread*);
+YValue* invoke(int32_t, ILBytecode*, YObject*, YoyoType*, YThread*);
 YValue* execute(YThread*);
+YDebug* newDefaultDebugger(ILBytecode*);
+
+
 
 #endif

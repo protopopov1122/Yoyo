@@ -14,8 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "memalloc.h"
-#include "value.h"
+#include "yoyo-runtime.h"
 
 /*File contains two implementations of YObject:
  * TreeObject - implementation based on self-balanced

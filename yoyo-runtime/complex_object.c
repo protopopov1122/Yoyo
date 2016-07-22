@@ -14,7 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "value.h"
+#include "yoyo-runtime.h"
 
 /*File contains implementation of YObject interface.
  * ComplexObject includes one base object and a list

@@ -14,9 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "collections.h"
-
-#include "value.h"
+#include "yoyo-runtime.h"
 
 /* Contains implementation of some collections like maps sets & lists.
  * Interfaces are defined in yoyo/collections.h and yoyo/value.h */

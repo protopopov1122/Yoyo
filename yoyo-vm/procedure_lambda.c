@@ -33,6 +33,7 @@ typedef struct ProcedureLambda {
 	int32_t procid;
 	int32_t* argids;
 	YObject* scope;
+	ILBytecode* bytecode;
 } ProcedureLambda;
 
 void ProcedureLambda_mark(YoyoObject* ptr) {
@@ -58,14 +59,14 @@ YValue* ProcedureLambda_exec(YLambda* l, YValue** args, size_t argc,
 		scope->put(scope, lam->argids[i], args[i], true, th);
 		scope->setType(scope, lam->argids[i], l->sig->args[i], th);
 	}
-	return invoke(lam->procid, scope, l->sig->ret, th);
+	return invoke(lam->procid, lam->bytecode, scope, l->sig->ret, th);
 }
 
 YoyoType* ProcedureLambda_signature(YLambda* l, YThread* th) {
 	return (YoyoType*) l->sig;
 }
 
-YLambda* newProcedureLambda(int32_t procid, YObject* scope, int32_t* argids,
+YLambda* newProcedureLambda(int32_t procid, ILBytecode* bc, YObject* scope, int32_t* argids,
 		YoyoLambdaSignature* sig, YThread* th) {
 	ProcedureLambda* lmbd = malloc(sizeof(ProcedureLambda));
 
@@ -77,6 +78,7 @@ YLambda* newProcedureLambda(int32_t procid, YObject* scope, int32_t* argids,
 	lmbd->lambda.sig = sig;
 	lmbd->lambda.signature = ProcedureLambda_signature;
 
+	lmbd->bytecode = bc;
 	lmbd->procid = procid;
 	lmbd->scope = scope;
 	lmbd->argids = malloc(sizeof(int32_t) * sig->argc);

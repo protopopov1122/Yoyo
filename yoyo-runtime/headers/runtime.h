@@ -21,7 +21,6 @@
 #include "debug.h"
 #include "exceptions.h"
 #include "gc.h"
-#include "bytecode.h"
 
 #define TO_STRING L"toString"
 #define HASHCODE L"hashCode"
@@ -74,11 +73,6 @@ typedef struct YType {
 	YoyoType* TypeConstant;
 } YType;
 
-typedef struct CatchBlock {
-	uint32_t pc;
-	struct CatchBlock* prev;
-} CatchBlock;
-
 typedef struct SourceIdentifier {
 	int32_t file;
 	uint32_t line;
@@ -107,11 +101,6 @@ typedef struct YThread {
 	void (*free)(YThread*);
 } YThread;
 
-typedef struct CompilationResult {
-	int32_t pid;
-	wchar_t* log;
-} CompilationResult;
-
 typedef struct Environment {
 	FILE* out_stream;
 	FILE* in_stream;
@@ -138,7 +127,6 @@ typedef struct YRuntime {
 		RuntimeRunning, RuntimePaused, RuntimeTerminated
 	} state;
 	Environment* env;
-	ILBytecode* bytecode;
 	SymbolMap symbols;
 	GarbageCollector* gc;
 	YDebug* debugger;
@@ -171,12 +159,10 @@ typedef struct YRuntime {
 	THREAD gc_thread;
 
 	void (*free)(YRuntime*);
-	YValue* (*interpret)(int32_t, YRuntime*);
 	YObject* (*newObject)(YObject*, YThread*);
 	void (*wait)(YRuntime*);
 } YRuntime;
 
-YObject* Yoyo_SystemObject(YThread*);
 YValue* invokeLambda(YLambda*, YValue**, size_t, YThread*);
 YThread* newThread(YRuntime*);
 YRuntime* newRuntime(Environment*, YDebug*);

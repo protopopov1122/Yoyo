@@ -14,9 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "value.h"
-
-#include "memalloc.h"
+#include "yoyo-runtime.h"
 
 /*Procedures to build different types of yoyo values*/
 
