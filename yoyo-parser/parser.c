@@ -106,7 +106,9 @@ NewReduce(Factor_reduce) {
 		ExpectReduce(&out, expression, L"Expected expression", ;, handle);
 		ExpectOperator(handle->tokens[0], ClosingParentheseOperator, L"Expected ')'", ;, handle);
 		shift(handle);
-	}
+	} 
+	else
+		ParseError(L"Expected expression", ;, handle);
 	SetCoords(out, file, line, charPos);
 	return out;
 }

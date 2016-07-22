@@ -62,7 +62,6 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
 				obj->put(obj,
 					getSymbolId(&th->runtime->symbols,
 						L"log"), newString(res.log, th), true, th);
-				printf("%ls\n", res.log);
 			}
 		return getNull(th);
 	} else {
