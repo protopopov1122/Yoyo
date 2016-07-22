@@ -49,11 +49,13 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
 	CompilationResult res = yoyoc(env, fd, wname);
 	YThread* th = newThread(runtime);
 	if (res.pid != -1) {
+		if (scope==NULL)
+			scope = runtime->newObject(runtime->global_scope, th);
 		YValue* out = invoke(res.pid, env->bytecode, scope, NULL, th);
 		ILProcedure* proc = env->bytecode->procedures[res.pid];
 		proc->free(proc, env->bytecode);
 		return out;
-	} else {
+	} else if (scope!=NULL) {
 			throwException(L"Eval", &wname, 1, th);
 			if (th->exception->type->type == ObjectT && res.log != NULL) {
 				YObject* obj = (YObject*) th->exception;
@@ -61,7 +63,10 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
 					getSymbolId(&th->runtime->symbols,
 						L"log"), newString(res.log, th), true, th);
 			}
-		return getNull(runtime->CoreThread);
+		return getNull(th);
+	} else {
+		fprintf(runtime->env->err_stream, "%ls\n", res.log);
+		return getNull(th);
 	}
 }
 wchar_t* YoyoC_getenv(Environment* _env, wchar_t* wkey) {
@@ -219,9 +224,6 @@ CompilationResult yoyoc(YoyoCEnvironment* env, FILE* input, wchar_t* name) {
 	if (errfile!=NULL)
 		fclose(errfile);
 	CompilationResult res = { .log = wlog, .pid = pid };
-	for (size_t i=0;i<handle.constants_size;i++)
-		if (handle.constants[i].type==WcsConstant)
-			free(handle.constants[i].value.wcs);
 	free(handle.constants);
 	for (size_t i=0;i<handle.symbols_size;i++)
 		free(handle.symbols[i]);

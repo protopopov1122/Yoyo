@@ -465,9 +465,10 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		if (cnst.type==Fp64Constant)
 			cid = builder->bc->addFloatConstant(builder->bc,
 					cnst.value.fp64);
-		if (cnst.type==WcsConstant)
+		if (cnst.type==WcsConstant) {
 			cid = builder->bc->addStringConstant(builder->bc,
 					cnst.value.wcs);
+		}
 		proc->append(proc, VM_LoadConstant, reg, cid, -1);
 		output = reg;
 	}

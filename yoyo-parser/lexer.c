@@ -52,7 +52,10 @@ bool isOperator(wchar_t ch) {
 }
 
 wint_t readwc(ParseHandle* handle) {
-	wint_t ch = fgetwc(handle->input);
+	wchar_t ch;
+	fscanf(handle->input, "%lc", &ch);
+	if (feof(handle->input))
+		return WEOF;
 	if (ch=='\n') {
 		handle->lastCharPos = handle->charPos;
 		handle->charPos = 0;
@@ -126,7 +129,7 @@ ytoken lex(ParseHandle* handle) {
 		wstr[wlen - 1] = L'\0';
 		yconstant_t cnst = {.type = WcsConstant};
 		cnst.value.wcs = wstr;
-		addConstant(handle, cnst);
+		cnst = addConstant(handle, cnst);
 		free(wstr);
 		ytoken tok = {.type = TokenConstant};
 		tok.value.cnst = cnst;

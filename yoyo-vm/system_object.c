@@ -136,12 +136,14 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	FILE* fd = tmpfile();
-	fprintf(fd, "%ls", wstr);
+	FILE* fd = fopen("_temp.txt", "w+b");
+	fprintf(fd, "%ls", wstr);	
+	fflush(fd);
 	rewind(fd);
 	YValue* out = runtime->env->eval(runtime->env, runtime,
 		fd, wstr, (YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 	free(wstr);
+	fclose(fd);
 	return out;
 }
 

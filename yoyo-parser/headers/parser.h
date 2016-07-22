@@ -127,7 +127,7 @@ typedef struct ParseHandle {
 } ParseHandle;
 
 wchar_t* getSymbol(ParseHandle*, wchar_t*);
-void addConstant(ParseHandle*, yconstant_t);
+yconstant_t addConstant(ParseHandle*, yconstant_t);
 ytoken shift(ParseHandle*);
 ytoken lex(ParseHandle*);
 YNode* parse(ParseHandle*);

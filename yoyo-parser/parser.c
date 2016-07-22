@@ -13,10 +13,13 @@ wchar_t* getSymbol(ParseHandle* handle, wchar_t* wcs) {
 	return handle->symbols[i];
 }
 
-void addConstant(ParseHandle* handle, yconstant_t c) {
+yconstant_t addConstant(ParseHandle* handle, yconstant_t c) {
 	size_t i = handle->constants_size++;
 	handle->constants = realloc(handle->constants, sizeof(yconstant_t) * handle->constants_size);
 	handle->constants[i] = c;
+	if (c.type==WcsConstant)
+		c.value.wcs = getSymbol(handle, c.value.wcs);
+	return c;
 }
 
 ytoken shift(ParseHandle* handle) {
