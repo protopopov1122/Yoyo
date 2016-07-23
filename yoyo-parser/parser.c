@@ -213,7 +213,7 @@ NewReduce(Mul_div_reduce) {
 					shift(handle);
 					YNode* left;
 					ExpectReduce(&left, power, L"Expected expression", node->free(node);, handle);
-					node = newBinaryNode(op, left, node);					
+					node = newBinaryNode(op, node, left);
 		}
 		SetCoords(node, file, line, charPos);
     return node;
@@ -236,7 +236,7 @@ NewReduce(Add_sub_reduce) {
 					shift(handle);
 					YNode* left;
 					ExpectReduce(&left, mul_div, L"Expected expression", node->free(node);, handle);
-					node = newBinaryNode(op, left, node);					
+					node = newBinaryNode(op, node, left);
 		}
 		SetCoords(node, file, line, charPos);
     return node;
@@ -262,7 +262,7 @@ NewReduce(Bitshift_reduce) {
                     shift(handle);
 					YNode* left;
 					ExpectReduce(&left, add_sub, L"Expected expression", node->free(node);, handle);
-					node = newBinaryNode(op, left, node);					
+					node = newBinaryNode(op, node, left);
 		}
 		SetCoords(node, file, line, charPos);
     return node;
@@ -291,7 +291,7 @@ NewReduce(Bitwise_reduce) {
 					shift(handle);
 					YNode* left;
 					ExpectReduce(&left, bitshift, L"Expected expression", node->free(node);, handle);
-					node = newBinaryNode(op, left, node);					
+					node = newBinaryNode(op, node, left);
 		}
 		SetCoords(node, file, line, charPos);
     return node;
@@ -385,7 +385,7 @@ NewReduce(Logical_ops_reduce) {
                     shift(handle);
 					YNode* left;
 					ExpectReduce(&left, logical_not, L"Expected expression", node->free(node);, handle);
-					node = newBinaryNode(op, left, node);					
+					node = newBinaryNode(op, node, left);
 		}
 		SetCoords(node, file, line, charPos);
     return node;
@@ -411,7 +411,7 @@ NewReduce(Expr_reduce) {
 		}
 		node = newConditionNode(cond, body, elseBody);
 	} else
-  	ExpectReduce(&node, logical_ops, L"Expected expression", ;, handle);
+		ExpectReduce(&node, logical_ops, L"Expected expression", ;, handle);
 	SetCoords(node, file, line, charPos);
   return node;
 }
@@ -420,9 +420,192 @@ NewValidate(Expression_validate) {
 	return Validate(expr, handle);
 }
 NewReduce(Expression_reduce) {
-	YNode* node;
+	/*YNode* node;
     ExpectReduce(&node, expr, L"Expected expression", ;, handle);
-    return node;
+    return node;*/
+	ExtractCoords(file, line, charPos, handle);
+	if (AssertKeyword(handle->tokens[0], DelKeyword)) {
+		shift(handle);
+		size_t length = 1;
+		YNode** list = malloc(sizeof(YNode*) * length);
+		ExpectReduce(&list[0], expr, L"Expected expression", free(list), handle);
+#define freestmt {\
+            for (size_t i=0;i<length;i++)\
+                list[i]->free(list[i]);\
+            free(list);\
+		}
+		while (AssertOperator(handle->tokens[0], CommaOperator)) {
+			shift(handle);
+			YNode* n;
+			ExpectReduce(&n, expr, L"Expected expression", freestmt, handle);
+			length++;
+			list = realloc(list, sizeof(YNode*) * length);
+			list[length - 1] = n;
+		}
+#undef freestmt
+		YNode* out = newDeleteNode(list, length);
+		SetCoords(out, file, line, charPos);
+		return out;
+	}
+
+	bool newVar = false;
+	if (AssertKeyword(handle->tokens[0], VarKeyword)) {
+		shift(handle);
+		newVar = true;
+	}
+	YNode* type = NULL;
+	if (AssertOperator(handle->tokens[0], MinusOperator)&&
+			AssertOperator(handle->tokens[1], GreaterOperator)) {
+		shift(handle);
+		shift(handle);
+		ExpectReduce(&type, expr, L"Expected expression", ;, handle);
+	}
+	YNode* node = NULL;
+	ExpectReduce(&node, expr, L"Expected expression",
+			if (type!=NULL) type->free(type);, handle);
+	YNode** dests = NULL;
+	size_t dest_count = 0;
+	if (AssertOperator(handle->tokens[0], CommaOperator)) {
+		dests = malloc(sizeof(YNode*));
+		dests[0] = node;
+		dest_count++;
+		while (AssertOperator(handle->tokens[0], CommaOperator)) {
+			shift(handle);
+			YNode* n;
+			ExpectReduce(&n, expr, L"Expected expression", {
+				for (size_t i = 0; i < dest_count; i++)
+					dests[i]->free(dests[i])
+					;
+				free(dests)
+				;
+			}, handle);
+			dests = realloc(dests, sizeof(YNode*) * (++dest_count));
+			dests[dest_count - 1] = n;
+		}
+	}
+	if (AssertOperator(handle->tokens[0], AssignOperator)
+			|| ((AssertOperator(handle->tokens[0], PlusOperator)
+					|| AssertOperator(handle->tokens[0], MinusOperator)
+					|| AssertOperator(handle->tokens[0], MultiplyOperator)
+					|| AssertOperator(handle->tokens[0], DivideOperator)
+					|| AssertOperator(handle->tokens[0], ModuloOperator)
+					|| AssertOperator(handle->tokens[0], AndOperator)
+					|| AssertOperator(handle->tokens[0], OrOperator)
+					|| AssertOperator(handle->tokens[0], XorOperator))
+					&& AssertOperator(handle->tokens[1], AssignOperator))
+			|| (((AssertOperator(handle->tokens[0], MultiplyOperator)
+					&& AssertOperator(handle->tokens[1], MultiplyOperator))
+					|| (AssertOperator(handle->tokens[0], LesserOperator)
+							&& AssertOperator(handle->tokens[1], LesserOperator))
+					|| (AssertOperator(handle->tokens[0], GreaterOperator)
+							&& AssertOperator(handle->tokens[1], GreaterOperator))
+					|| (AssertOperator(handle->tokens[0], AndOperator)
+							&& AssertOperator(handle->tokens[1], AndOperator))
+					|| (AssertOperator(handle->tokens[0], OrOperator)
+							&& AssertOperator(handle->tokens[1], OrOperator)))
+					&& AssertOperator(handle->tokens[2], AssignOperator))) {
+		if (dests == NULL) {
+			dests = malloc(sizeof(YNode*));
+			dests[0] = node;
+			dest_count++;
+		}
+		YAssignmentOperation op;
+		if (AssertOperator(handle->tokens[0], PlusOperator)) {
+			op = AAddAssign;
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], MinusOperator)) {
+			op = ASubAssign;
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], MultiplyOperator)&&
+		AssertOperator(handle->tokens[1], MultiplyOperator)) {
+			op = APowerAssign;
+			shift(handle);
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], MultiplyOperator)) {
+			op = AMulAssign;
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], DivideOperator)) {
+			op = ADivAssign;
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], ModuloOperator)) {
+			op = AModAssign;
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], GreaterOperator)&&
+		AssertOperator(handle->tokens[1], GreaterOperator)) {
+			op = AShiftRightAssign;
+			shift(handle);
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], LesserOperator)&&
+		AssertOperator(handle->tokens[1], LesserOperator)) {
+			op = AShiftLeftAssign;
+			shift(handle);
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], AndOperator)&&
+		AssertOperator(handle->tokens[1], AndOperator)) {
+			op = ALogicalAndAssign;
+			shift(handle);
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], OrOperator)&&
+		AssertOperator(handle->tokens[1], OrOperator)) {
+			op = ALogicalOrAssign;
+			shift(handle);
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], AndOperator)) {
+			op = AAndAssign;
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], OrOperator)) {
+			op = AOrAssign;
+			shift(handle);
+		} else if (AssertOperator(handle->tokens[0], XorOperator)) {
+			op = AXorAssign;
+			shift(handle);
+		} else {
+			op = AAssign;
+		}
+		if (op != AAssign)
+			for (size_t i = 0; i < dest_count; i++) {
+				if (dests[i]->type == FilledArrayN)
+					ParseError(L"Can only assign to a tuple",
+							{ for (size_t i=0; i<dest_count; i++) dests[i]->free(dests[i]); free(dests); if (type!=NULL) type->free(type); },
+							handle);
+			}
+		shift(handle);
+
+		size_t slength = 1;
+		YNode** srcs = malloc(sizeof(YNode*) * slength);
+		ExpectReduce(&srcs[0], expr, L"Expected expression",
+				{ for (size_t i=0; i<dest_count; i++) dests[i]->free(dests[i]); free(dests); if (type!=NULL) type->free(type); free(srcs); },
+				handle);
+		while (AssertOperator(handle->tokens[0], CommaOperator)) {
+			shift(handle);
+			YNode* nd;
+			ExpectReduce(&nd, expr, L"Expected expression",
+					{ for (size_t i=0; i<dest_count; i++) dests[i]->free(dests[i]); free(dests); for (size_t i=0; i<slength; i++) srcs[i]->free(srcs[i]); free(srcs); if (type!=NULL) type->free(type); node->free(node); },
+					handle);
+			slength++;
+			srcs = realloc(srcs, sizeof(YNode*) * slength);
+			srcs[slength - 1] = nd;
+		}
+		YNode* out = newAssignmentNode(op, newVar, type, srcs, slength, dests,
+				dest_count);
+		SetCoords(out, file, line, charPos);
+		return out;
+	}
+	if (newVar || type != NULL) {
+		if (dests == NULL) {
+			dests = malloc(sizeof(YNode*));
+			dests[0] = node;
+			dest_count++;
+		}
+		YNode** srcs = malloc(sizeof(YNode*));
+		srcs[0] = newNullNode();
+		YNode* out = newAssignmentNode(AAssign, newVar, type, srcs, 1, dests,
+				dest_count);
+		SetCoords(out, file, line, charPos);
+		return out;
+	}
+	SetCoords(node, file, line, charPos);
+	return node;
 }
 
 NewValidate(Statement_validate) {

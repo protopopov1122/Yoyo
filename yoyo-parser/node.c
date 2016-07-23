@@ -235,6 +235,15 @@ void Function_free(YNode* n) {
 	((YNode*) node->lambda)->free((YNode*) node->lambda);
 	free(node);
 }
+YNode* newNullNode() {
+	YNode* node = malloc(sizeof(YNode));
+	node->type = NullN;
+	node->free = (void (*)(YNode*)) free;
+	node->fileName = NULL;
+	node->line = -1;
+	node->charPos = -1;
+	return node;
+}
 YNode* newBinaryNode(YBinaryOperation op, YNode* left, YNode* right) {
 	YBinaryNode* bin;
 	NewNode(&bin, YBinaryNode, BinaryN, Binary_free);

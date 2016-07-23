@@ -5,6 +5,7 @@
 
 typedef struct YNode {
 	enum {
+		NullN,
 		ConstantN,
 		LambdaN,
 		ObjectN,
@@ -317,6 +318,7 @@ typedef struct YBlockNode {
 	size_t funcs_count;
 } YBlockNode;
 
+YNode* newNullNode();
 YNode* newConstantNode(yconstant_t);
 YNode* newIdentifierReferenceNode(wchar_t*);
 YNode* newIndexReferenceNode(YNode*, YNode*);
