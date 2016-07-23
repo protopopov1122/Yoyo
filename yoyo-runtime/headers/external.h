@@ -37,6 +37,8 @@ typedef HANDLE THREAD;
 void win_new_thread(void*, void* (*)(void*), void*);
 #define NEW_THREAD(th, proc, value) win_new_thread(th, proc, value)
 #define THREAD_EXIT(ptr) return NULL;
+#define THREAD_SELF() GetCurrentThread()
+#define THREAD_EQUAL(t1, t2) (GetThreadId(t1)==GetThreadId(t2))
 typedef CRITICAL_SECTION MUTEX;
 #define NEW_MUTEX(mutex) InitializeCriticalSection(mutex)
 #define DESTROY_MUTEX(mutex) DeleteCriticalSection(mutex)

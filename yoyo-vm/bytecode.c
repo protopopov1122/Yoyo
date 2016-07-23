@@ -15,7 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "bytecode.h"
-#include "io.h"
+#include "yoyo_io.h"
 
 /* File contains methods to build bytecode and get access to it.
  * Work with bytecode internal structures like
