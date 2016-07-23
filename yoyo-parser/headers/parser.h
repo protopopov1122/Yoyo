@@ -27,6 +27,8 @@ typedef enum {
 	NotOperator,
 	OpeningBraceOperator,
 	ClosingBraceOperator,
+	DollarSignOperator,
+	QueryOperator,
 	SemicolonOperator	
 } yoperator_t;
 

@@ -26,6 +26,8 @@ struct {
 	{L'~', NotOperator},
 	{L'{', OpeningBraceOperator},
 	{L'}', ClosingBraceOperator},
+	{L'$', DollarSignOperator},
+	{L'?', QueryOperator},
 	{L';', SemicolonOperator}	
 };
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);

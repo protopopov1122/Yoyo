@@ -253,7 +253,7 @@ YNode* newBinaryNode(YBinaryOperation op, YNode* left, YNode* right) {
 	bin->operation = op;
 	return (YNode*) bin;
 }
-YNode* newLambdaNode(int32_t* args, YNode** argTypes, ssize_t argc,
+YNode* newLambdaNode(wchar_t** args, YNode** argTypes, ssize_t argc,
 bool vararg, YNode* retType, YNode* body) {
 	YLambdaNode* ln;
 	NewNode(&ln, YLambdaNode, LambdaN, Lambda_free);

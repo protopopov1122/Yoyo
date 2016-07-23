@@ -514,11 +514,13 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		for (size_t i = 0; i < obj->fields_length; i++) {
 			ObjectNodeField* fld = &obj->fields[i];
 			int32_t vreg = ytranslate(builder, env, fld->value);
-			proc->append(proc, VM_NewField, reg, fld->id, vreg);
+			proc->append(proc, VM_NewField, reg, builder->bc->getSymbolId(
+					builder->bc, fld->id), vreg);
 			proc->unuse(proc, vreg);
 			if (fld->type != NULL) {
 				int32_t treg = ytranslate(builder, env, fld->type);
-				proc->append(proc, VM_ChType, reg, fld->id, treg);
+				proc->append(proc, VM_ChType, reg, builder->bc->getSymbolId(
+						builder->bc, fld->id), treg);
 				proc->unuse(proc, treg);
 			}
 		}
@@ -601,7 +603,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 						env->bytecode->getNullConstant(env->bytecode), -1);
 				proc->append(proc, VM_Push, reg, -1, -1);
 			}
-			proc->append(proc, VM_LoadInteger, reg, ln->args[i], -1);
+			proc->append(proc, VM_LoadInteger, reg, builder->bc->getSymbolId(
+					builder->bc, ln->args[i]), -1);
 			proc->append(proc, VM_Push, reg, -1, -1);
 		}
 		proc->append(proc, VM_LoadInteger, reg, ln->argc, -1);

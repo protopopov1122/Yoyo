@@ -59,17 +59,180 @@ NewReduce(Parser_Array_reduce) {
 }
 
 NewValidate(Object_validate) {
-    return false;
+	return AssertKeyword(handle->tokens[0], ObjectKeyword);
 }
 NewReduce(Object_reduce) {
-    return NULL;
+	ExtractCoords(file, line, charPos, handle);
+	YObjectNode* obj = (YObjectNode*) newObjectNode(NULL, NULL, 0, NULL, 0);
+	shift(handle);
+	/*Code to free allocated if error occurred*/
+#define freestmt {\
+        for (size_t i=0;i<obj->fields_length;i++) {\
+            obj->fields[i].value->free(obj->fields[i].value);\
+        }\
+        free(obj->fields);\
+        if (obj->parent!=NULL) obj->parent->free(obj->parent);\
+        free(obj);\
+    }
+	if (AssertOperator(handle->tokens[0], ColonOperator)) {
+		/*Get object parent if available*/
+		shift(handle);
+		ExpectReduce(&obj->parent, expression, L"Exprected expression",
+				freestmt, handle);
+	}
+	/*If object has body then parse it*/
+	if (AssertOperator(handle->tokens[0], OpeningBraceOperator)) {
+		shift(handle);
+		while (!AssertOperator(handle->tokens[0], ClosingBraceOperator)) {
+			if (handle->grammar.function.validate(handle)) {
+				/*Parse object method*/
+				YNode* nd;
+				Reduce(&nd, function, freestmt, handle);
+				YFunctionNode* func = (YFunctionNode*) nd;
+				/*Check if object contains methods with
+				 * the same name. If contains then add overload
+				 * then with current*/
+				for (size_t i = 0; i < obj->methods_length; i++) {
+					if (obj->methods[i].id == func->name) {
+						obj->methods[i].count++;
+						obj->methods[i].lambda = realloc(obj->methods[i].lambda,
+								sizeof(YLambdaNode*) * obj->methods[i].count);
+						obj->methods[i].lambda[obj->methods[i].count - 1] =
+								func->lambda;
+						free(func);
+						func = NULL;
+						break;
+					}
+				}
+				/*If there is no methods with the same name
+				 * then add this*/
+				if (func != NULL) {
+					obj->methods_length++;
+					obj->methods = realloc(obj->methods,
+							sizeof(YFunctionBlock) * obj->methods_length);
+					obj->methods[obj->methods_length - 1].id = func->name;
+					obj->methods[obj->methods_length - 1].count = 1;
+					obj->methods[obj->methods_length - 1].lambda = malloc(
+							sizeof(YLambdaNode*));
+					obj->methods[obj->methods_length - 1].lambda[0] =
+							func->lambda;
+					free(func);
+					func = NULL;
+				}
+			} else {
+				/*It must be field definition.
+				 * Get field name.*/
+				ExpectToken(handle->tokens[0], TokenIdentifier,
+						L"Expected identifier or '}'", freestmt, handle);
+				wchar_t* id = handle->tokens[0].value.id;
+				shift(handle);
+				YNode* type = NULL;
+				/*If field has defined type then parse it*/
+				if (AssertOperator(handle->tokens[0], MinusOperator)&&
+				AssertOperator(handle->tokens[1], GreaterOperator)) {
+					shift(handle);
+					shift(handle);
+					ExpectReduce(&type, expression, L"Expected expression",
+							freestmt, handle);
+				}
+				ExpectOperator(handle->tokens[0], ColonOperator, L"Expected ':'",
+						freestmt, handle);
+				shift(handle);
+				/*Get field value and add field to object*/
+				YNode* value;
+				ExpectReduce(&value, expression, L"Expected expression",
+						freestmt, handle);
+				obj->fields_length++;
+				obj->fields = realloc(obj->fields,
+						obj->fields_length * sizeof(ObjectNodeField));
+				obj->fields[obj->fields_length - 1].id = id;
+				obj->fields[obj->fields_length - 1].value = value;
+				obj->fields[obj->fields_length - 1].type = type;
+			}
+		}
+		shift(handle);
+	}
+#undef freestmt
+	/*Build object node*/
+	YNode* out = (YNode*) obj;
+	SetCoords(out, file, line, charPos);
+	return out;
 }
 
 NewValidate(Lambda_validate) {
-    return false;
+	return AssertOperator(handle->tokens[0], DollarSignOperator);
 }
 NewReduce(Lambda_reduce) {
-    return NULL;
+	ExtractCoords(file, line, charPos, handle);
+	shift(handle);
+	size_t length = 0;
+	wchar_t** args = NULL;
+	YNode** argTypes = NULL;
+	bool vararg = false;
+	ExpectOperator(handle->tokens[0], OpeningParentheseOperator, L"Expected '(", ;,
+			handle);
+	shift(handle);
+	/*Parsing lambda arguments*/
+	while (!AssertOperator(handle->tokens[0], ClosingParentheseOperator)) {
+		if (AssertOperator(handle->tokens[0], QueryOperator)) {
+			/*It's vararg argument. It must be last*/
+			vararg = true;
+			shift(handle);
+		}
+		/*Get argument name*/
+		ExpectToken(handle->tokens[0], TokenIdentifier, L"Expected identifier",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+		length++;
+		args = realloc(args, sizeof(int32_t) * length);
+		argTypes = realloc(argTypes, sizeof(YNode*) * length);
+		args[length - 1] = handle->tokens[0].value.id;
+		argTypes[length - 1] = NULL;
+		shift(handle);
+		/*Check if argument has type*/
+		if (AssertOperator(handle->tokens[0], MinusOperator)&&
+		AssertOperator(handle->tokens[1], GreaterOperator)) {
+			shift(handle);
+			shift(handle);
+			ExpectReduce(&argTypes[length - 1], expr, L"Expected expression",
+					{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+					handle);
+		}
+
+		/*Next token must be ',' or ')'*/
+		Expect(
+				AssertOperator(handle->tokens[0], CommaOperator) ||AssertOperator(handle->tokens[0], ClosingParentheseOperator),
+				L"Expected ')' or ','",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+		Expect(
+				!(vararg&&!AssertOperator(handle->tokens[0], ClosingParentheseOperator)),
+				L"Vararg must be last, argument",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+		if (AssertOperator(handle->tokens[0], CommaOperator))
+			shift(handle);
+	}
+	shift(handle);
+	/*Check if lambda has return type*/
+	YNode* retType = NULL;
+	if (AssertOperator(handle->tokens[0], MinusOperator)&&
+	AssertOperator(handle->tokens[1], GreaterOperator)) {
+		shift(handle);
+		shift(handle);
+		ExpectReduce(&retType, expr, L"Expected expression",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+	}
+	/*Get lambda body*/
+	YNode* body;
+	ExpectReduce(&body, statement, L"Expected statement",
+			{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); if (retType!=NULL) retType->free(retType); },
+			handle);
+	/*Build lambda node*/
+	YNode* out = newLambdaNode(args, argTypes, length, vararg, retType, body);
+	SetCoords(out, file, line, charPos);
+	return out;
 }
 
 NewValidate(Overload_validate) {
@@ -89,7 +252,9 @@ NewReduce(Interface_reduce) {
 NewValidate(Factor_validate) {
 	return Validate(identifier, handle)||
          	Validate(constant, handle)||
-					AssertOperator(handle->tokens[0], OpeningParentheseOperator);
+			Validate(object, handle)||
+			Validate(lambda, handle)||
+			AssertOperator(handle->tokens[0], OpeningParentheseOperator);
 }
 NewReduce(Factor_reduce) {
 	YNode* out = NULL;
@@ -103,7 +268,11 @@ NewReduce(Factor_reduce) {
 		ExpectReduce(&out, expression, L"Expected expression", ;, handle);
 		ExpectOperator(handle->tokens[0], ClosingParentheseOperator, L"Expected ')'", ;, handle);
 		shift(handle);
-	} 
+	}
+	else if (Validate(object, handle))
+		return handle->grammar.object.reduce(handle);
+	else if (Validate(lambda, handle))
+		return handle->grammar.lambda.reduce(handle);
 	else
 		ParseError(L"Expected expression", ;, handle);
 	SetCoords(out, file, line, charPos);
@@ -984,6 +1153,13 @@ NewReduce(Statement_reduce) {
 	return node;
 }
 
+NewValidate(Function_validate) {
+	return false;
+}
+NewReduce(Function_reduce) {
+	return NULL;
+}
+
 NewValidate(Root_validate) {
 	return true;
 }
@@ -1033,6 +1209,7 @@ void initGrammar(Grammar* g) {
 	NewRule(g, expr, Expr_validate, Expr_reduce);
 	NewRule(g, expression, Expression_validate, Expression_reduce);
 	NewRule(g, statement, Statement_validate, Statement_reduce);
+	NewRule(g, function, Function_validate, Function_reduce);
 	NewRule(g, root, Root_validate, Root_reduce);
 }
 
