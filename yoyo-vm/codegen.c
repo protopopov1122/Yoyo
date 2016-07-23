@@ -1297,7 +1297,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		for (size_t i = 0; i < in->attr_count; i++) {
 			int reg = ytranslate(builder, env, in->types[i]);
 			proc->append(proc, VM_Push, reg, -1, -1);
-			proc->append(proc, VM_LoadInteger, reg, in->ids[i], -1);
+			proc->append(proc, VM_LoadInteger, reg, builder->bc->getSymbolId(
+					builder->bc, in->ids[i]), -1);
 			proc->append(proc, VM_Push, reg, -1, -1);
 			proc->unuse(proc, reg);
 		}

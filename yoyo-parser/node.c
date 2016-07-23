@@ -340,7 +340,7 @@ YNode* newGeneratedArray(YNode* el, YNode* count) {
 	arr->count = count;
 	return (YNode*) arr;
 }
-YNode* newInterfaceNode(YNode** parents, size_t pcount, int32_t* ids,
+YNode* newInterfaceNode(YNode** parents, size_t pcount, wchar_t** ids,
 		YNode** types, size_t acount) {
 	YInterfaceNode* node;
 	NewNode(&node, YInterfaceNode, InterfaceN, InterfaceNode_free);

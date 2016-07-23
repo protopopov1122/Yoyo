@@ -86,7 +86,7 @@ typedef struct YInterfaceNode {
 	YNode node;
 	YNode** parents;
 	size_t parent_count;
-	int32_t* ids;
+	wchar_t** ids;
 	YNode** types;
 	size_t attr_count;
 } YInterfaceNode;
@@ -329,7 +329,7 @@ YNode* newCallNode(YNode*, YNode**, size_t);
 YNode* newFilledArray(YNode**, size_t);
 YNode* newGeneratedArray(YNode*, YNode*);
 YNode* newObjectNode(YNode*, ObjectNodeField*, size_t, YFunctionBlock*, size_t);
-YNode* newInterfaceNode(YNode**, size_t, int32_t*, YNode**, size_t);
+YNode* newInterfaceNode(YNode**, size_t, wchar_t**, YNode**, size_t);
 YNode* newBinaryNode(YBinaryOperation, YNode*, YNode*);
 YNode* newUnaryNode(YUnaryOperation, YNode*);
 YNode* newAssignmentNode(YAssignmentOperation, bool, YNode*, YNode**, size_t,
