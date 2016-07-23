@@ -176,20 +176,117 @@ NewReduce(Reference_reduce) {
 }
 
 NewValidate(Unary_validate) {
-	return Validate(reference, handle);
+	return ((AssertOperator(handle->tokens[0], PlusOperator)
+			&& AssertOperator(handle->tokens[1], PlusOperator))
+			|| (AssertOperator(handle->tokens[0], MinusOperator)
+					&& AssertOperator(handle->tokens[1], MinusOperator))
+			|| AssertOperator(handle->tokens[0], PlusOperator)
+			|| AssertOperator(handle->tokens[0], MinusOperator)
+			|| AssertOperator(handle->tokens[0], NotOperator))
+			|| handle->grammar.reference.validate(handle);
 }
 NewReduce(Unary_reduce) {
-	YNode* node;
-    ExpectReduce(&node, reference, L"Expected expression", ;, handle);
-    return node;
+	YNode* unary = NULL;
+	ExtractCoords(file, line, charPos, handle);
+	if (AssertOperator(handle->tokens[0],
+			PlusOperator) && AssertOperator(handle->tokens[1], PlusOperator)) {
+		/*It has '++' in prefix*/
+		shift(handle);
+		shift(handle);
+		/*Get argument and save PreIncrement operation*/
+		YNode* arg;
+		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
+		unary = newUnaryNode(PreIncrement, arg);
+	}
+
+	else if (AssertOperator(handle->tokens[0],
+			MinusOperator) && AssertOperator(handle->tokens[1], MinusOperator)) {
+		/*It has '--' in prefix*/
+		shift(handle);
+		shift(handle);
+		/*Get argument and save PreDecrement operation*/
+		YNode* arg;
+		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
+		unary = newUnaryNode(PreDecrement, arg);
+	}
+
+	else if (AssertOperator(handle->tokens[0], PlusOperator)) {
+		/* It's '+' operation
+		 * Get argument and save it*/
+		shift(handle);
+		YNode* out;
+		ExpectReduce(&out, reference, L"Expected reference", ;, handle);
+		return out;
+	}
+
+	else if (AssertOperator(handle->tokens[0], MinusOperator)) {
+		/* It's '-' operation
+		 * Get argument and save Negate operation*/
+		shift(handle);
+		YNode* arg;
+		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
+		unary = newUnaryNode(Negate, arg);
+	}
+
+	else if (AssertOperator(handle->tokens[0], NotOperator)) {
+		/* It's '~' operation
+		 * Get argument and save Not operation*/
+		shift(handle);
+		YNode* arg;
+		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
+		unary = newUnaryNode(Not, arg);
+	}
+
+	else {
+		/*It has no prefix. It may be just reference or
+		 * PostIncrement or PostDecrement operation.*/
+		YNode* out;
+		ExpectReduce(&out, reference, L"Expected reference", ;, handle);
+
+		if (AssertOperator(handle->tokens[0],
+				PlusOperator) && AssertOperator(handle->tokens[1], PlusOperator)) {
+			/* It's '++' operation
+			 * Get argument and save PostIncrement operation*/
+			shift(handle);
+			shift(handle);
+			unary = newUnaryNode(PostIncrement, out);
+		} else if (AssertOperator(handle->tokens[0],
+				MinusOperator) && AssertOperator(handle->tokens[1], MinusOperator)) {
+			/* It's '--' operation
+			 * Get argument and save PostDecrement operation*/
+			shift(handle);
+			shift(handle);
+			unary = newUnaryNode(PostDecrement, out);
+		}
+
+		else {
+			/*Return result*/
+			SetCoords(out, file, line, charPos);
+			return out;
+		}
+
+	}
+	/*Return result*/
+	SetCoords(unary, file, line, charPos);
+	return unary;
 }
 
 NewValidate(Power_validate) {
 	return Validate(unary, handle);
 }
 NewReduce(Power_reduce) {
-	YNode* node;
+    YNode* node;
+	ExtractCoords(file, line, charPos, handle);
     ExpectReduce(&node, unary, L"Expected expression", ;, handle);
+		while ((AssertOperator(handle->tokens[0], MultiplyOperator)&&
+                AssertOperator(handle->tokens[1], MultiplyOperator))) {
+					shift(handle);
+                    shift(handle);
+					YNode* left;
+					ExpectReduce(&left, unary, L"Expected expression", node->free(node);, handle);
+					node = newBinaryNode(Power, node, left);
+		}
+		SetCoords(node, file, line, charPos);
     return node;
 }
 

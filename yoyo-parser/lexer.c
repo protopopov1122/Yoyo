@@ -23,6 +23,7 @@ struct {
     {L']', ClosingBracketOperator},
     {L':', ColonOperator},
 	{L',', CommaOperator},
+	{L'~', NotOperator},
 	{L';', SemicolonOperator}	
 };
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);
