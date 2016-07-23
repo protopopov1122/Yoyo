@@ -223,12 +223,12 @@ typedef struct YWhileLoopNode {
 	bool evalOnStart;
 	YNode* cond;
 	YNode* body;
-	int32_t id;
+	wchar_t* id;
 } YWhileLoopNode;
 
 typedef struct YForeachLoopNode {
 	YNode node;
-	int32_t id;
+	wchar_t* id;
 	YNode* refnode;
 	YNode* col;
 	YNode* body;
@@ -237,7 +237,7 @@ typedef struct YForeachLoopNode {
 typedef struct YLoopNode {
 	YNode node;
 	YNode* body;
-	int32_t id;
+	wchar_t* id;
 } YLoopNode;
 
 typedef struct YForLoopNode {
@@ -246,7 +246,7 @@ typedef struct YForLoopNode {
 	YNode* cond;
 	YNode* loop;
 	YNode* body;
-	int32_t id;
+	wchar_t* id;
 } YForLoopNode;
 
 typedef struct YPassNode {
@@ -255,7 +255,7 @@ typedef struct YPassNode {
 
 typedef struct YLoopControlNode {
 	YNode node;
-	int32_t label;
+	wchar_t* label;
 } YLoopControlNode;
 
 typedef struct YValueReturnNode {
@@ -336,13 +336,13 @@ YNode* newAssignmentNode(YAssignmentOperation, bool, YNode*, YNode**, size_t,
 		YNode**, size_t);
 YNode* newDeleteNode(YNode**, size_t);
 YNode* newConditionNode(YNode*, YNode*, YNode*);
-YNode* newLoopNode(int32_t, YNode*);
-YNode* newWhileLoopNode(int32_t, bool, YNode*, YNode*);
-YNode* newForLoopNode(int32_t, YNode*, YNode*, YNode*, YNode*);
-YNode* newForeachLoopNode(int32_t, YNode*, YNode*, YNode*);
+YNode* newLoopNode(wchar_t*, YNode*);
+YNode* newWhileLoopNode(wchar_t*, bool, YNode*, YNode*);
+YNode* newForLoopNode(wchar_t*, YNode*, YNode*, YNode*, YNode*);
+YNode* newForeachLoopNode(wchar_t*, YNode*, YNode*, YNode*);
 YNode* newPassNode();
-YNode* newBreakNode(int32_t);
-YNode* newContinueNode(int32_t);
+YNode* newBreakNode(wchar_t*);
+YNode* newContinueNode(wchar_t*);
 YNode* newThrowNode(YNode*);
 YNode* newReturnNode(YNode*);
 YNode* newTryNode(YNode*, YNode*, YNode*, YNode*, YNode*);

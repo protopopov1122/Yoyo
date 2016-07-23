@@ -83,7 +83,7 @@ void Call_free(YNode* n) {
 		node->args[i]->free(node->args[i]);
 	}
 	free(node->args);
-	free(node->function);
+	node->function->free(node->function);
 	free(node);
 }
 void GeneratedArray_free(YNode* n) {
@@ -218,8 +218,9 @@ void With_free(YNode* n) {
 }
 void Block_free(YNode* n) {
 	YBlockNode* node = (YBlockNode*) n;
-	for (size_t i = 0; i < node->length; i++)
+	for (size_t i = 0; i < node->length; i++) {
 		node->block[i]->free(node->block[i]);
+	}
 	free(node->block);
 	for (size_t i = 0; i < node->funcs_count; i++) {
 		for (size_t j = 0; j < node->funcs[i].count; j++)
@@ -379,14 +380,14 @@ YNode* newConditionNode(YNode* cnd, YNode* body, YNode* elseBody) {
 	cond->elseBody = elseBody;
 	return (YNode*) cond;
 }
-YNode* newLoopNode(int32_t id, YNode* body) {
+YNode* newLoopNode(wchar_t* id, YNode* body) {
 	YLoopNode* loop;
 	NewNode(&loop, YLoopNode, LoopN, Loop_free);
 	loop->id = id;
 	loop->body = body;
 	return (YNode*) loop;
 }
-YNode* newWhileLoopNode(int32_t id, bool eos, YNode* cnd, YNode* body) {
+YNode* newWhileLoopNode(wchar_t* id, bool eos, YNode* cnd, YNode* body) {
 	YWhileLoopNode* loop;
 	NewNode(&loop, YWhileLoopNode, WhileLoopN, While_free);
 	loop->id = id;
@@ -395,7 +396,7 @@ YNode* newWhileLoopNode(int32_t id, bool eos, YNode* cnd, YNode* body) {
 	loop->body = body;
 	return (YNode*) loop;
 }
-YNode* newForLoopNode(int32_t id, YNode* init, YNode* cnd, YNode* after,
+YNode* newForLoopNode(wchar_t* id, YNode* init, YNode* cnd, YNode* after,
 		YNode* body) {
 	YForLoopNode* loop;
 	NewNode(&loop, YForLoopNode, ForLoopN, For_free);
@@ -406,7 +407,7 @@ YNode* newForLoopNode(int32_t id, YNode* init, YNode* cnd, YNode* after,
 	loop->body = body;
 	return (YNode*) loop;
 }
-YNode* newForeachLoopNode(int32_t id, YNode* ref, YNode* col, YNode* body) {
+YNode* newForeachLoopNode(wchar_t* id, YNode* ref, YNode* col, YNode* body) {
 	YForeachLoopNode* loop;
 	NewNode(&loop, YForeachLoopNode, ForeachLoopN, Foreach_free);
 	loop->id = id;
@@ -420,13 +421,13 @@ YNode* newPassNode() {
 	NewNode(&pass, YPassNode, PassN, free);
 	return (YNode*) pass;
 }
-YNode* newBreakNode(int32_t id) {
+YNode* newBreakNode(wchar_t* id) {
 	YLoopControlNode* brk;
 	NewNode(&brk, YLoopControlNode, BreakN, free);
 	brk->label = id;
 	return (YNode*) brk;
 }
-YNode* newContinueNode(int32_t id) {
+YNode* newContinueNode(wchar_t* id) {
 	YLoopControlNode* brk;
 	NewNode(&brk, YLoopControlNode, ContinueN, free);
 	brk->label = id;

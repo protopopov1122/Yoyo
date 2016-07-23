@@ -13,13 +13,10 @@ wchar_t* getSymbol(ParseHandle* handle, wchar_t* wcs) {
 	return handle->symbols[i];
 }
 
-yconstant_t addConstant(ParseHandle* handle, yconstant_t c) {
+void addConstant(ParseHandle* handle, yconstant_t c) {
 	size_t i = handle->constants_size++;
 	handle->constants = realloc(handle->constants, sizeof(yconstant_t) * handle->constants_size);
 	handle->constants[i] = c;
-	if (c.type==WcsConstant)
-		c.value.wcs = getSymbol(handle, c.value.wcs);
-	return c;
 }
 
 ytoken shift(ParseHandle* handle) {
@@ -407,38 +404,38 @@ NewReduce(Comparison_reduce) {
         shift(handle);
         YNode* left;
         ExpectReduce(&left, bitwise, L"Expected expression", node->free(node), handle);
-        node = newBinaryNode(BEquals, left, node);
+        node = newBinaryNode(BEquals, node, left);
     } else if (AssertOperator(handle->tokens[0], LogicalNotOperator)&&
         AssertOperator(handle->tokens[1], AssignOperator)) {
         shift(handle);
         shift(handle);
         YNode* left;
         ExpectReduce(&left, bitwise, L"Expected expression", node->free(node), handle);
-        node = newBinaryNode(NotEquals, left, node);
+        node = newBinaryNode(NotEquals, node, left);
     } else if (AssertOperator(handle->tokens[0], GreaterOperator)&&
         AssertOperator(handle->tokens[1], AssignOperator)) {
         shift(handle);
         shift(handle);
         YNode* left;
         ExpectReduce(&left, bitwise, L"Expected expression", node->free(node), handle);
-        node = newBinaryNode(GreaterOrEquals, left, node);
+        node = newBinaryNode(GreaterOrEquals, node, left);
     } else if (AssertOperator(handle->tokens[0], LesserOperator)&&
         AssertOperator(handle->tokens[1], AssignOperator)) {
         shift(handle);
         shift(handle);
         YNode* left;
         ExpectReduce(&left, bitwise, L"Expected expression", node->free(node), handle);
-        node = newBinaryNode(LesserOrEquals, left, node);
+        node = newBinaryNode(LesserOrEquals, node, left);
     } else if (AssertOperator(handle->tokens[0], LesserOperator)) {
         shift(handle);
         YNode* left;
         ExpectReduce(&left, bitwise, L"Expected expression", node->free(node), handle);
-        node = newBinaryNode(Lesser, left, node);
+        node = newBinaryNode(Lesser, node, left);
     } else if (AssertOperator(handle->tokens[0], GreaterOperator)) {
         shift(handle);
         YNode* left;
         ExpectReduce(&left, bitwise, L"Expected expression", node->free(node), handle);
-        node = newBinaryNode(Greater, left, node);
+        node = newBinaryNode(Greater, node, left);
     }
     SetCoords(node, file, line, charPos);
     return node;
@@ -489,28 +486,299 @@ NewReduce(Logical_ops_reduce) {
 }
 
 NewValidate(Expr_validate) {
-	return Validate(logical_ops, handle)||
-					AssertKeyword(handle->tokens[0], IfKeyword);
+	return AssertKeyword(handle->tokens[0], IfKeyword)
+			|| AssertKeyword(handle->tokens[0], TryKeyword)
+			|| AssertKeyword(handle->tokens[0], SwitchKeyword)
+			|| AssertKeyword(handle->tokens[0], UsingKeyword)
+			|| AssertKeyword(handle->tokens[0], WithKeyword)
+			|| AssertKeyword(handle->tokens[0], BreakKeyword)
+			|| AssertKeyword(handle->tokens[0], ContinueKeyword)
+			|| AssertKeyword(handle->tokens[0], PassKeyword)
+			|| AssertKeyword(handle->tokens[0], WhileKeyword)
+			|| AssertKeyword(handle->tokens[0], DoKeyword)
+			|| AssertKeyword(handle->tokens[0], ForKeyword)
+			|| AssertKeyword(handle->tokens[0], ForeachKeyword)
+			|| AssertKeyword(handle->tokens[0], ReturnKeyword)
+			|| AssertKeyword(handle->tokens[0], ThrowKeyword)
+			|| (AssertToken(handle->tokens[0], TokenIdentifier)
+					&& AssertOperator(handle->tokens[1], ColonOperator)
+					&& (AssertKeyword(handle->tokens[2], WhileKeyword)
+							|| AssertKeyword(handle->tokens[2], ForeachKeyword)
+							|| AssertKeyword(handle->tokens[2], DoKeyword)
+							|| AssertKeyword(handle->tokens[2], ForKeyword)))
+			|| handle->grammar.logical_ops.validate(handle);
 }
 NewReduce(Expr_reduce) {
-	YNode* node;
+
+	YNode* out;
 	ExtractCoords(file, line, charPos, handle);
 	if (AssertKeyword(handle->tokens[0], IfKeyword)) {
+		/*Parses 'if' statement*/
 		shift(handle);
 		YNode* cond;
 		YNode* body;
-		YNode* elseBody = NULL;
 		ExpectReduce(&cond, expression, L"Expected expression", ;, handle);
-		ExpectReduce(&body, statement, L"Expected statement", cond->free(cond);, handle);
+		ExpectReduce(&body, statement, L"Expected statement", cond->free(cond),
+				handle);
+		YNode* elseBody = NULL;
 		if (AssertKeyword(handle->tokens[0], ElseKeyword)) {
+			/*Parses 'else' statement if available*/
 			shift(handle);
-			ExpectReduce(&elseBody, statement, L"Expected statement", {cond->free(cond); body->free(body);}, handle);
+			ExpectReduce(&elseBody, statement, L"Expected statement", {
+				cond->free(cond)
+				;
+				body->free(body)
+				;
+			}, handle);
 		}
-		node = newConditionNode(cond, body, elseBody);
+		out = newConditionNode(cond, body, elseBody);
+	} else if (AssertKeyword(handle->tokens[0], TryKeyword)) {
+		shift(handle);
+		YNode* tryBody;
+		/*Parses 'try' body*/
+		ExpectReduce(&tryBody, statement, L"Expected statement", ;, handle);
+		YNode* catchRef = NULL;
+		YNode* catchBody = NULL;
+		YNode* elseBody = NULL;
+		YNode* finBody = NULL;
+		if (AssertKeyword(handle->tokens[0], CatchKeyword)) {
+			/*Parses 'catch' argument and body*/
+			shift(handle);
+			ExpectReduce(&catchRef, expression, L"Expected expression",
+					tryBody->free(tryBody), handle);
+			ExpectReduce(&catchBody, statement, L"Expected statement", {
+				tryBody->free(tryBody)
+				;
+				catchRef->free(catchRef)
+				;
+			}, handle);
+		}
+		if (AssertKeyword(handle->tokens[0], ElseKeyword)) {
+			/*Parses 'else' body*/
+			shift(handle);
+			ExpectReduce(&elseBody, statement, L"Expected statement",
+					{tryBody->free(tryBody); if (catchRef!=NULL) { catchRef->free(catchRef); catchBody->free(catchBody); } },
+					handle);
+		}
+		if (AssertKeyword(handle->tokens[0], FinallyKeyword)) {
+			/*Parses 'finally' body*/
+			shift(handle);
+			ExpectReduce(&finBody, statement, L"Expected statement",
+					{tryBody->free(tryBody); if (catchRef!=NULL) { catchRef->free(catchRef); catchBody->free(catchBody); } if (elseBody!=NULL) elseBody->free(elseBody); },
+					handle);
+		}
+		out = newTryNode(tryBody, catchRef, catchBody, elseBody, finBody);
+	} else if (AssertKeyword(handle->tokens[0], SwitchKeyword)) {
+		YNode* value = NULL;
+		YNode* defCase = NULL;
+		YCaseNode* cases = NULL;
+		size_t case_count = 0;
+
+#define freestmt {if (value!=NULL) value->free(value);\
+					if (defCase!=NULL) defCase->free(defCase);\
+					for (size_t i=0;i<case_count;i++) {\
+						cases[i].value->free(cases[i].value);\
+						cases[i].stmt->free(cases[i].stmt);\
+					}\
+					free(cases);}
+
+		shift(handle);
+
+		ExpectReduce(&value, expression, L"Expected expression", freestmt,
+				handle);
+		ExpectOperator(handle->tokens[0], OpeningBraceOperator, L"Expected '{",
+				freestmt, handle);
+		shift(handle);
+		while (!AssertOperator(handle->tokens[0], ClosingBraceOperator)) {
+			if (AssertKeyword(handle->tokens[0], CaseKeyword)) {
+				shift(handle);
+				YNode* cval = NULL;
+				YNode* cstmt = NULL;
+				ExpectReduce(&cval, expression, L"Expected expression",
+						freestmt, handle);
+				ExpectReduce(&cstmt, statement, L"Expected statement",
+						{freestmt; cval->free(cval);}, handle);
+				cases = realloc(cases, sizeof(YCaseNode) * (++case_count));
+				cases[case_count - 1].value = cval;
+				cases[case_count - 1].stmt = cstmt;
+			} else if (AssertKeyword(handle->tokens[0], DefaultKeyword)) {
+				if (defCase != NULL)
+					ParseError(L"Default case already defined", freestmt,
+							handle);
+				shift(handle);
+				ExpectReduce(&defCase, statement, L"Expected statement",
+						freestmt, handle);
+			} else
+				ParseError(L"Expected 'case, 'default' or '}", freestmt, handle);
+		}
+		shift(handle);
+#undef freestmt
+		out = newSwitchNode(value, cases, case_count, defCase);
+	} else if (AssertKeyword(handle->tokens[0], UsingKeyword)) {
+		shift(handle);
+		size_t length = 1;
+		YNode** scopes = malloc(sizeof(YNode*));
+		ExpectReduce(&scopes[0], expr, L"Expected expresion", free(scopes),
+				handle);
+#define freestmt {\
+            for (size_t i=0;i<length;i++) {\
+                scopes[i]->free(scopes[i]);\
+            }\
+            free(scopes);\
+        }
+		while (AssertOperator(handle->tokens[0], CommaOperator)) {
+			shift(handle);
+			YNode* n;
+			ExpectReduce(&n, expr, L"Expect expression", freestmt, handle);
+			length++;
+			scopes = realloc(scopes, sizeof(YNode*) * length);
+			scopes[length - 1] = n;
+		}
+		YNode* body;
+		ExpectReduce(&body, statement, L"Expected statement", freestmt, handle);
+#undef freestmt
+		out = newUsingNode(scopes, length, body);
+	} else if (AssertKeyword(handle->tokens[0], WithKeyword)) {
+		shift(handle);
+		YNode* scope;
+		YNode* body;
+		ExpectReduce(&scope, expression, L"Expected expression", ;, handle);
+		ExpectReduce(&body, statement, L"Expected statement",
+				scope->free(scope), handle);
+		out = newWithNode(scope, body);
+	} else if (AssertKeyword(handle->tokens[0], PassKeyword)) {
+		shift(handle);
+		out = newPassNode();
+	} else if (AssertKeyword(handle->tokens[0], BreakKeyword)) {
+		shift(handle);
+		wchar_t* id = NULL;
+		if (AssertToken(handle->tokens[0], TokenIdentifier)) {
+			id = handle->tokens[0].value.id;
+			shift(handle);
+		}
+		out = newBreakNode(id);
+	} else if (AssertKeyword(handle->tokens[0], ContinueKeyword)) {
+		shift(handle);
+		wchar_t* id = NULL;
+		if (AssertToken(handle->tokens[0], TokenIdentifier)) {
+			id = handle->tokens[0].value.id;
+			shift(handle);
+		}
+		out = newContinueNode(id);
+	} else if (AssertKeyword(handle->tokens[0], ReturnKeyword)) {
+		shift(handle);
+		YNode* value;
+		ExpectReduce(&value, expression, L"Expected expression", ;, handle);
+		out = newReturnNode(value);
+	} else if (AssertKeyword(handle->tokens[0], ThrowKeyword)) {
+		shift(handle);
+		YNode* value;
+		ExpectReduce(&value, expression, L"Expected expression", ;, handle);
+		out = newThrowNode(value);
+	} else if (AssertKeyword(handle->tokens[0], WhileKeyword)
+			|| (AssertToken(handle->tokens[0], TokenIdentifier)
+					&& AssertOperator(handle->tokens[1], ColonOperator)
+					&& (AssertKeyword(handle->tokens[2], WhileKeyword)))) {
+		wchar_t* id = NULL;
+		if (AssertToken(handle->tokens[0], TokenIdentifier)) {
+			id = handle->tokens[0].value.id;
+			shift(handle);
+			shift(handle);
+		}
+		shift(handle);
+		YNode* cond;
+		YNode* body;
+		ExpectReduce(&cond, expression, L"Expected expression", ;, handle);
+		ExpectReduce(&body, statement, L"Expected statement", cond->free(cond),
+				handle);
+		return newWhileLoopNode(id, true, cond, body);
+	} else if (AssertKeyword(handle->tokens[0], DoKeyword)
+			|| (AssertToken(handle->tokens[0], TokenIdentifier)
+					&& AssertOperator(handle->tokens[1], ColonOperator)
+					&& (AssertKeyword(handle->tokens[2], DoKeyword)))) {
+		wchar_t* id = NULL;
+		if (AssertToken(handle->tokens[0], TokenIdentifier)) {
+			id = handle->tokens[0].value.id;
+			shift(handle);
+			shift(handle);
+		}
+		shift(handle);
+		YNode* body;
+		ExpectReduce(&body, statement, L"Expected statement", ;, handle);
+		if (AssertKeyword(handle->tokens[0], WhileKeyword)) {
+			shift(handle);
+			YNode* cond;
+			ExpectReduce(&cond, expression, L"Expected expression",
+					body->free(body), handle);
+			return newWhileLoopNode(id, false, cond, body);
+		} else {
+			return newLoopNode(id, body);
+		}
+	} else if (AssertKeyword(handle->tokens[0], ForKeyword)
+			|| (AssertToken(handle->tokens[0], TokenIdentifier)
+					&& AssertOperator(handle->tokens[1], ColonOperator)
+					&& (AssertKeyword(handle->tokens[2], ForKeyword)))) {
+		wchar_t* id = NULL;
+		if (AssertToken(handle->tokens[0], TokenIdentifier)) {
+			id = handle->tokens[0].value.id;
+			shift(handle);
+			shift(handle);
+		}
+		shift(handle);
+		YNode* init;
+		YNode* cond;
+		YNode* loop;
+		YNode* body;
+		ExpectReduce(&init, statement, L"Expects statement", ;, handle);
+		ExpectReduce(&cond, statement, L"Expects statement", init->free(init),
+				handle);
+		ExpectReduce(&loop, statement, L"Expects statement", {
+			init->free(init)
+			;
+			cond->free(cond)
+			;
+		}, handle);
+		ExpectReduce(&body, statement, L"Expects statement", {
+			init->free(init)
+			;
+			cond->free(cond)
+			;
+			loop->free(loop)
+			;
+		}, handle);
+		return newForLoopNode(id, init, cond, loop, body);
+	} else if (AssertKeyword(handle->tokens[0], ForeachKeyword)
+			|| (AssertToken(handle->tokens[0], TokenIdentifier)
+					&& AssertOperator(handle->tokens[1], ColonOperator)
+					&& (AssertKeyword(handle->tokens[2], ForeachKeyword)))) {
+		wchar_t* id = NULL;
+		if (AssertToken(handle->tokens[0], TokenIdentifier)) {
+			id = handle->tokens[0].value.id;
+			shift(handle);
+			shift(handle);
+		}
+		shift(handle);
+		YNode* refnode;
+		YNode* col;
+		YNode* body;
+
+		ExpectReduce(&refnode, expression, L"Expected expression", ;, handle);
+		ExpectOperator(handle->tokens[0], ColonOperator, L"Expected ':'",
+				refnode->free(refnode), handle);
+		shift(handle);
+		ExpectReduce(&col, expression, L"Expected expression",
+				refnode->free(refnode), handle);
+		ExpectReduce(&body, expression, L"Expected statement", {
+			refnode->free(refnode)
+			;
+			col->free(col)
+			;
+		}, handle);
+		out = newForeachLoopNode(id, refnode, col, body);
 	} else
-		ExpectReduce(&node, logical_ops, L"Expected expression", ;, handle);
-	SetCoords(node, file, line, charPos);
-  return node;
+		ExpectReduce(&out, logical_ops, L"Expected expression", ;, handle);
+	SetCoords(out, file, line, charPos);
+	return out;
 }
 
 NewValidate(Expression_validate) {

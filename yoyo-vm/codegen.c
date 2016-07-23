@@ -1034,7 +1034,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		YWhileLoopNode* loop = (YWhileLoopNode*) node;
 		int32_t startL = proc->nextLabel(proc);
 		int32_t endL = proc->nextLabel(proc);
-		proc->startLoop(proc, loop->id, startL, endL);
+		proc->startLoop(proc, builder->bc->getSymbolId(builder->bc, loop->id),
+				startL, endL);
 
 		if (loop->evalOnStart) {
 			proc->bind(proc, startL);
@@ -1059,7 +1060,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		YLoopNode* loop = (YLoopNode*) node;
 		int32_t startL = proc->nextLabel(proc);
 		int32_t endL = proc->nextLabel(proc);
-		proc->startLoop(proc, loop->id, startL, endL);
+		proc->startLoop(proc, builder->bc->getSymbolId(builder->bc, loop->id),
+				startL, endL);
 
 		proc->bind(proc, startL);
 		proc->unuse(proc, ytranslate(builder, env, loop->body));
@@ -1074,7 +1076,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		int32_t realStartL = proc->nextLabel(proc);
 		int32_t startL = proc->nextLabel(proc);
 		int32_t endL = proc->nextLabel(proc);
-		proc->startLoop(proc, loop->id, startL, endL);
+		proc->startLoop(proc, builder->bc->getSymbolId(builder->bc, loop->id),
+				startL, endL);
 
 		proc->unuse(proc, ytranslate(builder, env, loop->init));
 
@@ -1100,7 +1103,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->append(proc, VM_Swap, temp, 0, -1);
 		int32_t startL = proc->nextLabel(proc);
 		int32_t endL = proc->nextLabel(proc);
-		proc->startLoop(proc, loop->id, startL, endL);
+		proc->startLoop(proc, builder->bc->getSymbolId(builder->bc, loop->id),
+				startL, endL);
 
 		proc->append(proc, VM_Iterator, reg, reg, -1);
 		proc->bind(proc, startL);
@@ -1138,7 +1142,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->append(proc, VM_Nop, -1, -1, -1);
 		break;
 	case BreakN: {
-		int32_t id = ((YLoopControlNode*) node)->label;
+		int32_t id = builder->bc->getSymbolId(builder->bc,
+				((YLoopControlNode*) node)->label);
 		ProcdeureBuilderLoop* loop = proc->loop;
 		if (id != -1)
 			loop = proc->getLoop(proc, id);
@@ -1148,7 +1153,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	}
 		break;
 	case ContinueN: {
-		int32_t id = ((YLoopControlNode*) node)->label;
+		int32_t id = builder->bc->getSymbolId(builder->bc,
+				((YLoopControlNode*) node)->label);
 		ProcdeureBuilderLoop* loop = proc->loop;
 		if (id != -1)
 			loop = proc->getLoop(proc, id);

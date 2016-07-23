@@ -24,6 +24,8 @@ struct {
     {L':', ColonOperator},
 	{L',', CommaOperator},
 	{L'~', NotOperator},
+	{L'{', OpeningBraceOperator},
+	{L'}', ClosingBraceOperator},
 	{L';', SemicolonOperator}	
 };
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);
@@ -99,7 +101,6 @@ ytoken lex(ParseHandle* handle) {
 	if (ch==WEOF) {
 		return eof;
 	}
-
 	uint32_t line = handle->line;
 	uint32_t charPos = handle->charPos;
 
@@ -119,6 +120,8 @@ ytoken lex(ParseHandle* handle) {
 	if (ch==L'\"') {
 		ch = readwc(handle);
 		do {
+				if (ch==L'\"')
+					break;
 				wstr = realloc(wstr, sizeof(wchar_t) * (++wlen));
 				wstr[wlen - 1] = ch;
 				ch = readwc(handle);
@@ -126,8 +129,8 @@ ytoken lex(ParseHandle* handle) {
 		wstr = realloc(wstr, sizeof(wchar_t) * (++wlen));
 		wstr[wlen - 1] = L'\0';
 		yconstant_t cnst = {.type = WcsConstant};
-		cnst.value.wcs = wstr;
-		cnst = addConstant(handle, cnst);
+		cnst.value.wcs = getSymbol(handle, wstr);
+		addConstant(handle, cnst);
 		free(wstr);
 		ytoken tok = {.type = TokenConstant};
 		tok.value.cnst = cnst;

@@ -285,6 +285,8 @@ wchar_t* toString(YValue* v, YThread* th) {
 
 // Work with the symbol map
 int32_t getSymbolId(SymbolMap* map, wchar_t* wsym) {
+	if (wsym==NULL)
+		return -1;
 	for (size_t i = 0; i < map->size; i++)
 		if (wcscmp(map->map[i].symbol, wsym) == 0)
 			return map->map[i].id;

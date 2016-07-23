@@ -142,6 +142,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 		wstr, (YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 	free(wstr);
 	return out;
+	return getNull(th);
 }
 
 YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
