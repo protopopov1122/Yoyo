@@ -14,36 +14,27 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef HEADERS_BASE_H_
-#define HEADERS_BASE_H_
+package yoyo.runtime;
 
+public final class ILProcedure
+{
+  public ILProcedure()
+  {
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <ctype.h>
-#include <inttypes.h>
-#include <string.h>
-#include <time.h>
-#include <wchar.h>
-#include <wctype.h>
-#include <math.h>
-#include <locale.h>
-#include <limits.h>
-#include <unistd.h>
-#include "util.h"
+  }
 
-typedef struct yconstant_t {
-	enum {
-		Int64Constant, Fp64Constant,
-		WcsConstant, BoolConstant
-	} type;
-	union {
-		int64_t i64;
-		double fp64;
-		bool boolean;
-		wchar_t* wcs;
-	} value;
-} yconstant_t;
+  public native int getIdentifier();
+  public native void setRegisterCount(int regc);
+  public native int getRegisterCount();
+  public native byte[] getCode();
+  public native int getCodeLength();
+  public native void appendCode(byte opcode, int arg1, int arg2, int arg3);
+  public native void appendCode(byte... code);
+  public native void addCodeTableEntry(int line, int charPos, int offset, int length, int file);
+  public native void addLabel(int id, int value);
+  public native int getLabel(int id);
+  public native int[] getLabels();
+  public native void free();
 
-#endif
+  private long proc;
+}
