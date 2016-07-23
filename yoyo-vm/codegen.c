@@ -508,7 +508,9 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			}
 			int32_t oreg = proc->nextRegister(proc);
 			proc->append(proc, VM_NewOverload, oreg, obj->methods[i].count, -1);
-			proc->append(proc, VM_NewField, reg, obj->methods[i].id, oreg);
+			proc->append(proc, VM_NewField, reg,
+					builder->bc->getSymbolId(
+							builder->bc, obj->methods[i].id), oreg);
 			proc->unuse(proc, oreg);
 		}
 		for (size_t i = 0; i < obj->fields_length; i++) {
@@ -1327,7 +1329,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			}
 			int32_t reg = proc->nextRegister(proc);
 			proc->append(proc, VM_NewOverload, reg, block->funcs[i].count, -1);
-			proc->append(proc, VM_SetField, 0, block->funcs[i].id, reg);
+			proc->append(proc, VM_SetField, 0, builder->bc->getSymbolId(
+					builder->bc, block->funcs[i].id), reg);
 			proc->unuse(proc, reg);
 		}
 		for (size_t i = 0; i < block->length; i++) {
@@ -1350,7 +1353,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			}
 			int32_t reg = proc->nextRegister(proc);
 			proc->append(proc, VM_NewOverload, reg, root->funcs[i].count, -1);
-			proc->append(proc, VM_SetField, 0, root->funcs[i].id, reg);
+			proc->append(proc, VM_SetField, 0, builder->bc->getSymbolId(
+					builder->bc, root->funcs[i].id), reg);
 			proc->unuse(proc, reg);
 		}
 		uint32_t last = -1;

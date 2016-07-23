@@ -28,9 +28,14 @@ ytoken shift(ParseHandle* handle) {
 }
 
 NewValidate(Constant_validate) {
-	return AssertToken(handle->tokens[0], TokenConstant);
+	return AssertToken(handle->tokens[0], TokenConstant)||
+			AssertKeyword(handle->tokens[0], NullKeyword);
 }
 NewReduce(Constant_reduce) {
+	if (AssertKeyword(handle->tokens[0], NullKeyword)) {
+		shift(handle);
+		return newNullNode();
+	}
 	yconstant_t cnst = handle->tokens[0].value.cnst;
 	ExtractCoords(file, line, charPos, handle);
 	shift(handle);
@@ -253,7 +258,7 @@ NewReduce(Lambda_reduce) {
 				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
 				handle);
 		length++;
-		args = realloc(args, sizeof(int32_t) * length);
+		args = realloc(args, sizeof(wchar_t*) * length);
 		argTypes = realloc(argTypes, sizeof(YNode*) * length);
 		args[length - 1] = handle->tokens[0].value.id;
 		argTypes[length - 1] = NULL;
@@ -420,7 +425,7 @@ NewReduce(Interface_reduce) {
 					handle);
 			attr_count++;
 			/*Save name and type*/
-			ids = realloc(ids, sizeof(int32_t) * attr_count);
+			ids = realloc(ids, sizeof(wchar_t*) * attr_count);
 			types = realloc(types, sizeof(YNode*) * attr_count);
 			ids[attr_count - 1] = id;
 			types[attr_count - 1] = n;
@@ -447,7 +452,8 @@ NewValidate(Factor_validate) {
 			Validate(overload, handle)||
 			Validate(array, handle)||
 			Validate(interface, handle)||
-			AssertOperator(handle->tokens[0], OpeningParentheseOperator);
+			AssertOperator(handle->tokens[0], OpeningParentheseOperator)||
+			AssertOperator(handle->tokens[0], OpeningBraceOperator);
 }
 NewReduce(Factor_reduce) {
 	YNode* out = NULL;
@@ -472,6 +478,67 @@ NewReduce(Factor_reduce) {
 		return handle->grammar.array.reduce(handle);
 	else if (Validate(interface, handle))
 		return handle->grammar.interface.reduce(handle);
+	else if (AssertOperator(handle->tokens[0], OpeningBraceOperator)) {
+			/*It's block: '{' ... '}'
+			 * Block may contain statements and function definitions*/
+			YFunctionBlock* funcs = NULL;
+			size_t funcs_c = 0;
+			YNode** block = NULL;
+			size_t length = 0;
+			shift(handle);
+			/*Code to free resources if error occurred*/
+	#define freestmt {\
+	            for (size_t i=0;i<length;i++)\
+	                block[i]->free(block[i]);\
+	            free(block);\
+	            for (size_t i=0;i<funcs_c;i++)\
+	                for (size_t j=0;j<funcs[i].count;j++)\
+	                    funcs[i].lambda[j]->node.free((YNode*) funcs[i].lambda[j]);\
+	            free(funcs);\
+			}
+			while (!AssertOperator(handle->tokens[0], ClosingBraceOperator)) {
+				if (handle->grammar.statement.validate(handle)) {
+					/*Parse statement*/
+					length++;
+					block = realloc(block, sizeof(YNode*) * length);
+					ExpectReduce(&block[length - 1], statement,
+							L"Expected statement", freestmt, handle);
+				} else if (handle->grammar.function.validate(handle)) {
+					/*Parse function definition*/
+					YNode* nd;
+					Reduce(&nd, function, freestmt, handle);
+					YFunctionNode* func = (YFunctionNode*) nd;
+					/*Check if block contains function with that name.
+					 * If contains then overload them.*/
+					for (size_t i = 0; i < funcs_c; i++)
+						if (funcs[i].id == func->name) {
+							funcs[i].count++;
+							funcs[i].lambda = realloc(funcs[i].lambda,
+									sizeof(YLambdaNode*) * funcs[i].count);
+							funcs[i].lambda[funcs[i].count - 1] = func->lambda;
+							free(func);
+							func = NULL;
+							break;
+						}
+					/*Else add function to block*/
+					if (func != NULL) {
+						funcs_c++;
+						funcs = realloc(funcs, sizeof(YFunctionBlock) * funcs_c);
+						funcs[funcs_c - 1].id = func->name;
+						funcs[funcs_c - 1].count = 1;
+						funcs[funcs_c - 1].lambda = malloc(sizeof(YLambdaNode*));
+						funcs[funcs_c - 1].lambda[0] = func->lambda;
+						free(func);
+						func = NULL;
+					}
+				} else
+					ParseError(L"Expected statement or function", freestmt, handle);
+			}
+	#undef freestmt
+			shift(handle);
+			/*Build block node*/
+			out = newBlockNode(block, length, funcs, funcs_c);
+		}
 	else
 		ParseError(L"Expected expression", ;, handle);
 	SetCoords(out, file, line, charPos);
@@ -1353,10 +1420,76 @@ NewReduce(Statement_reduce) {
 }
 
 NewValidate(Function_validate) {
-	return false;
+	return AssertKeyword(handle->tokens[0], FunctionKeyword);
 }
 NewReduce(Function_reduce) {
-	return NULL;
+	ExtractCoords(file, line, charPos, handle);
+	shift(handle);
+	ExpectToken(handle->tokens[0], TokenIdentifier, L"Expected identifier", ;,
+			handle);
+	wchar_t* id = handle->tokens[0].value.id;
+	shift(handle);
+	size_t length = 0;
+	wchar_t** args = NULL;
+	YNode** argTypes = NULL;
+	bool vararg = false;
+	ExpectOperator(handle->tokens[0], OpeningParentheseOperator, L"Expected '('",
+			;, handle);
+	shift(handle);
+	while (!AssertOperator(handle->tokens[0], ClosingParentheseOperator)) {
+		if (AssertOperator(handle->tokens[0], QueryOperator)) {
+			vararg = true;
+			shift(handle);
+		}
+		ExpectToken(handle->tokens[0], TokenIdentifier, L"Expected identifier",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+		length++;
+		args = realloc(args, sizeof(wchar_t*) * length);
+		args[length - 1] = handle->tokens[0].value.id;
+		argTypes = realloc(argTypes, sizeof(YNode*) * length);
+		argTypes[length - 1] = NULL;
+		shift(handle);
+		if (AssertOperator(handle->tokens[0], MinusOperator)&&
+		AssertOperator(handle->tokens[1], GreaterOperator)) {
+			shift(handle);
+			shift(handle);
+			ExpectReduce(&argTypes[length - 1], expr, L"Expected expression",
+					{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+					handle);
+		}
+		Expect(
+				AssertOperator(handle->tokens[0], CommaOperator)||AssertOperator(handle->tokens[0], ClosingParentheseOperator),
+				L"Expects ')' or ','",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+		Expect(
+				!(vararg&&!AssertOperator(handle->tokens[0], ClosingParentheseOperator)),
+				L"Vararg must be last, argument",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+		if (AssertOperator(handle->tokens[0], CommaOperator))
+			shift(handle);
+	}
+	shift(handle);
+	YNode* retType = NULL;
+	if (AssertOperator(handle->tokens[0], MinusOperator)&&
+	AssertOperator(handle->tokens[1], GreaterOperator)) {
+		shift(handle);
+		shift(handle);
+		ExpectReduce(&retType, expr, L"Expected expression",
+				{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); },
+				handle);
+	}
+	YNode* body;
+	ExpectReduce(&body, statement, L"Expected statement",
+			{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); if (retType!=NULL) retType->free(retType); },
+			handle);
+	YNode* out = newFunctionNode(id,
+			(YLambdaNode*) newLambdaNode(args, argTypes, length, vararg,
+					retType, body));
+	SetCoords(out, file, line, charPos);
+	return out;
 }
 
 NewValidate(Root_validate) {
@@ -1364,26 +1497,54 @@ NewValidate(Root_validate) {
 }
 NewReduce(Root_reduce) {
 	ExtractCoords(file, line, charPos, handle);
-	YNode** root = NULL;
+	YFunctionBlock* funcs = NULL;
+	size_t funcs_c = 0;
+
+	YNode** block = NULL;
 	size_t length = 0;
-#define freestmt {\
-	for (size_t i=0;i<length;i++) root[i]->free(root[i]);\
-	free(root);\
-}
-	while (!AssertToken(handle->tokens[0], TokenEOF)) {
-		if (Validate(statement, handle)) {
-			YNode* node;
-			ExpectReduce(&node, statement, L"Expected statement",
-				freestmt, handle);
-			root = realloc(root, sizeof(YNode*) * (++length));
-			root[length-1] = node;
+
+	while (handle->tokens[0].type!=TokenEOF) {
+		if (handle->grammar.statement.validate(handle)) {
+			YNode* nd;
+			nd = handle->grammar.statement.reduce(handle);
+			if (nd == NULL)
+				continue;
+			length++;
+			block = realloc(block, sizeof(YNode*) * length);
+			block[length - 1] = nd;
+		} else if (handle->grammar.function.validate(handle)) {
+			YFunctionNode* func =
+					(YFunctionNode*) handle->grammar.function.reduce(handle);
+			if (func == NULL)
+				continue;
+			for (size_t i = 0; i < funcs_c; i++)
+				if (funcs[i].id == func->name) {
+					funcs[i].count++;
+					funcs[i].lambda = realloc(funcs[i].lambda,
+							sizeof(YLambdaNode*) * funcs[i].count);
+					funcs[i].lambda[funcs[i].count - 1] = func->lambda;
+					free(func);
+					func = NULL;
+					break;
+				}
+			if (func != NULL) {
+				funcs_c++;
+				funcs = realloc(funcs, sizeof(YFunctionBlock) * funcs_c);
+				funcs[funcs_c - 1].id = func->name;
+				funcs[funcs_c - 1].count = 1;
+				funcs[funcs_c - 1].lambda = malloc(sizeof(YLambdaNode*));
+				funcs[funcs_c - 1].lambda[0] = func->lambda;
+				free(func);
+				func = NULL;
+			}
+		} else {
+			shift(handle);
 		}
-		else
-			ParseError(L"Expected statement or function", freestmt, handle);
 	}
-	YNode* rootNode = newBlockNode(root, length, NULL, 0 );
-	SetCoords(rootNode, file, line, charPos);
-	return rootNode;
+	YNode* out = newBlockNode(block, length, funcs, funcs_c);
+	out->type = RootN;
+	SetCoords(out, file, line, charPos);
+	return out;
 }
 
 void initGrammar(Grammar* g) {

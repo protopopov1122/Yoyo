@@ -97,7 +97,8 @@ YOYO_FUNCTION(YSTD_SYSTEM_EXIT) {
 YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	YObject* lib = th->runtime->newObject(NULL, th);
+	YObject* lib = th->runtime->newObject(
+			runtime->global_scope, th);
 	runtime->env->eval(runtime->env, th->runtime,
 		file_input_stream(runtime->env->getFile(runtime->env, wstr)),
 		wstr, lib);	
@@ -125,7 +126,8 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 		free(wstr);
 		return loaded->get(loaded, id, th);
 	}
-	YObject* lib = th->runtime->newObject(NULL, th);
+	YObject* lib = th->runtime->newObject(
+			runtime->global_scope, th);
 	runtime->env->eval(runtime->env, th->runtime,
 		file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr, lib);	
 	free(wstr);

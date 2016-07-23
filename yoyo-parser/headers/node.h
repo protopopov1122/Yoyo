@@ -63,7 +63,7 @@ typedef struct YLambdaNode {
 } YLambdaNode;
 
 typedef struct YFunctionBlock {
-	int32_t id;
+	wchar_t* id;
 	YLambdaNode** lambda;
 	size_t count;
 } YFunctionBlock;
@@ -306,7 +306,7 @@ typedef struct YWithNode {
 
 typedef struct YFunctionNode {
 	YNode node;
-	int32_t name;
+	wchar_t* name;
 	YLambdaNode* lambda;
 } YFunctionNode;
 
@@ -350,7 +350,7 @@ YNode* newSwitchNode(YNode*, YCaseNode*, size_t, YNode*);
 YNode* newOverloadNode(YNode**, size_t, YNode*);
 YNode* newUsingNode(YNode**, size_t, YNode*);
 YNode* newWithNode(YNode*, YNode*);
-YNode* newFunctionNode(int32_t, YLambdaNode*);
+YNode* newFunctionNode(wchar_t*, YLambdaNode*);
 YNode* newBlockNode(YNode**, size_t, YFunctionBlock*, size_t);
 
 #define NewNode(ptr, nodeStruct, nodeType, freePtr) *(ptr) = malloc(sizeof(nodeStruct));\

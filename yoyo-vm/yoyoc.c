@@ -50,7 +50,7 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
 	YThread* th = newThread(runtime);
 	if (res.pid != -1) {
 		if (scope==NULL)
-			scope = runtime->newObject(runtime->global_scope, th);
+			scope = runtime->global_scope;
 		YValue* out = invoke(res.pid, env->bytecode, scope, NULL, th);
 		ILProcedure* proc = env->bytecode->procedures[res.pid];
 		proc->free(proc, env->bytecode);

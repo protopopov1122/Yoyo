@@ -488,7 +488,7 @@ YNode* newWithNode(YNode* scope, YNode* body) {
 	wth->body = body;
 	return (YNode*) wth;
 }
-YNode* newFunctionNode(int32_t id, YLambdaNode* l) {
+YNode* newFunctionNode(wchar_t* id, YLambdaNode* l) {
 	YFunctionNode* func;
 	NewNode(&func, YFunctionNode, FunctionN, Function_free);
 	func->name = id;

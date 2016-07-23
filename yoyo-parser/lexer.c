@@ -35,7 +35,8 @@ const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);
 struct {
 	wchar_t* wstr;
 	ykeyword_t kw;
-} KEYWORDS[] = { { L"interface", InterfaceKeyword }, { L"if", IfKeyword }, {
+} KEYWORDS[] = { {L"null", NullKeyword},
+		{ L"interface", InterfaceKeyword }, { L"if", IfKeyword }, {
 		L"else", ElseKeyword }, { L"while", WhileKeyword },
 		{ L"do", DoKeyword }, { L"for", ForKeyword }, { L"foreach",
 				ForeachKeyword }, { L"pass", PassKeyword }, { L"continue",

@@ -33,6 +33,7 @@ typedef enum {
 } yoperator_t;
 
 typedef enum {
+	NullKeyword,
 	InterfaceKeyword,
 	IfKeyword,
 	ElseKeyword,
