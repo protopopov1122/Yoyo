@@ -78,7 +78,7 @@ wchar_t* getSymbolById(SymbolMap*, int32_t);
 FILE* search_file(wchar_t*, wchar_t**, size_t);
 
 #ifndef __cplusplus
-#define YOYO_FUNCTION(name) YValue* name(YLambda* lambda,\
+#define YOYO_FUNCTION(name) YValue* name(YLambda* lambda, YObject* scope,\
 	YValue** args, size_t argc, YThread* th)
 #else
 #define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* lambda,\

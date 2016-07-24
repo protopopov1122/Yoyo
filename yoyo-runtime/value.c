@@ -84,7 +84,7 @@ YValue* newIntegerValue(int64_t value, YThread* th) {
  * Else it is created by newIntegerValue, saved to cache
  * and returned.*/
 YValue* newInteger(int64_t value, YThread* th) {
-	size_t index = ((uint64_t) value % INT_POOL_SIZE);
+	size_t index = ((uint64_t) value & (INT_POOL_SIZE-1));
 	YInteger* i = th->runtime->Constants.IntPool[index];
 	if (i == NULL || i->value != value) {
 		i = (YInteger*) newIntegerValue(value, th);
@@ -143,14 +143,14 @@ YoyoType* NativeLambda_signature(YLambda* l, YThread* th) {
 }
 
 YLambda* newNativeLambda(size_t argc,
-		YValue* (*exec)(YLambda*, YValue**, size_t, YThread*), YoyoObject* obj,
+		YValue* (*exec)(YLambda*, YObject*, YValue**, size_t, YThread*), YoyoObject* obj,
 		YThread* th) {
 	NativeLambda* out = malloc(sizeof(NativeLambda));
 	initYoyoObject(&out->lambda.parent.o, NativeLambda_mark, NativeLambda_free);
 	th->runtime->gc->registrate(th->runtime->gc, &out->lambda.parent.o);
 	out->lambda.parent.type = &th->runtime->LambdaType;
 	out->lambda.execute = exec;
-	out->lambda.sig = newLambdaSignature(argc, false, NULL, NULL, th);
+	out->lambda.sig = newLambdaSignature(false, argc, false, NULL, NULL, th);
 	out->lambda.signature = NativeLambda_signature;
 	out->object = NULL;
 	out->object = obj;

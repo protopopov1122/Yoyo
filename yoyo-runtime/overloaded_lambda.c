@@ -42,18 +42,30 @@ void OverloadedLambda_mark(YoyoObject* ptr) {
 	MARK(lmbd->parent.sig);
 }
 
-YValue* OverloadedLambda_exec(YLambda* l, YValue** args, size_t argc,
+YValue* OverloadedLambda_exec(YLambda* l, YObject* scope, YValue** args, size_t argc,
 		YThread* th) {
 	OverloadedLambda* lmbd = (OverloadedLambda*) l;
 	for (size_t i = 0; i < lmbd->count; i++) {
-		if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->vararg
-				&& lmbd->lambdas[i]->sig->argc - 1 <= argc) {
+		if (!lmbd->lambdas[i]->sig->method||
+				scope!=NULL) {
+			if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->vararg
+					&& lmbd->lambdas[i]->sig->argc - 1 <= argc) {
 
-			l = lmbd->lambdas[i];
-			return invokeLambda(l, args, argc, th);
+				l = lmbd->lambdas[i];
+				return invokeLambda(l, scope, args, argc, th);
+			}
+			if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->argc == argc)
+				return invokeLambda(lmbd->lambdas[i], scope, args, argc, th);
+		} else {
+			if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->vararg
+					&& lmbd->lambdas[i]->sig->argc - 1 <= argc -1) {
+
+				l = lmbd->lambdas[i];
+				return invokeLambda(l, scope, args, argc, th);
+			}
+			if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->argc == argc - 1)
+				return invokeLambda(lmbd->lambdas[i], scope, args, argc, th);
 		}
-		if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->argc == argc)
-			return invokeLambda(lmbd->lambdas[i], args, argc, th);
 
 	}
 	if (lmbd->defLambda == NULL) {
@@ -63,7 +75,7 @@ YValue* OverloadedLambda_exec(YLambda* l, YValue** args, size_t argc,
 		YArray* arr = newArray(th);
 		for (size_t i = argc - 1; i < argc; i--)
 			arr->add(arr, args[i], th);
-		return invokeLambda(lmbd->defLambda, (YValue**) &arr, 1, th);
+		return invokeLambda(lmbd->defLambda, scope, (YValue**) &arr, 1, th);
 	}
 }
 
@@ -89,7 +101,7 @@ YLambda* newOverloadedLambda(YLambda** l, size_t c, YLambda* def, YThread* th) {
 	lmbd->lambdas = malloc(sizeof(YLambda*) * c);
 	for (size_t i = 0; i < c; i++)
 		lmbd->lambdas[i] = l[i];
-	lmbd->parent.sig = newLambdaSignature(-1, false, NULL, NULL, th);
+	lmbd->parent.sig = newLambdaSignature(false, -1, false, NULL, NULL, th);
 	lmbd->parent.signature = OverloadedLambda_signature;
 	lmbd->parent.execute = OverloadedLambda_exec;
 	lmbd->parent.parent.type = &th->runtime->LambdaType;

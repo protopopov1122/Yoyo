@@ -136,8 +136,9 @@ YValue* execute(YThread* th) {
 	ExecutionFrame* frame = (ExecutionFrame*) th->frame;
 	YRuntime* runtime = th->runtime;
 	ILBytecode* bc = frame->bytecode;
+	size_t code_len = frame->proc->code_length;
 
-	while (frame->pc + 13 <= frame->proc->code_length) {
+	while (frame->pc + 13 <= code_len) {
 		// If runtime is paused then execution should be paused too.
 		if (runtime->state == RuntimePaused) {
 			th->state = Paused;
@@ -327,10 +328,16 @@ YValue* execute(YThread* th) {
 			for (size_t i = argc - 1; i < argc; i--)
 				args[i] = pop(th);
 			YValue* val = getRegister(iarg1, th);
+			YObject* scope = NULL;
+			if (iarg2!=-1) {
+				YValue* scl = getRegister(iarg2, th);
+				if (scl->type->type==ObjectT)
+					scope = (YObject*) scl;
+			}
 			if (val->type->type == LambdaT) {
 
 				YLambda* l = (YLambda*) val;
-				setRegister(invokeLambda(l, args, argc, th), iarg0, th);
+				setRegister(invokeLambda(l, scope, args, argc, th), iarg0, th);
 			} else {
 				throwException(L"CallingNotALambda", NULL, 0, th);
 				setRegister(getNull(th), iarg0, th);
@@ -372,6 +379,10 @@ YValue* execute(YThread* th) {
 			/*Create lambda. Lambda signature is stored in stack.
 			 * It is popped and formed as signature*/
 			// Check if lambda is vararg
+			YValue* vmeth = pop(th);
+			bool meth =
+					(vmeth->type->type == BooleanT) ?
+							((YBoolean*) vmeth)->value : false;
 			YValue* vvararg = pop(th);
 			bool vararg =
 					(vvararg->type->type == BooleanT) ?
@@ -401,7 +412,7 @@ YValue* execute(YThread* th) {
 			if (sp->type->type == ObjectT) {
 				YObject* scope = (YObject*) sp;
 				YLambda* lmbd = newProcedureLambda(iarg1, bc, scope, argids,
-						newLambdaSignature(argc, vararg, argTypes, retType, th),
+						newLambdaSignature(meth, argc, vararg, argTypes, retType, th),
 						th);
 				setRegister((YValue*) lmbd, iarg0, th);
 			} else

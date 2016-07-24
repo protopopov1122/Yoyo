@@ -390,7 +390,8 @@ bool LambdaSignature_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 	YoyoLambdaSignature* sig2 = (YoyoLambdaSignature*) t2;
 	if (sig2->argc == -1)
 		return true;
-	if (sig1->argc != sig2->argc)
+	if (sig1->argc != sig2->argc||
+			sig1->method != sig2->method)
 		return false;
 	for (size_t i = 0; i < sig1->argc; i++)
 		if (sig1->args[i] != NULL && sig2->args[i] != NULL
@@ -403,7 +404,7 @@ bool LambdaSignature_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 	return true;
 }
 
-YoyoLambdaSignature* newLambdaSignature(int32_t argc, bool vararg,
+YoyoLambdaSignature* newLambdaSignature(bool meth, int32_t argc, bool vararg,
 		YoyoType** args, YoyoType* ret, YThread* th) {
 	YoyoLambdaSignature* sig = calloc(1, sizeof(YoyoLambdaSignature));
 	initYoyoObject((YoyoObject*) sig, LambdaSignature_mark,
@@ -415,6 +416,7 @@ YoyoLambdaSignature* newLambdaSignature(int32_t argc, bool vararg,
 	sig->type.compatible = LambdaSignature_compatible;
 	sig->type.type = LambdaSignatureDT;
 
+	sig->method = meth;
 	sig->argc = argc;
 	sig->ret = ret;
 	sig->vararg = vararg;
@@ -423,6 +425,11 @@ YoyoLambdaSignature* newLambdaSignature(int32_t argc, bool vararg,
 		memcpy(sig->args, args, sizeof(YoyoType*) * argc);
 
 	StringBuilder* sb = newStringBuilder(L"(");
+	if (sig->method) {
+		sb->append(sb, L"self");
+		if (argc>0)
+			sb->append(sb, L", ");
+	}
 
 	if (sig->argc > 0)
 		for (size_t i = 0; i < sig->argc; i++) {

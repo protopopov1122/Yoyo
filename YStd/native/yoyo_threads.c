@@ -24,7 +24,7 @@ typedef struct NewThread {
 void* launch_new_thread(void* ptr) {
 	NewThread* nth = (NewThread*) ptr;
 	YThread* th = newThread(nth->runtime);
-	invokeLambda(nth->lambda, NULL, 0, th);
+	invokeLambda(nth->lambda, NULL, NULL, 0, th);
 	th->free(th);
 	free(nth);
 	THREAD_EXIT(NULL);

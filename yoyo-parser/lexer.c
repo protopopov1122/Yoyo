@@ -44,7 +44,7 @@ struct {
 	{L'}', ClosingBraceOperator},
 	{L'$', DollarSignOperator},
 	{L'?', QueryOperator},
-	{L';', SemicolonOperator}	
+	{L';', SemicolonOperator}
 };
 const size_t OPERATORS_LEN = sizeof(OPERATORS) / sizeof(OPERATORS[0]);
 /*Keywords and their string representatives*/
@@ -63,7 +63,8 @@ struct {
 				FinallyKeyword }, { L"switch", SwitchKeyword }, { L"case",
 				CaseKeyword }, { L"default", DefaultKeyword }, { L"overload",
 				OverloadKeyword }, { L"using", UsingKeyword }, { L"with",
-				WithKeyword }, { L"def", FunctionKeyword }, };
+				WithKeyword }, { L"def", FunctionKeyword },
+		{L"method", MethodKeyword}};
 const size_t KEYWORDS_LEN = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
 
 bool isOperator(wchar_t ch) {

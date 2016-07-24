@@ -340,8 +340,8 @@ void TreeObject_free(YoyoObject* ptr) {
  * These methods are used by appropriate object methods.
  * See hash maps*/
 AOEntry* HashMapObject_getEntry(HashMapObject* obj, int32_t id) {
-	id = id < 0 ? -id : id;
-	size_t index = id % obj->map_size;
+	uint_fast32_t tid = (uint_fast32_t) id;
+	size_t index = tid % obj->map_size;
 	AOEntry* entry = obj->map[index];
 	while (entry != NULL) {
 		if (entry->key == id)

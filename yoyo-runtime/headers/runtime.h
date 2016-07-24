@@ -117,7 +117,7 @@ typedef struct Environment {
 	wchar_t** (*getLoadedFiles)(struct Environment*);
 } Environment;
 
-#define INT_POOL_SIZE 10000
+#define INT_POOL_SIZE 8192
 typedef struct YRuntime {
 	enum {
 		RuntimeRunning, RuntimePaused, RuntimeTerminated
@@ -159,7 +159,7 @@ typedef struct YRuntime {
 	void (*wait)(YRuntime*);
 } YRuntime;
 
-YValue* invokeLambda(YLambda*, YValue**, size_t, YThread*);
+YValue* invokeLambda(YLambda*, YObject*, YValue**, size_t, YThread*);
 YThread* newThread(YRuntime*);
 YRuntime* newRuntime(Environment*, YDebug*);
 wchar_t* toString(YValue*, YThread*);

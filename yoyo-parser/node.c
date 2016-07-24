@@ -253,10 +253,11 @@ YNode* newBinaryNode(YBinaryOperation op, YNode* left, YNode* right) {
 	bin->operation = op;
 	return (YNode*) bin;
 }
-YNode* newLambdaNode(wchar_t** args, YNode** argTypes, ssize_t argc,
+YNode* newLambdaNode(bool method, wchar_t** args, YNode** argTypes, ssize_t argc,
 bool vararg, YNode* retType, YNode* body) {
 	YLambdaNode* ln;
 	NewNode(&ln, YLambdaNode, LambdaN, Lambda_free);
+	ln->method = method;
 	ln->args = args;
 	ln->argTypes = argTypes;
 	ln->argc = argc;
@@ -318,9 +319,10 @@ YNode* newFieldReferenceNode(YNode* obj, wchar_t* fid) {
 	ref->field = fid;
 	return (YNode*) ref;
 }
-YNode* newCallNode(YNode* fun, YNode** args, size_t argc) {
+YNode* newCallNode(YNode* scope, YNode* fun, YNode** args, size_t argc) {
 	YCallNode* call;
 	NewNode(&call, YCallNode, CallN, Call_free);
+	call->scope = scope;
 	call->function = fun;
 	call->args = args;
 	call->argc = argc;

@@ -80,7 +80,7 @@ typedef struct YoyoIterator {
 	void (*reset)(struct YoyoIterator*, YThread*);
 } YoyoIterator;
 
-typedef YValue* (*YCallable)(struct YLambda*, YValue**, size_t, YThread*);
+typedef YValue* (*YCallable)(struct YLambda*, YObject*, YValue**, size_t, YThread*);
 
 typedef struct YLambda {
 	YValue parent;
@@ -109,7 +109,7 @@ YObject* newComplexObject(YObject*, YObject**, size_t, YThread*);
 YArray* newArray(YThread* th);
 
 YLambda* newNativeLambda(size_t,
-		YValue* (*)(YLambda*, YValue**, size_t, YThread*), YoyoObject*,
+		YValue* (*)(YLambda*, YObject*, YValue**, size_t, YThread*), YoyoObject*,
 		YThread*);
 YLambda* newOverloadedLambda(YLambda**, size_t, YLambda*, YThread*);
 typedef struct YoyoType {
@@ -127,6 +127,7 @@ typedef struct YoyoType {
 typedef struct YoyoLambdaSignature {
 	YoyoType type;
 
+	bool method;
 	int32_t argc;
 	bool vararg;
 	YoyoType** args;
@@ -153,7 +154,7 @@ YoyoType* newArrayType(YoyoType**, size_t, YThread*);
 YoyoType* newInterface(YoyoInterface**, size_t, YoyoAttribute*, size_t,
 		YThread*);
 YoyoType* newTypeMix(YoyoType**, size_t, YThread*);
-YoyoLambdaSignature* newLambdaSignature(int32_t, bool, YoyoType**, YoyoType*,
+YoyoLambdaSignature* newLambdaSignature(bool, int32_t, bool, YoyoType**, YoyoType*,
 		YThread*);
 YoyoType* newNotNullType(YoyoType*, YThread*);
 

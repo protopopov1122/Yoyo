@@ -222,7 +222,7 @@ void Array_each(YArray* arr, YLambda* lmbd, YThread* th) {
 	lmbd->parent.o.linkc++;
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* arg = arr->get(arr, i, th);
-		invokeLambda(lmbd, &arg, 1, th);
+		invokeLambda(lmbd, NULL, &arg, 1, th);
 	}
 	arr->parent.o.linkc--;
 	lmbd->parent.o.linkc--;
@@ -236,7 +236,7 @@ YArray* Array_map(YArray* arr, YLambda* lmbd, YThread* th) {
 	out->parent.o.linkc++;
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* val = arr->get(arr, i, th);
-		out->add(out, invokeLambda(lmbd, &val, 1, th), th);
+		out->add(out, invokeLambda(lmbd, NULL, &val, 1, th), th);
 	}
 	out->parent.o.linkc--;
 	arr->parent.o.linkc--;
@@ -251,7 +251,7 @@ YValue* Array_reduce(YArray* arr, YLambda* lmbd, YValue* val, YThread* th) {
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* v = arr->get(arr, i, th);
 		YValue* args[] = { val, v };
-		val = invokeLambda(lmbd, args, 2, th);
+		val = invokeLambda(lmbd, NULL, args, 2, th);
 	}
 	arr->parent.o.linkc--;
 	lmbd->parent.o.linkc--;
@@ -270,7 +270,7 @@ YArray* Array_filter(YArray* arr, YLambda* lmbd, YThread* th) {
 	out->parent.o.linkc++;
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* val = arr->get(arr, i, th);
-		YValue* res = invokeLambda(lmbd, &val, 1, th);
+		YValue* res = invokeLambda(lmbd, NULL, &val, 1, th);
 		if (res->type->type == BooleanT && ((YBoolean*) res)->value)
 			out->add(out, val, th);
 	}
@@ -330,7 +330,7 @@ YArray* Array_sort(YArray* arr, YLambda* lmbd, YThread* th) {
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* v = arr->get(arr, i, th);
 		YValue* args[] = { val, v };
-		YValue* res = invokeLambda(lmbd, args, 2, th);
+		YValue* res = invokeLambda(lmbd, NULL, args, 2, th);
 		if (res->type->type != IntegerT)
 			break;
 		int64_t ires = ((YInteger*) res)->value;

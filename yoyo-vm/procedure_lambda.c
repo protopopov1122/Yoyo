@@ -49,12 +49,15 @@ void ProcedureLambda_free(YoyoObject* ptr) {
 	free(lmbd);
 }
 
-YValue* ProcedureLambda_exec(YLambda* l, YValue** args, size_t argc,
+YValue* ProcedureLambda_exec(YLambda* l, YObject* scp, YValue** args, size_t argc,
 		YThread* th) {
 	ProcedureLambda* lam = (ProcedureLambda*) l;
 	if (argc != l->sig->argc)
 		return getNull(th);
 	YObject* scope = th->runtime->newObject(lam->scope, th);
+	if (scp!=NULL) {
+		OBJECT_NEW(scope, L"self", scp, th);
+	}
 	for (size_t i = 0; i < argc; i++) {
 		scope->put(scope, lam->argids[i], args[i], true, th);
 		scope->setType(scope, lam->argids[i], l->sig->args[i], th);

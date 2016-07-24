@@ -320,7 +320,7 @@ NewReduce(Lambda_reduce) {
 			{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); if (retType!=NULL) retType->free(retType); },
 			handle);
 	/*Build lambda node*/
-	YNode* out = newLambdaNode(args, argTypes, length, vararg, retType, body);
+	YNode* out = newLambdaNode(false, args, argTypes, length, vararg, retType, body);
 	SetCoords(out, file, line, charPos);
 	return out;
 }
@@ -360,7 +360,7 @@ NewReduce(Overload_reduce) {
 			ExpectReduce(&body, statement, L"Expected statement",
 					{freestmt; free(args);}, handle);
 			YNode** argTypes = calloc(1, sizeof(YNode*));
-			defLmbd = newLambdaNode(args, argTypes, 1, false, NULL, body);
+			defLmbd = newLambdaNode(false, args, argTypes, 1, false, NULL, body);
 		} else if (handle->grammar.expr.validate(handle)) {
 			/*Get next lambda*/
 			length++;
@@ -576,7 +576,31 @@ NewReduce(Reference_reduce) {
             ExpectToken(handle->tokens[0], TokenIdentifier, L"Expected identifier", node->free(node);, handle);
             wchar_t* id = handle->tokens[0].value.id;
             shift(handle);
-            node = newFieldReferenceNode(node, id);
+            YNode* field = newFieldReferenceNode(node, id);
+            if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+            					shift(handle);
+            					YNode** args = NULL;
+            					size_t len = 0;
+            #define freestmt {\
+            					for (size_t i=0;i<len;i++) args[i]->free(args[i]);\
+            					free(args);\
+            					field->free(field);\
+            				}
+            					while (!AssertOperator(handle->tokens[0], ClosingParentheseOperator)) {
+            						YNode* n;
+            						ExpectReduce(&n, expr, L"Expected expression", freestmt, handle);
+            						args = realloc(args, sizeof(YNode*) * (++len));
+            						args[len-1] = n;
+            						if (AssertOperator(handle->tokens[0], CommaOperator))
+            							shift(handle);
+            						else if (!AssertOperator(handle->tokens[0], ClosingParentheseOperator))
+            							ParseError(L"Expected ')' or ','", freestmt, handle);
+            					}
+            					shift(handle);
+            					node = newCallNode(node, field, args, len);
+            #undef freestmt
+            } else
+            	node = field;
         } else if (AssertOperator(handle->tokens[0], OpeningBracketOperator)) {
             shift(handle);
             YNode* left;
@@ -615,7 +639,7 @@ NewReduce(Reference_reduce) {
 							ParseError(L"Expected ')' or ','", freestmt, handle);
 					}
 					shift(handle);
-					node = newCallNode(node, args, len);
+					node = newCallNode(NULL, node, args, len);
 #undef freestmt
 				}
     }
@@ -1436,10 +1460,12 @@ NewReduce(Statement_reduce) {
 }
 
 NewValidate(Function_validate) {
-	return AssertKeyword(handle->tokens[0], FunctionKeyword);
+	return AssertKeyword(handle->tokens[0], FunctionKeyword)||
+			AssertKeyword(handle->tokens[0], MethodKeyword);
 }
 NewReduce(Function_reduce) {
 	ExtractCoords(file, line, charPos, handle);
+	bool meth = AssertKeyword(handle->tokens[0], MethodKeyword);
 	shift(handle);
 	ExpectToken(handle->tokens[0], TokenIdentifier, L"Expected identifier", ;,
 			handle);
@@ -1502,7 +1528,7 @@ NewReduce(Function_reduce) {
 			{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); if (retType!=NULL) retType->free(retType); },
 			handle);
 	YNode* out = newFunctionNode(id,
-			(YLambdaNode*) newLambdaNode(args, argTypes, length, vararg,
+			(YLambdaNode*) newLambdaNode(meth, args, argTypes, length, vararg,
 					retType, body));
 	SetCoords(out, file, line, charPos);
 	return out;

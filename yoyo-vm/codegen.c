@@ -571,7 +571,11 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->append(proc, VM_Push, reg, -1, -1);
 		proc->unuse(proc, reg);
 		reg = ytranslate(builder, env, call->function);
-		proc->append(proc, VM_Call, reg, reg, -1);
+		int32_t scopeReg = -1;
+		if (call->scope!=NULL)
+			scopeReg = ytranslate(builder, env, call->scope);
+		proc->append(proc, VM_Call, reg, reg, scopeReg);
+		proc->unuse(proc, scopeReg);
 		output = reg;
 	}
 		break;
@@ -613,6 +617,9 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->append(proc, VM_Push, reg, -1, -1);
 		proc->append(proc, VM_LoadConstant, reg,
 				builder->bc->addBooleanConstant(builder->bc, ln->vararg), -1);
+		proc->append(proc, VM_Push, reg, -1, -1);
+		proc->append(proc, VM_LoadConstant, reg,
+				builder->bc->addBooleanConstant(builder->bc, ln->method), -1);
 		proc->append(proc, VM_Push, reg, -1, -1);
 		int32_t scopeReg = proc->nextRegister(proc);
 		int32_t staticReg = proc->nextRegister(proc);

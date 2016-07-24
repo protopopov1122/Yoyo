@@ -130,9 +130,21 @@ void Runtime_wait(YRuntime* runtime) {
  * Check if arguments fits lambda signature.
  * If lambda is variable argument then create array of last arguments.
  * Invoke lambda.*/
-YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
+YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc, YThread* th) {
 	((YoyoObject*) l)->linkc++; // To prevent lambda garbage collection
 	YValue** args = NULL;
+
+	if (scope==NULL&&l->sig->method) {
+		if (argc==0||
+				targs[0]->type->type!=ObjectT) {
+			throwException(L"LambdaArgumentMismatch", NULL, 0, th);
+			((YoyoObject*) l)->linkc--;
+			return getNull(th);
+		}
+		scope = (YObject*) targs[0];
+		targs++;
+		argc--;
+	}
 
 	/*Check if argument count equals lambda argument count and
 	 * throws exception if not and lambda isn't vararg*/
@@ -143,7 +155,6 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 			return getNull(th);
 		}
 	}
-
 	/*If lambda is vararg, create array of last arguments*/
 	if (l->sig->vararg) {
 		if (!(l->sig->argc == argc && targs[argc - 1]->type->type == ArrayT)) {
@@ -160,7 +171,6 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 		args = malloc(sizeof(YValue*) * argc);
 		memcpy(args, targs, sizeof(YValue*) * argc);
 	}
-
 	/*Check each argument type*/
 	if (l->sig->args != NULL) {
 		for (size_t i = 0; i < argc && i<l->sig->argc; i++) {
@@ -177,7 +187,7 @@ YValue* invokeLambda(YLambda* l, YValue** targs, size_t argc, YThread* th) {
 	}
 
 	// Invoke lambda
-	YValue* out = l->execute(l, args, l->sig->argc != -1 ? l->sig->argc : argc,
+	YValue* out = l->execute(l, scope, args, l->sig->argc != -1 ? l->sig->argc : argc,
 			th);
 	((YoyoObject*) l)->linkc--;
 	free(args);
@@ -274,7 +284,7 @@ wchar_t* toString(YValue* v, YThread* th) {
 			YValue* val = obj->get(obj, id, th);
 			if (val->type->type == LambdaT) {
 				YLambda* exec = (YLambda*) val;
-				YValue* ret = invokeLambda(exec, NULL, 0, th);
+				YValue* ret = invokeLambda(exec, NULL, NULL, 0, th);
 				wchar_t* out = toString(ret, th);
 				return out;
 			}

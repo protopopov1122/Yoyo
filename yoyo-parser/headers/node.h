@@ -70,6 +70,7 @@ typedef struct YConstantNode {
 
 typedef struct YLambdaNode {
 	YNode node;
+	bool method;
 	wchar_t** args;
 	YNode** argTypes;
 	ssize_t argc;
@@ -133,6 +134,7 @@ typedef struct YFieldReferenceNode {
 
 typedef struct YCallNode {
 	YNode node;
+	YNode* scope;
 	YNode* function;
 	YNode** args;
 	size_t argc;
@@ -339,9 +341,9 @@ YNode* newConstantNode(yconstant_t);
 YNode* newIdentifierReferenceNode(wchar_t*);
 YNode* newIndexReferenceNode(YNode*, YNode*);
 YNode* newSubseqReferenceNode(YNode*, YNode*, YNode*);
-YNode* newLambdaNode(wchar_t**, YNode**, ssize_t, bool, YNode*, YNode*);
+YNode* newLambdaNode(bool, wchar_t**, YNode**, ssize_t, bool, YNode*, YNode*);
 YNode* newFieldReferenceNode(YNode*, wchar_t*);
-YNode* newCallNode(YNode*, YNode**, size_t);
+YNode* newCallNode(YNode*, YNode*, YNode**, size_t);
 YNode* newFilledArray(YNode**, size_t);
 YNode* newGeneratedArray(YNode*, YNode*);
 YNode* newObjectNode(YNode*, ObjectNodeField*, size_t, YFunctionBlock*, size_t);

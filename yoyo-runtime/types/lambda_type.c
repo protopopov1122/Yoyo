@@ -35,7 +35,7 @@ YOYO_FUNCTION(Lambda_signature) {
 
 YOYO_FUNCTION(Lambda_call) {
 	YLambda* lmbd = (YLambda*) ((NativeLambda*) lambda)->object;
-	return invokeLambda(lmbd, args, argc, th);
+	return invokeLambda(lmbd, NULL, args, argc, th);
 }
 
 YOYO_FUNCTION(Lambda_callArray) {
@@ -46,7 +46,7 @@ YOYO_FUNCTION(Lambda_callArray) {
 	YValue** arr_args = malloc(sizeof(YValue*)*array->size(array, th));
 	for (size_t i=0;i<array->size(array, th);i++)
 		arr_args[i] = array->get(array, i, th);
-	YValue* ret = invokeLambda(lmbd, arr_args, array->size(array, th), th);
+	YValue* ret = invokeLambda(lmbd, NULL, arr_args, array->size(array, th), th);
 	free(arr_args);
 	return ret;
 }

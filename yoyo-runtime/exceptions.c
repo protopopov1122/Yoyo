@@ -19,7 +19,7 @@
 /*File contains procedures to unify
  * Yoyo exception building.*/
 
-YValue* Exception_toString(YLambda* l, YValue** args, size_t argc, YThread* th) {
+YValue* Exception_toString(YLambda* l, YObject* scp, YValue** args, size_t argc, YThread* th) {
 	YObject* exc = (YObject*) ((NativeLambda*) l)->object;
 	((YoyoObject*) exc)->linkc++;
 	YValue* baseVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"base"),
@@ -54,7 +54,7 @@ YValue* Exception_toString(YLambda* l, YValue** args, size_t argc, YThread* th) 
 	free(wstr);
 	return str;
 }
-YValue* TraceFrame_toString(YLambda* l, YValue** args, size_t argc, YThread* th) {
+YValue* TraceFrame_toString(YLambda* l, YObject* scp, YValue** args, size_t argc, YThread* th) {
 	YObject* exc = (YObject*) ((NativeLambda*) l)->object;
 	((YoyoObject*) exc)->linkc++;
 	YValue* lineVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"line"),

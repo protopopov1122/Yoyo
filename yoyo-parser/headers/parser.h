@@ -74,7 +74,8 @@ typedef enum {
 	OverloadKeyword,
 	UsingKeyword,
 	WithKeyword,
-	FunctionKeyword
+	FunctionKeyword,
+	MethodKeyword
 } ykeyword_t;
 
 typedef struct ytoken {

@@ -148,7 +148,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 }
 
 YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
-	YoyoLambdaSignature* sig = newLambdaSignature(-1, false, NULL, NULL, th);
+	YoyoLambdaSignature* sig = newLambdaSignature(false, -1, false, NULL, NULL, th);
 	if (args[1]->type->type==DeclarationT) {
 		YoyoType* type = (YoyoType*) args[1];
 		if (type->type==LambdaSignatureDT) {

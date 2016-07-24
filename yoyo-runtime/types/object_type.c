@@ -35,7 +35,7 @@ uint64_t Object_hashCode(YValue* vobj, YThread* th) {
 		YValue* val = obj->get(obj, mid, th);
 		if (val->type->type == LambdaT) {
 			YLambda* lmbd = (YLambda*) val;
-			YValue* out = invokeLambda(lmbd, NULL, 0, th);
+			YValue* out = invokeLambda(lmbd, NULL, NULL, 0, th);
 			if (out->type->type == IntegerT)
 				return (uint64_t) ((YInteger*) out)->value;
 		}
@@ -50,7 +50,7 @@ YValue* Object_readIndex(YValue* o, YValue* index, YThread* th) {
 		READ_INDEX), th);
 		if (val->type->type == LambdaT) {
 			YLambda* lambda = (YLambda*) val;
-			return invokeLambda(lambda, &index, 1, th);
+			return invokeLambda(lambda, NULL, &index, 1, th);
 		}
 	}
 	return getNull(th);
@@ -64,7 +64,7 @@ YValue* Object_writeIndex(YValue* o, YValue* index, YValue* value, YThread* th) 
 		if (val->type->type == LambdaT) {
 			YLambda* lambda = (YLambda*) val;
 			YValue* args[] = { index, value };
-			return invokeLambda(lambda, args, 2, th);
+			return invokeLambda(lambda, NULL, args, 2, th);
 		}
 	}
 	return getNull(th);
@@ -79,7 +79,7 @@ YoyoIterator* Object_iterator(YValue* v, YThread* th) {
 		YValue* val = obj->get(obj, id, th);
 		if (val->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) val;
-			YValue* out = invokeLambda(exec, NULL, 0, th);
+			YValue* out = invokeLambda(exec, NULL, NULL, 0, th);
 			if (out->type->type == ObjectT && ((YObject*) out)->iterator)
 				iter = (YoyoIterator*) out;
 			else if (out->type->type == ObjectT)

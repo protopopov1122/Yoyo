@@ -21,7 +21,7 @@ YOYO_FUNCTION(YSTD_TYPES_SIGNATURE) {
 		}
 	}
 
-	YValue* out = (YValue*) newLambdaSignature(yargc, yvararg, yargs, yret, th);
+	YValue* out = (YValue*) newLambdaSignature(false, yargc, yvararg, yargs, yret, th);
 	free(yargs);
 	return out;
 }
