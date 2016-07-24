@@ -18,6 +18,7 @@
 #define YILI_BYTECODE_H
 
 #include "core.h"
+#include "jit.h"
 
 typedef struct SymbolEntry {
 	int32_t key;
@@ -103,6 +104,8 @@ typedef struct ILProcedure {
 	void (*free)(struct ILProcedure*, struct ILBytecode*);
 
 	struct ILBytecode* bytecode;
+
+	CompiledProcedure* compiled;
 } ILProcedure;
 
 typedef struct ILBytecode {

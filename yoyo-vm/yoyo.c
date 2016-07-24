@@ -142,6 +142,27 @@ void Yoyo_main(char** argv, int argc) {
 	env->addPath(env, workdir);
 	env->addPath(env, libdir == NULL ? workdir : libdir);
 
+	JitCompiler* jit = NULL;
+	if (env->getDefined(env, L"yjit")!=NULL) {
+		wchar_t* wcs = env->getDefined(env, L"yjit");
+		char* mbs = calloc(1, sizeof(wchar_t)*(wcslen(wcs)+1));
+		wcstombs(mbs, wcs, wcslen(wcs));
+		void* handle = dlopen(mbs, RTLD_NOW);
+		if (handle!=NULL) {
+			void* ptr = dlsym(handle, "getYoyoJit");
+			if (ptr!=NULL) {
+				JitGetter* getter_ptr = (JitGetter*) &ptr;
+				JitGetter getter = *getter_ptr;
+				jit = getter();
+			}
+			else
+				printf("%s\n", dlerror());
+		}
+		else
+			printf("%s\n", dlerror());
+		free(mbs);
+	}
+
 	YRuntime* runtime = newRuntime(env, NULL);
 	ycenv->bytecode = newBytecode(&runtime->symbols);
 	if (dbg)
@@ -165,5 +186,6 @@ void Yoyo_main(char** argv, int argc) {
 	runtime->free(runtime);
 	if (debug != NULL)
 		debug->free(debug);
-
+	if (jit!=NULL)
+		jit->free(jit);
 }

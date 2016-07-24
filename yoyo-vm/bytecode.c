@@ -14,6 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
+#include "jit.h"
 #include "bytecode.h"
 #include "yoyo_io.h"
 
@@ -95,6 +96,8 @@ void Procedure_free(struct ILProcedure* proc, struct ILBytecode* bc) {
 	free(proc->code);
 	free(proc->labels.table);
 	free(proc->codeTable.table);
+	if (proc->compiled!=NULL)
+		proc->compiled->free(proc->compiled);
 	free(proc);
 	MUTEX_UNLOCK(&bc->access_mutex);
 }
@@ -135,6 +138,8 @@ ILProcedure* Bytecode_newProcedure(ILBytecode* bc) {
 	proc->free = Procedure_free;
 
 	proc->bytecode = bc;
+
+	proc->compiled = NULL;
 
 	MUTEX_UNLOCK(&bc->access_mutex);
 	return proc;

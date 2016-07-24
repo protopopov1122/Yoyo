@@ -8,7 +8,15 @@ cc_win_x86=i686-w64-mingw32-gcc
 cc_win_x64=x86_64-w64-mingw32-gcc
 cc=$(cc_$(target)_$(arch))
 
+cpp_linux_x86=g++ -m32 -mtune=i686
+cpp_linux_x64=g++ -m64 -mtune=generic
+cpp_win_x86=i686-w64-mingw32-g++
+cpp_win_x64=x86_64-w64-mingw32-g++
+cpp=$(cpp_$(target)_$(arch))
+
+
 c_lang=-std=c11 -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -pedantic -Werror
+cpp_lang=-std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -pedantic -Werror
 
 opt_debug=-O0
 opt_release=-O3
@@ -24,7 +32,7 @@ c_platform=$(c_platform_$(target))
 
 misc=
 
-cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers $(c_platform) $(misc)
+cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers -I../yoyo-jit/headers $(c_platform) $(misc)
 c_source=../yoyo-util/*.c ../yoyo-vm/*.c ../YStd/native/*.c ../yoyo-parser/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c
 
 yoyo_linux=yoyo
@@ -42,6 +50,8 @@ libyoyo=$(libyoyo_$(target))
 jyoyo=jyoyo.jar
 
 
+yoyo-jit:
+	$(cpp) $(cpp_flags) -shared -fPIC $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers $(misc) -o libyjit.so ../yoyo-jit/*.cpp -lasmjit
 yoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -o $(yoyo) $(c_source) 
