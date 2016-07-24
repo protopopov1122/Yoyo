@@ -42,12 +42,11 @@ void OverloadedLambda_mark(YoyoObject* ptr) {
 	MARK(lmbd->parent.sig);
 }
 
-YValue* OverloadedLambda_exec(YLambda* l, YObject* scope, YValue** args, size_t argc,
-		YThread* th) {
+YValue* OverloadedLambda_exec(YLambda* l, YObject* scope, YValue** args,
+		size_t argc, YThread* th) {
 	OverloadedLambda* lmbd = (OverloadedLambda*) l;
 	for (size_t i = 0; i < lmbd->count; i++) {
-		if (!lmbd->lambdas[i]->sig->method||
-				scope!=NULL) {
+		if (!lmbd->lambdas[i]->sig->method || scope != NULL) {
 			if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->vararg
 					&& lmbd->lambdas[i]->sig->argc - 1 <= argc) {
 
@@ -58,12 +57,13 @@ YValue* OverloadedLambda_exec(YLambda* l, YObject* scope, YValue** args, size_t 
 				return invokeLambda(lmbd->lambdas[i], scope, args, argc, th);
 		} else {
 			if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->vararg
-					&& lmbd->lambdas[i]->sig->argc - 1 <= argc -1) {
+					&& lmbd->lambdas[i]->sig->argc - 1 <= argc - 1) {
 
 				l = lmbd->lambdas[i];
 				return invokeLambda(l, scope, args, argc, th);
 			}
-			if (lmbd->lambdas[i] != NULL && lmbd->lambdas[i]->sig->argc == argc - 1)
+			if (lmbd->lambdas[i] != NULL
+					&& lmbd->lambdas[i]->sig->argc == argc - 1)
 				return invokeLambda(lmbd->lambdas[i], scope, args, argc, th);
 		}
 

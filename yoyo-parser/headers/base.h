@@ -17,7 +17,6 @@
 #ifndef HEADERS_BASE_H_
 #define HEADERS_BASE_H_
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -35,8 +34,7 @@
 
 typedef struct yconstant_t {
 	enum {
-		Int64Constant, Fp64Constant,
-		WcsConstant, BoolConstant
+		Int64Constant, Fp64Constant, WcsConstant, BoolConstant
 	} type;
 	union {
 		int64_t i64;

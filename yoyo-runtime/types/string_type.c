@@ -191,7 +191,7 @@ YOYO_FUNCTION(_String_trim) {
 	while (iswspace(wstr[start]))
 		start++;
 	size_t end = wcslen(wstr) - 1;
-	while (end>start&&iswspace(wstr[end]))
+	while (end > start && iswspace(wstr[end]))
 		end--;
 	end++;
 	if (end - start == 0)

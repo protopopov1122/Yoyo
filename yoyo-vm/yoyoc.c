@@ -40,8 +40,8 @@ YObject* YoyoC_system(Environment* env, YRuntime* runtime) {
 	return obj;
 }
 
-YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
-		InputStream* is, wchar_t* wname, YObject* scope) {
+YValue* YoyoC_eval(Environment* _env, YRuntime* runtime, InputStream* is,
+		wchar_t* wname, YObject* scope) {
 	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
 	if (env->bytecode == NULL) {
 		env->bytecode = newBytecode(&runtime->symbols);
@@ -49,20 +49,19 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime,
 	CompilationResult res = yoyoc(env, is, wname);
 	YThread* th = newThread(runtime);
 	if (res.pid != -1) {
-		if (scope==NULL)
+		if (scope == NULL)
 			scope = runtime->global_scope;
 		YValue* out = invoke(res.pid, env->bytecode, scope, NULL, th);
 		ILProcedure* proc = env->bytecode->procedures[res.pid];
 		proc->free(proc, env->bytecode);
 		return out;
-	} else if (scope!=NULL) {
-			throwException(L"Eval", &wname, 1, th);
-			if (th->exception->type->type == ObjectT && res.log != NULL) {
-				YObject* obj = (YObject*) th->exception;
-				obj->put(obj,
-					getSymbolId(&th->runtime->symbols,
-						L"log"), newString(res.log, th), true, th);
-			}
+	} else if (scope != NULL) {
+		throwException(L"Eval", &wname, 1, th);
+		if (th->exception->type->type == ObjectT && res.log != NULL) {
+			YObject* obj = (YObject*) th->exception;
+			obj->put(obj, getSymbolId(&th->runtime->symbols, L"log"),
+					newString(res.log, th), true, th);
+		}
 		return getNull(th);
 	} else {
 		fprintf(runtime->env->err_stream, "%ls\n", res.log);
@@ -138,7 +137,8 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	return env;
 }
 
-CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input, wchar_t* name) {
+CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input,
+		wchar_t* name) {
 	ParseHandle handle;
 	FILE* errfile = tmpfile();
 	handle.error_stream = errfile;
@@ -177,13 +177,13 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input, wchar_t* name
 				sizeof(wchar_t) * (strlen(buffer) + 1)), .pid = -1 };
 		mbstowcs(res.log, buffer, strlen(buffer));
 		free(buffer);
-		if (errfile!=NULL)
+		if (errfile != NULL)
 			fclose(errfile);
-		for (size_t i=0;i<handle.constants_size;i++)
-			if (handle.constants[i].type==WcsConstant)
+		for (size_t i = 0; i < handle.constants_size; i++)
+			if (handle.constants[i].type == WcsConstant)
 				free(handle.constants[i].value.wcs);
 		free(handle.constants);
-		for (size_t i=0;i<handle.symbols_size;i++)
+		for (size_t i = 0; i < handle.symbols_size; i++)
 			free(handle.symbols[i]);
 		free(handle.symbols);
 		return res;
@@ -222,11 +222,11 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input, wchar_t* name
 		wlog = calloc(1, sizeof(wchar_t) * (strlen(log) + 1));
 		mbstowcs(wlog, log, strlen(log));
 	}
-	if (errfile!=NULL)
+	if (errfile != NULL)
 		fclose(errfile);
 	CompilationResult res = { .log = wlog, .pid = pid };
 	free(handle.constants);
-	for (size_t i=0;i<handle.symbols_size;i++)
+	for (size_t i = 0; i < handle.symbols_size; i++)
 		free(handle.symbols[i]);
 	free(handle.symbols);
 	return res;

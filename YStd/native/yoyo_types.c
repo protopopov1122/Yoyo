@@ -21,7 +21,8 @@ YOYO_FUNCTION(YSTD_TYPES_SIGNATURE) {
 		}
 	}
 
-	YValue* out = (YValue*) newLambdaSignature(false, yargc, yvararg, yargs, yret, th);
+	YValue* out = (YValue*) newLambdaSignature(false, yargc, yvararg, yargs,
+			yret, th);
 	free(yargs);
 	return out;
 }
@@ -31,8 +32,7 @@ YOYO_FUNCTION(YSTD_TYPES_TYPES) {
                                                         (&th->runtime->symbols, tname),\
                                                  (YValue*) th->runtime->type.TypeConstant, true, th);
 
-	obj->put(obj,
-			getSymbolId(&th->runtime->symbols, L"any"),
+	obj->put(obj, getSymbolId(&th->runtime->symbols, L"any"),
 			(YValue*) newAtomicType(AnyT, th), true, th);
 	NEW_TYPE(obj, DeclarationType, L"declaration", th);
 	NEW_TYPE(obj, ArrayType, L"array", th);

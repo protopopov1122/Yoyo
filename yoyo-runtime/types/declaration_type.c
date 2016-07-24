@@ -82,8 +82,10 @@ void Declaration_type_init(YRuntime* runtime) {
 	runtime->DeclarationType.TypeConstant = newAtomicType(DeclarationT,
 			runtime->CoreThread);
 	runtime->DeclarationType.oper.add_operation = concat_operation;
-	runtime->DeclarationType.oper.subtract_operation = undefined_binary_operation;
-	runtime->DeclarationType.oper.multiply_operation = undefined_binary_operation;
+	runtime->DeclarationType.oper.subtract_operation =
+			undefined_binary_operation;
+	runtime->DeclarationType.oper.multiply_operation =
+			undefined_binary_operation;
 	runtime->DeclarationType.oper.divide_operation = undefined_binary_operation;
 	runtime->DeclarationType.oper.modulo_operation = undefined_binary_operation;
 	runtime->DeclarationType.oper.power_operation = undefined_binary_operation;

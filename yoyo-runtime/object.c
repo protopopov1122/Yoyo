@@ -252,8 +252,7 @@ YValue* TreeObject_get(YObject* o, int32_t key, YThread* th) {
 	if (obj->super != NULL)
 		return obj->super->get(obj->super, key, th);
 	else {
-		wchar_t* name = getSymbolById(
-				&th->runtime->symbols, key);
+		wchar_t* name = getSymbolById(&th->runtime->symbols, key);
 		throwException(L"UnknownField", &name, 1, th);
 		return getNull(th);
 	}
@@ -265,8 +264,7 @@ void TreeObject_put(YObject* o, int32_t key, YValue* value, bool newF,
 		obj->root = Leave_put(NULL, obj->root, key, value);
 		TreeObjectField* fld = Leave_search(obj->root, key);
 		if (fld->type != NULL && !fld->type->verify(fld->type, value, th)) {
-			wchar_t* name = getSymbolById(
-					&th->runtime->symbols, key);
+			wchar_t* name = getSymbolById(&th->runtime->symbols, key);
 			throwException(L"WrongFieldType", &name, 1, th);
 		}
 	} else {
@@ -276,8 +274,7 @@ void TreeObject_put(YObject* o, int32_t key, YValue* value, bool newF,
 			obj->root = Leave_put(NULL, obj->root, key, value);
 			TreeObjectField* fld = Leave_search(obj->root, key);
 			if (fld->type != NULL && !fld->type->verify(fld->type, value, th)) {
-				wchar_t* name = getSymbolById(
-						&th->runtime->symbols, key);
+				wchar_t* name = getSymbolById(&th->runtime->symbols, key);
 				throwException(L"WrongFieldType", &name, 1, th);
 			}
 		}
@@ -290,8 +287,7 @@ void TreeObject_remove(YObject* o, int32_t key, YThread* th) {
 	else if (obj->super != NULL)
 		obj->super->remove(obj->super, key, th);
 	else {
-		wchar_t* name = getSymbolById(
-				&th->runtime->symbols, key);
+		wchar_t* name = getSymbolById(&th->runtime->symbols, key);
 		throwException(L"UnknownField", &name, 1, th);
 	}
 }
@@ -303,8 +299,7 @@ void TreeObject_setType(YObject* o, int32_t key, YoyoType* type, YThread* th) {
 		if (f != NULL) {
 			f->type = type;
 			if (!type->verify(type, f->value, th)) {
-				wchar_t* name = getSymbolById(
-						&th->runtime->symbols, key);
+				wchar_t* name = getSymbolById(&th->runtime->symbols, key);
 				throwException(L"WrongFieldType", &name, 1, th);
 			}
 		}
@@ -444,8 +439,7 @@ YValue* HashMapObject_get(YObject* o, int32_t id, YThread* th) {
 	if (obj->super != NULL)
 		return obj->super->get(obj->super, id, th);
 	else {
-		wchar_t* name = getSymbolById(
-				&th->runtime->symbols, id);
+		wchar_t* name = getSymbolById(&th->runtime->symbols, id);
 		throwException(L"UnknownField", &name, 1, th);
 		return getNull(th);
 	}
@@ -458,8 +452,7 @@ void HashMapObject_put(YObject* o, int32_t id, YValue* value, bool newF,
 		HashMapObject_putEntry(obj, id, value);
 		AOEntry* e = HashMapObject_getEntry(obj, id);
 		if (e->type != NULL && !e->type->verify(e->type, value, th)) {
-			wchar_t* name = getSymbolById(
-					&th->runtime->symbols, id);
+			wchar_t* name = getSymbolById(&th->runtime->symbols, id);
 			throwException(L"WrongFieldType", &name, 1, th);
 		}
 	} else if (obj->super != NULL && obj->super->contains(obj->super, id, th))
@@ -491,8 +484,7 @@ void HashMapObject_remove(YObject* o, int32_t id, YThread* th) {
 		e = e->next;
 	}
 	if (!flag) {
-		wchar_t* name = getSymbolById(
-				&th->runtime->symbols, id);
+		wchar_t* name = getSymbolById(&th->runtime->symbols, id);
 		throwException(L"UnknownField", &name, 1, th);
 	}
 	MUTEX_UNLOCK(&obj->access_mutex);
@@ -504,8 +496,7 @@ void HashMapObject_setType(YObject* o, int32_t id, YoyoType* type, YThread* th) 
 		AOEntry* entry = HashMapObject_getEntry(obj, id);
 		entry->type = type;
 		if (!type->verify(type, entry->value, th)) {
-			wchar_t* name = getSymbolById(
-					&th->runtime->symbols, id);
+			wchar_t* name = getSymbolById(&th->runtime->symbols, id);
 			throwException(L"WrongFieldType", &name, 1, th);
 		}
 	} else if (obj->super != NULL && obj->super->contains(obj->super, id, th))

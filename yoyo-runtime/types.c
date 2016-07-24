@@ -390,8 +390,7 @@ bool LambdaSignature_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
 	YoyoLambdaSignature* sig2 = (YoyoLambdaSignature*) t2;
 	if (sig2->argc == -1)
 		return true;
-	if (sig1->argc != sig2->argc||
-			sig1->method != sig2->method)
+	if (sig1->argc != sig2->argc || sig1->method != sig2->method)
 		return false;
 	for (size_t i = 0; i < sig1->argc; i++)
 		if (sig1->args[i] != NULL && sig2->args[i] != NULL
@@ -427,7 +426,7 @@ YoyoLambdaSignature* newLambdaSignature(bool meth, int32_t argc, bool vararg,
 	StringBuilder* sb = newStringBuilder(L"(");
 	if (sig->method) {
 		sb->append(sb, L"self");
-		if (argc>0)
+		if (argc > 0)
 			sb->append(sb, L", ");
 	}
 

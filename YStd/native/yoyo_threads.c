@@ -55,22 +55,24 @@ void YoyoMutex_free(void* ptr) {
 }
 
 YOYO_FUNCTION(YSTD_THREADS_MUTEX_LOCK) {
-	MUTEX* mutex = (MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	MUTEX* mutex =
+			(MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
 	MUTEX_LOCK(mutex);
 	return getNull(th);
 }
 
 YOYO_FUNCTION(YSTD_THREADS_MUTEX_UNLOCK) {
-	MUTEX* mutex = (MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	MUTEX* mutex =
+			(MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
 	MUTEX_UNLOCK(mutex);
 	return getNull(th);
 }
 
 YOYO_FUNCTION(YSTD_THREADS_MUTEX_TRYLOCK) {
-	MUTEX* mutex = (MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	MUTEX* mutex =
+			(MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
 	return newBoolean(!MUTEX_TRYLOCK(mutex), th);
 }
-
 
 YOYO_FUNCTION(YSTD_THREADS_NEW_MUTEX) {
 	MUTEX* mutex = malloc(sizeof(MUTEX));

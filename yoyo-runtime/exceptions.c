@@ -19,7 +19,8 @@
 /*File contains procedures to unify
  * Yoyo exception building.*/
 
-YValue* Exception_toString(YLambda* l, YObject* scp, YValue** args, size_t argc, YThread* th) {
+YValue* Exception_toString(YLambda* l, YObject* scp, YValue** args, size_t argc,
+		YThread* th) {
 	YObject* exc = (YObject*) ((NativeLambda*) l)->object;
 	((YoyoObject*) exc)->linkc++;
 	YValue* baseVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"base"),
@@ -54,7 +55,8 @@ YValue* Exception_toString(YLambda* l, YObject* scp, YValue** args, size_t argc,
 	free(wstr);
 	return str;
 }
-YValue* TraceFrame_toString(YLambda* l, YObject* scp, YValue** args, size_t argc, YThread* th) {
+YValue* TraceFrame_toString(YLambda* l, YObject* scp, YValue** args,
+		size_t argc, YThread* th) {
 	YObject* exc = (YObject*) ((NativeLambda*) l)->object;
 	((YoyoObject*) exc)->linkc++;
 	YValue* lineVal = exc->get(exc, getSymbolId(&th->runtime->symbols, L"line"),
@@ -119,12 +121,12 @@ void throwException(wchar_t* msg, wchar_t** args, size_t argc, YThread* th) {
  * about source file, code line and char position,
  * stack trace(if available)*/
 YValue* newException(YValue* base, YThread* th) {
-	if (th->frame==NULL) {
+	if (th->frame == NULL) {
 		return base;
 	}
 	MUTEX_LOCK(&th->runtime->runtime_mutex);
 	SourceIdentifier sid = th->frame->get_source_id(th->frame);
-	if (sid.file!=-1) {
+	if (sid.file != -1) {
 		YObject* obj = th->runtime->newObject(NULL, th);
 		((YoyoObject*) obj)->linkc++;
 		obj->put(obj, getSymbolId(&th->runtime->symbols, L"base"), base, true,
@@ -134,8 +136,8 @@ YValue* newException(YValue* base, YThread* th) {
 		obj->put(obj, getSymbolId(&th->runtime->symbols, L"charPosition"),
 				newInteger(sid.charPosition, th), true, th);
 		obj->put(obj, getSymbolId(&th->runtime->symbols, L"file"),
-				newString(getSymbolById(&th->runtime->symbols, sid.file),
-						th), true, th);
+				newString(getSymbolById(&th->runtime->symbols, sid.file), th),
+				true, th);
 		obj->put(obj, getSymbolId(&th->runtime->symbols,
 		TO_STRING),
 				(YValue*) newNativeLambda(0, Exception_toString,
@@ -148,7 +150,7 @@ YValue* newException(YValue* base, YThread* th) {
 		LocalFrame* frame = th->frame;
 		while (frame != NULL) {
 			SourceIdentifier sid = frame->get_source_id(frame);
-			if (sid.file==-1) {
+			if (sid.file == -1) {
 				frame = frame->prev;
 				continue;
 			}
@@ -161,14 +163,13 @@ YValue* newException(YValue* base, YThread* th) {
 					getSymbolId(&th->runtime->symbols, L"charPosition"),
 					newInteger(sid.charPosition, th), true, th);
 			frobj->put(frobj, getSymbolId(&th->runtime->symbols, L"file"),
-					newString(
-							getSymbolById(&th->runtime->symbols,
-									sid.file), th), true, th);
+					newString(getSymbolById(&th->runtime->symbols, sid.file),
+							th), true, th);
 			frobj->put(frobj, getSymbolId(&th->runtime->symbols, TO_STRING),
 					(YValue*) newNativeLambda(0, TraceFrame_toString,
 							(YoyoObject*) frobj, th), true, th);
 			((YoyoObject*) frobj)->linkc--;
-			
+
 			frame = frame->prev;
 		}
 		((YoyoObject*) trace)->linkc--;

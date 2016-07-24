@@ -43,10 +43,9 @@ void Object_free(YNode* n) {
 	YObjectNode* node = (YObjectNode*) n;
 	if (node->parent != NULL)
 		node->parent->free(node->parent);
-	for (size_t i = 0; i < node->fields_length; i++)
-	{
+	for (size_t i = 0; i < node->fields_length; i++) {
 		node->fields[i].value->free(node->fields[i].value);
-		if (node->fields[i].type!=NULL)
+		if (node->fields[i].type != NULL)
 			node->fields[i].type->free(node->fields[i].type);
 	}
 	free(node->fields);
@@ -253,8 +252,9 @@ YNode* newBinaryNode(YBinaryOperation op, YNode* left, YNode* right) {
 	bin->operation = op;
 	return (YNode*) bin;
 }
-YNode* newLambdaNode(bool method, wchar_t** args, YNode** argTypes, ssize_t argc,
-bool vararg, YNode* retType, YNode* body) {
+YNode* newLambdaNode(bool method, wchar_t** args, YNode** argTypes,
+		ssize_t argc,
+		bool vararg, YNode* retType, YNode* body) {
 	YLambdaNode* ln;
 	NewNode(&ln, YLambdaNode, LambdaN, Lambda_free);
 	ln->method = method;
@@ -508,144 +508,144 @@ YNode* newBlockNode(YNode** bl, size_t len, YFunctionBlock* fcs, size_t fcc) {
 }
 
 /*void pseudocode(YNode* nd, FILE* out) {
-	//fprintf(out, "\t\t\tstart: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
-	switch (nd->type) {
-		case ConstantN: {
-			yconstant_t cnst = ((YConstantNode*) nd)->id;
-			switch (cnst.type) {
-				case Int64Constant:
-					fprintf(out, "push_integer %"PRId64"\n", cnst.value.i64);
-				break;
-				default:
-				break;
-			}
-		}
-		break;
-		case IdentifierReferenceN: {
-			wchar_t* id = ((YIdentifierReferenceNode*) nd)->id;
-			fprintf(out, "push_local_variable %ls\n", id);
-		}
-		break;
-        case UnaryN: {
-            YUnaryNode* un = (YUnaryNode*) nd;
-            pseudocode(un->argument, out);
-            switch (un->operation) {
-                case LogicalNot:
-                    fprintf(out, "logical-not\n");
-                break;
-                default:
-                    break;
-            }
-        }
-        break;
-		case BinaryN: {
-			YBinaryNode* bin = (YBinaryNode*) nd;
-			pseudocode(bin->right, out);
-			pseudocode(bin->left, out);
-			switch (bin->operation) {
-				case Multiply:
-					fprintf(out, "multiply\n");
-				break;
-				case Divide:
-					fprintf(out, "divide\n");
-				break;
-				case Modulo:
-					fprintf(out, "modulo\n");
-				break;
-				case Add:
-					fprintf(out, "add\n");
-				break;
-				case Subtract:
-					fprintf(out, "subtract\n");
-				break;
-				case ShiftLeft:
-					fprintf(out, "shl\n");
-				break;
-				case ShiftRight:
-					fprintf(out, "shr\n");
-				break;
-				case And:
-					fprintf(out, "and\n");
-				break;
-				case Or:
-					fprintf(out, "or\n");
-				break;
-				case Xor:
-					fprintf(out, "xor\n");
-				break;
-				case BEquals:
-					fprintf(out, "equals\n");
-				break;
-				case NotEquals:
-					fprintf(out, "not-equals\n");
-				break;
-				case GreaterOrEquals:
-					fprintf(out, "greater-or-equals\n");
-				break;
-				case LesserOrEquals:
-					fprintf(out, "lesser-or-equals\n");
-				break;
-				case Greater:
-					fprintf(out, "greater\n");
-				break;
-				case Lesser:
-					fprintf(out, "lesser\n");
-				break;
-				case LogicalAnd:
-					fprintf(out, "logical-and\n");
-				break;
-				case LogicalOr:
-					fprintf(out, "logical-or\n");
-				break;
-				default:
-				break;
-			}
-		}
-		break;
-        case FieldReferenceN: {
-            YFieldReferenceNode* fn = (YFieldReferenceNode*) nd;
-            pseudocode(fn->object, out);
-            printf("field %ls\n", fn->field);
-        }
-        break;
-        case ArrayReferenceN: {
-            YArrayReferenceNode* in = (YArrayReferenceNode*) nd;
-            pseudocode(in->array, out);
-            pseudocode(in->index, out);
-            printf("index\n");
-        }
-        break;
-        case SubsequenceN: {
-            YSubsequenceReferenceNode* sn = (YSubsequenceReferenceNode*) nd;
-            pseudocode(sn->array, out);
-            pseudocode(sn->from, out);
-            pseudocode(sn->to, out);
-            printf("subseq\n");
-        }
-        break;
+ //fprintf(out, "\t\t\tstart: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
+ switch (nd->type) {
+ case ConstantN: {
+ yconstant_t cnst = ((YConstantNode*) nd)->id;
+ switch (cnst.type) {
+ case Int64Constant:
+ fprintf(out, "push_integer %"PRId64"\n", cnst.value.i64);
+ break;
+ default:
+ break;
+ }
+ }
+ break;
+ case IdentifierReferenceN: {
+ wchar_t* id = ((YIdentifierReferenceNode*) nd)->id;
+ fprintf(out, "push_local_variable %ls\n", id);
+ }
+ break;
+ case UnaryN: {
+ YUnaryNode* un = (YUnaryNode*) nd;
+ pseudocode(un->argument, out);
+ switch (un->operation) {
+ case LogicalNot:
+ fprintf(out, "logical-not\n");
+ break;
+ default:
+ break;
+ }
+ }
+ break;
+ case BinaryN: {
+ YBinaryNode* bin = (YBinaryNode*) nd;
+ pseudocode(bin->right, out);
+ pseudocode(bin->left, out);
+ switch (bin->operation) {
+ case Multiply:
+ fprintf(out, "multiply\n");
+ break;
+ case Divide:
+ fprintf(out, "divide\n");
+ break;
+ case Modulo:
+ fprintf(out, "modulo\n");
+ break;
+ case Add:
+ fprintf(out, "add\n");
+ break;
+ case Subtract:
+ fprintf(out, "subtract\n");
+ break;
+ case ShiftLeft:
+ fprintf(out, "shl\n");
+ break;
+ case ShiftRight:
+ fprintf(out, "shr\n");
+ break;
+ case And:
+ fprintf(out, "and\n");
+ break;
+ case Or:
+ fprintf(out, "or\n");
+ break;
+ case Xor:
+ fprintf(out, "xor\n");
+ break;
+ case BEquals:
+ fprintf(out, "equals\n");
+ break;
+ case NotEquals:
+ fprintf(out, "not-equals\n");
+ break;
+ case GreaterOrEquals:
+ fprintf(out, "greater-or-equals\n");
+ break;
+ case LesserOrEquals:
+ fprintf(out, "lesser-or-equals\n");
+ break;
+ case Greater:
+ fprintf(out, "greater\n");
+ break;
+ case Lesser:
+ fprintf(out, "lesser\n");
+ break;
+ case LogicalAnd:
+ fprintf(out, "logical-and\n");
+ break;
+ case LogicalOr:
+ fprintf(out, "logical-or\n");
+ break;
+ default:
+ break;
+ }
+ }
+ break;
+ case FieldReferenceN: {
+ YFieldReferenceNode* fn = (YFieldReferenceNode*) nd;
+ pseudocode(fn->object, out);
+ printf("field %ls\n", fn->field);
+ }
+ break;
+ case ArrayReferenceN: {
+ YArrayReferenceNode* in = (YArrayReferenceNode*) nd;
+ pseudocode(in->array, out);
+ pseudocode(in->index, out);
+ printf("index\n");
+ }
+ break;
+ case SubsequenceN: {
+ YSubsequenceReferenceNode* sn = (YSubsequenceReferenceNode*) nd;
+ pseudocode(sn->array, out);
+ pseudocode(sn->from, out);
+ pseudocode(sn->to, out);
+ printf("subseq\n");
+ }
+ break;
 
-		case ConditionN: {
-			YConditionNode* cn = (YConditionNode*) nd;
-			pseudocode(cn->cond, out);
-			pseudocode(cn->body, out);
-			fprintf(out, "if\n");
-			if (cn->elseBody!=NULL) {
-				pseudocode(cn->elseBody, out);
-				fprintf(out, "else\n");
-			}
-		}
-		break;
-		case BlockN: {
-			YBlockNode* block = (YBlockNode*) nd;
-			fprintf(out, "begin\n");
-			for (size_t i=0;i<block->length;i++)
-				pseudocode(block->block[i], out);
-			fprintf(out, "end\n");
-		}
-		break;
-		default:
-			break;
-	}
-	//fprintf(out, "\t\t\tend: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
-}*/
+ case ConditionN: {
+ YConditionNode* cn = (YConditionNode*) nd;
+ pseudocode(cn->cond, out);
+ pseudocode(cn->body, out);
+ fprintf(out, "if\n");
+ if (cn->elseBody!=NULL) {
+ pseudocode(cn->elseBody, out);
+ fprintf(out, "else\n");
+ }
+ }
+ break;
+ case BlockN: {
+ YBlockNode* block = (YBlockNode*) nd;
+ fprintf(out, "begin\n");
+ for (size_t i=0;i<block->length;i++)
+ pseudocode(block->block[i], out);
+ fprintf(out, "end\n");
+ }
+ break;
+ default:
+ break;
+ }
+ //fprintf(out, "\t\t\tend: %"PRIu32" : %"PRIu32"\n", nd->line, nd->charPos);
+ }*/
 

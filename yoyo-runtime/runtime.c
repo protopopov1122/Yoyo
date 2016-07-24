@@ -79,11 +79,11 @@ void* GCThread(void* ptr) {
 				LocalFrame* frame = th->frame;
 				while (frame != NULL) {
 					/*for (size_t j = 0; j < frame->regc; j++)
-						MARK(frame->regs[j]);
-					for (size_t j = 0; j < frame->stack_offset; j++) {
-						MARK(frame->stack[j]);
-						MARK(frame->retType);
-					}*/
+					 MARK(frame->regs[j]);
+					 for (size_t j = 0; j < frame->stack_offset; j++) {
+					 MARK(frame->stack[j]);
+					 MARK(frame->retType);
+					 }*/
 					frame->mark(frame);
 					frame = frame->prev;
 				}
@@ -130,13 +130,13 @@ void Runtime_wait(YRuntime* runtime) {
  * Check if arguments fits lambda signature.
  * If lambda is variable argument then create array of last arguments.
  * Invoke lambda.*/
-YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc, YThread* th) {
+YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc,
+		YThread* th) {
 	((YoyoObject*) l)->linkc++; // To prevent lambda garbage collection
 	YValue** args = NULL;
 
-	if (scope==NULL&&l->sig->method) {
-		if (argc==0||
-				targs[0]->type->type!=ObjectT) {
+	if (scope == NULL && l->sig->method) {
+		if (argc == 0 || targs[0]->type->type != ObjectT) {
 			throwException(L"LambdaArgumentMismatch", NULL, 0, th);
 			((YoyoObject*) l)->linkc--;
 			return getNull(th);
@@ -173,7 +173,7 @@ YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc, YT
 	}
 	/*Check each argument type*/
 	if (l->sig->args != NULL) {
-		for (size_t i = 0; i < argc && i<l->sig->argc; i++) {
+		for (size_t i = 0; i < argc && i < l->sig->argc; i++) {
 			if (l->sig->args[i] != NULL
 					&& !l->sig->args[i]->verify(l->sig->args[i], args[i], th)) {
 				wchar_t* wstr = toString(args[i], th);
@@ -187,8 +187,8 @@ YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc, YT
 	}
 
 	// Invoke lambda
-	YValue* out = l->execute(l, scope, args, l->sig->argc != -1 ? l->sig->argc : argc,
-			th);
+	YValue* out = l->execute(l, scope, args,
+			l->sig->argc != -1 ? l->sig->argc : argc, th);
 	((YoyoObject*) l)->linkc--;
 	free(args);
 	return out;
@@ -242,9 +242,9 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 
 YThread* newThread(YRuntime* runtime) {
 	THREAD current_th = THREAD_SELF();
-	for (size_t i=0;i<runtime->thread_count;i++)
+	for (size_t i = 0; i < runtime->thread_count; i++)
 		if (THREAD_EQUAL(current_th, runtime->threads[i]->self))
-				return runtime->threads[i];
+			return runtime->threads[i];
 	YThread* th = malloc(sizeof(YThread));
 	th->runtime = runtime;
 	th->state = Working;
@@ -295,7 +295,7 @@ wchar_t* toString(YValue* v, YThread* th) {
 
 // Work with the symbol map
 int32_t getSymbolId(SymbolMap* map, wchar_t* wsym) {
-	if (wsym==NULL)
+	if (wsym == NULL)
 		return -1;
 	for (size_t i = 0; i < map->size; i++)
 		if (wcscmp(map->map[i].symbol, wsym) == 0)

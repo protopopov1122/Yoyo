@@ -61,12 +61,10 @@ typedef struct ExecutionFrame {
 } ExecutionFrame;
 
 YObject* Yoyo_SystemObject(ILBytecode*, YThread*);
-YLambda* newProcedureLambda(int32_t, ILBytecode*, YObject*, int32_t*, YoyoLambdaSignature*,
-		YThread*);
+YLambda* newProcedureLambda(int32_t, ILBytecode*, YObject*, int32_t*,
+		YoyoLambdaSignature*, YThread*);
 YValue* invoke(int32_t, ILBytecode*, YObject*, YoyoType*, YThread*);
 YValue* execute(YThread*);
 YDebug* newDefaultDebugger(ILBytecode*);
-
-
 
 #endif

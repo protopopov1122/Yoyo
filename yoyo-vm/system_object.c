@@ -97,11 +97,10 @@ YOYO_FUNCTION(YSTD_SYSTEM_EXIT) {
 YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	YObject* lib = th->runtime->newObject(
-			runtime->global_scope, th);
+	YObject* lib = th->runtime->newObject(runtime->global_scope, th);
 	runtime->env->eval(runtime->env, th->runtime,
-		file_input_stream(runtime->env->getFile(runtime->env, wstr)),
-		wstr, lib);	
+			file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
+			lib);
 	free(wstr);
 	return (YValue*) lib;
 }
@@ -109,8 +108,8 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	YValue* out = runtime->env->eval(runtime->env, th->runtime,
-		file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
-		(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
+			file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
+			(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 	free(wstr);
 	return out;
 }
@@ -120,16 +119,15 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 	wchar_t* wstr = toString(args[0], th);
 	int32_t iid = getSymbolId(&runtime->symbols, L"imported");
 	YObject* loaded = (YObject*) sys->get(sys, iid, th);
-	int32_t id =  getSymbolId(&runtime->symbols, wstr);
-	if (loaded->contains(loaded, id, th))
-	{
+	int32_t id = getSymbolId(&runtime->symbols, wstr);
+	if (loaded->contains(loaded, id, th)) {
 		free(wstr);
 		return loaded->get(loaded, id, th);
 	}
-	YObject* lib = th->runtime->newObject(
-			runtime->global_scope, th);
+	YObject* lib = th->runtime->newObject(runtime->global_scope, th);
 	runtime->env->eval(runtime->env, th->runtime,
-		file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr, lib);	
+			file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
+			lib);
 	free(wstr);
 	return (YValue*) lib;
 	free(wstr);
@@ -140,18 +138,19 @@ YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	YValue* out = runtime->env->eval(runtime->env, runtime,
-		string_input_stream(wstr),
-		wstr, (YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
+			string_input_stream(wstr), wstr,
+			(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 	free(wstr);
 	return out;
 	return getNull(th);
 }
 
 YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
-	YoyoLambdaSignature* sig = newLambdaSignature(false, -1, false, NULL, NULL, th);
-	if (args[1]->type->type==DeclarationT) {
+	YoyoLambdaSignature* sig = newLambdaSignature(false, -1, false, NULL, NULL,
+			th);
+	if (args[1]->type->type == DeclarationT) {
 		YoyoType* type = (YoyoType*) args[1];
-		if (type->type==LambdaSignatureDT) {
+		if (type->type == LambdaSignatureDT) {
 			sig = (YoyoLambdaSignature*) type;
 		}
 	}
@@ -198,7 +197,7 @@ YOYO_FUNCTION(TEMP_PRINT) {
 	return getNull(th);
 }
 
-YObject*  Yoyo_SystemObject(ILBytecode* bc, YThread* th) {
+YObject* Yoyo_SystemObject(ILBytecode* bc, YThread* th) {
 	YObject* sys = OBJECT(NULL, th);
 	OBJECT_NEW(sys, L"bytecode", newRawPointer(bc, free, th), th);
 	OBJECT_NEW(sys, L"imported", OBJECT(NULL, th), th);

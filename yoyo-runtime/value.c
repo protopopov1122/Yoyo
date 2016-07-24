@@ -84,7 +84,7 @@ YValue* newIntegerValue(int64_t value, YThread* th) {
  * Else it is created by newIntegerValue, saved to cache
  * and returned.*/
 YValue* newInteger(int64_t value, YThread* th) {
-	size_t index = ((uint64_t) value & (INT_POOL_SIZE-1));
+	size_t index = ((uint64_t) value & (INT_POOL_SIZE - 1));
 	YInteger* i = th->runtime->Constants.IntPool[index];
 	if (i == NULL || i->value != value) {
 		i = (YInteger*) newIntegerValue(value, th);
@@ -143,8 +143,8 @@ YoyoType* NativeLambda_signature(YLambda* l, YThread* th) {
 }
 
 YLambda* newNativeLambda(size_t argc,
-		YValue* (*exec)(YLambda*, YObject*, YValue**, size_t, YThread*), YoyoObject* obj,
-		YThread* th) {
+		YValue* (*exec)(YLambda*, YObject*, YValue**, size_t, YThread*),
+		YoyoObject* obj, YThread* th) {
 	NativeLambda* out = malloc(sizeof(NativeLambda));
 	initYoyoObject(&out->lambda.parent.o, NativeLambda_mark, NativeLambda_free);
 	th->runtime->gc->registrate(th->runtime->gc, &out->lambda.parent.o);
@@ -186,8 +186,7 @@ void RawPointer_free(YoyoObject* ptr) {
 	free(raw);
 }
 
-YValue* newRawPointer(void* ptr, void(*freeptr)(void*), YThread* th)
-{
+YValue* newRawPointer(void* ptr, void (*freeptr)(void*), YThread* th) {
 	YRawPointer* raw = malloc(sizeof(YRawPointer));
 	initAtomicYoyoObject((YoyoObject*) raw, RawPointer_free);
 	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) raw);

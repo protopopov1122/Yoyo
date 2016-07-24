@@ -28,24 +28,24 @@ typedef enum {
 	MinusOperator,
 	OpeningParentheseOperator,
 	ClosingParentheseOperator,
-    GreaterOperator,
-    LesserOperator,
-    AndOperator,
-    OrOperator,
-    XorOperator,
-    AssignOperator,
-    LogicalNotOperator,
-    DotOperator,
-    OpeningBracketOperator,
-    ClosingBracketOperator,
+	GreaterOperator,
+	LesserOperator,
+	AndOperator,
+	OrOperator,
+	XorOperator,
+	AssignOperator,
+	LogicalNotOperator,
+	DotOperator,
+	OpeningBracketOperator,
+	ClosingBracketOperator,
 	CommaOperator,
-    ColonOperator,
+	ColonOperator,
 	NotOperator,
 	OpeningBraceOperator,
 	ClosingBraceOperator,
 	DollarSignOperator,
 	QueryOperator,
-	SemicolonOperator	
+	SemicolonOperator
 } yoperator_t;
 
 typedef enum {
@@ -80,9 +80,7 @@ typedef enum {
 
 typedef struct ytoken {
 	enum {
-		TokenIdentifier, TokenConstant,
-		TokenOperator, TokenKeyword,
-		TokenEOF
+		TokenIdentifier, TokenConstant, TokenOperator, TokenKeyword, TokenEOF
 	} type;
 	union {
 		wchar_t* id;

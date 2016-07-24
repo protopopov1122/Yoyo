@@ -49,7 +49,8 @@ typedef struct ProcedureBuilder {
 	void (*append)(struct ProcedureBuilder*, uint8_t, int32_t, int32_t,
 			int32_t);
 	void (*bind)(struct ProcedureBuilder*, int32_t);
-	ProcdeureBuilderLoop* (*startLoop)(struct ProcedureBuilder*, int32_t, int32_t, int32_t);
+	ProcdeureBuilderLoop* (*startLoop)(struct ProcedureBuilder*, int32_t,
+			int32_t, int32_t);
 	void (*endLoop)(struct ProcedureBuilder*);
 	ProcdeureBuilderLoop* (*getLoop)(struct ProcedureBuilder*, int32_t);
 

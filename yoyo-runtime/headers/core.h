@@ -111,6 +111,4 @@ FILE* search_file(wchar_t*, wchar_t**, size_t);
 #define CAST_ARRAY(name, val) YArray* name = (YArray*) val;
 #define CAST_LAMBDA(name, val) YLambda* name = (YLambda*) val;
 
-
-
 #endif

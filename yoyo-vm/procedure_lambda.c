@@ -49,13 +49,13 @@ void ProcedureLambda_free(YoyoObject* ptr) {
 	free(lmbd);
 }
 
-YValue* ProcedureLambda_exec(YLambda* l, YObject* scp, YValue** args, size_t argc,
-		YThread* th) {
+YValue* ProcedureLambda_exec(YLambda* l, YObject* scp, YValue** args,
+		size_t argc, YThread* th) {
 	ProcedureLambda* lam = (ProcedureLambda*) l;
 	if (argc != l->sig->argc)
 		return getNull(th);
 	YObject* scope = th->runtime->newObject(lam->scope, th);
-	if (scp!=NULL) {
+	if (scp != NULL) {
 		OBJECT_NEW(scope, L"self", scp, th);
 	}
 	for (size_t i = 0; i < argc; i++) {
@@ -69,8 +69,8 @@ YoyoType* ProcedureLambda_signature(YLambda* l, YThread* th) {
 	return (YoyoType*) l->sig;
 }
 
-YLambda* newProcedureLambda(int32_t procid, ILBytecode* bc, YObject* scope, int32_t* argids,
-		YoyoLambdaSignature* sig, YThread* th) {
+YLambda* newProcedureLambda(int32_t procid, ILBytecode* bc, YObject* scope,
+		int32_t* argids, YoyoLambdaSignature* sig, YThread* th) {
 	ProcedureLambda* lmbd = malloc(sizeof(ProcedureLambda));
 
 	initYoyoObject(&lmbd->lambda.parent.o, ProcedureLambda_mark,

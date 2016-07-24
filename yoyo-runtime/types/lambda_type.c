@@ -40,13 +40,14 @@ YOYO_FUNCTION(Lambda_call) {
 
 YOYO_FUNCTION(Lambda_callArray) {
 	YLambda* lmbd = (YLambda*) ((NativeLambda*) lambda)->object;
-	if (args[0]->type->type!=ArrayT)
+	if (args[0]->type->type != ArrayT)
 		return getNull(th);
 	YArray* array = (YArray*) args[0];
-	YValue** arr_args = malloc(sizeof(YValue*)*array->size(array, th));
-	for (size_t i=0;i<array->size(array, th);i++)
+	YValue** arr_args = malloc(sizeof(YValue*) * array->size(array, th));
+	for (size_t i = 0; i < array->size(array, th); i++)
 		arr_args[i] = array->get(array, i, th);
-	YValue* ret = invokeLambda(lmbd, NULL, arr_args, array->size(array, th), th);
+	YValue* ret = invokeLambda(lmbd, NULL, arr_args, array->size(array, th),
+			th);
 	free(arr_args);
 	return ret;
 }

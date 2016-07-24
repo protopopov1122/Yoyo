@@ -32,9 +32,10 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 	} else {
 		YThread* th = newThread(runtime);
 		runtime->env->eval(runtime->env, runtime,
-			file_input_stream(runtime->env->getFile(runtime->env, wpath)), wpath,
-			NULL); 
-		if (th->exception!=NULL) {
+				file_input_stream(runtime->env->getFile(runtime->env, wpath)),
+				wpath,
+				NULL);
+		if (th->exception != NULL) {
 			YValue* e = th->exception;
 			th->exception = NULL;
 			wchar_t* wstr = toString(e, th);
@@ -147,8 +148,9 @@ void Yoyo_main(char** argv, int argc) {
 		debug = newDefaultDebugger(ycenv->bytecode);
 	RUNTIME = runtime;
 
-	OBJECT_NEW(runtime->global_scope, L"sys", Yoyo_SystemObject(ycenv->bytecode, runtime->CoreThread),
-		runtime->CoreThread);
+	OBJECT_NEW(runtime->global_scope, L"sys",
+			Yoyo_SystemObject(ycenv->bytecode, runtime->CoreThread),
+			runtime->CoreThread);
 
 	/* Executes specified file only if 'core.yoyo' is found and valid */
 	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {

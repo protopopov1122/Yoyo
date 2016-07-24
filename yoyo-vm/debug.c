@@ -54,10 +54,11 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 	while (work) {
 		ILProcedure* proc =
 				dbg->bytecode->procedures[((ExecutionFrame*) th->frame)->proc->id];
-		CodeTableEntry* e = proc->getCodeTableEntry(proc, ((ExecutionFrame*) th->frame)->pc);
+		CodeTableEntry* e = proc->getCodeTableEntry(proc,
+				((ExecutionFrame*) th->frame)->pc);
 		if (e != NULL) {
-			wchar_t* fileid = dbg->bytecode->getSymbolById(
-					dbg->bytecode, e->file);
+			wchar_t* fileid = dbg->bytecode->getSymbolById(dbg->bytecode,
+					e->file);
 			fprintf(th->runtime->env->out_stream, "%ls:%"PRId32, fileid,
 					e->line);
 		} else
@@ -131,12 +132,11 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					CodeTableEntry* e = proc->getCodeTableEntry(proc,
 							frame->pc);
 					if (e != NULL)
-						file = dbg->bytecode->getSymbolById(
-								dbg->bytecode, e->file);
+						file = dbg->bytecode->getSymbolById(dbg->bytecode,
+								e->file);
 				}
 			}
-			int32_t fid = dbg->bytecode->getSymbolId(
-					dbg->bytecode, file);
+			int32_t fid = dbg->bytecode->getSymbolId(dbg->bytecode, file);
 			uint32_t line = wcstoul(wline, NULL, 0);
 			dbg->bp_count++;
 			dbg->breakpoints = realloc(dbg->breakpoints,
@@ -161,8 +161,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 				} else CMD(req, L"line") {
 					if (e != NULL) {
 						FILE* file = th->runtime->env->getFile(th->runtime->env,
-								dbg->bytecode->getSymbolById(
-										dbg->bytecode, e->file));
+								dbg->bytecode->getSymbolById(dbg->bytecode,
+										e->file));
 						uint32_t first = e->line;
 						uint32_t last = e->line;
 						wint_t wch;
@@ -203,9 +203,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						CodeTableEntry* e = proc->getCodeTableEntry(proc,
 								frame->pc);
 						if (e != NULL) {
-							wchar_t* wname =
-									dbg->bytecode->getSymbolById(
-											dbg->bytecode, e->file);
+							wchar_t* wname = dbg->bytecode->getSymbolById(
+									dbg->bytecode, e->file);
 							file = th->runtime->env->getFile(th->runtime->env,
 									wname);
 							fprintf(th->runtime->env->out_stream,
@@ -263,15 +262,15 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 				} else CMD(req, L"procs") {
 					ILBytecode* bc = dbg->bytecode;
 					size_t pcount = 0;
-					for (size_t i=0;i<bc->procedure_count;i++)
-						if (bc->procedures[i]!=NULL)
+					for (size_t i = 0; i < bc->procedure_count; i++)
+						if (bc->procedures[i] != NULL)
 							pcount++;
 					fprintf(th->runtime->env->out_stream,
 							"Procedure count: "SIZE_T"\n", pcount);
-					for (size_t i = 0;
-							i < dbg->bytecode->procedure_count; i++) {
+					for (size_t i = 0; i < dbg->bytecode->procedure_count;
+							i++) {
 						ILProcedure* proc = dbg->bytecode->procedures[i];
-						if (proc==NULL)
+						if (proc == NULL)
 							continue;
 						if (((ExecutionFrame*) th->frame)->proc->id == proc->id)
 							fprintf(th->runtime->env->out_stream, "*");
@@ -280,12 +279,15 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 								proc->id, proc->regc, proc->code_length);
 					}
 				} else CMD(req, L"proc") {
-					int32_t pid = ((ExecutionFrame*) th->frame) != NULL ? ((ExecutionFrame*) th->frame)->proc->id : -1;
+					int32_t pid =
+							((ExecutionFrame*) th->frame) != NULL ?
+									((ExecutionFrame*) th->frame)->proc->id :
+									-1;
 					if (argc == 3)
 						pid = wcstoul(argv[2], NULL, 0);
 					ILBytecode* bc = dbg->bytecode;
-					if (pid != -1 && pid < bc->procedure_count &&
-								bc->procedures[pid]!=NULL) {
+					if (pid != -1&& pid < bc->procedure_count &&
+					bc->procedures[pid]!=NULL) {
 						ILProcedure* proc = bc->procedures[pid];
 						fprintf(th->runtime->env->out_stream,
 								"Procedure #%"PRIu32":\n", proc->id);
@@ -325,8 +327,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 				} else CMD(req, L"bytecode") {
 					ILBytecode* bc = dbg->bytecode;
 					size_t pcount = 0;
-					for (size_t i=0;i<bc->procedure_count;i++)
-						if (bc->procedures[i]!=NULL)
+					for (size_t i = 0; i < bc->procedure_count; i++)
+						if (bc->procedures[i] != NULL)
 							pcount++;
 					fprintf(th->runtime->env->out_stream,
 							"Procedure count: "SIZE_T"\n", pcount);
@@ -415,7 +417,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 			if (argc > 1) {
 				wchar_t* code = &origLine[wcslen(L"eval") + 1];
 				th->runtime->state = RuntimeRunning;
-				YValue* val  = th->runtime->env->eval(th->runtime->env,
+				YValue* val = th->runtime->env->eval(th->runtime->env,
 						th->runtime, string_input_stream(code), L"<eval>",
 						(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 				if (th->exception != NULL) {
@@ -428,7 +430,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					wchar_t* wstr = toString(val, th);
 					fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
 					free(wstr);
-				}	
+				}
 				th->runtime->state = RuntimePaused;
 			}
 		} else CMD(argv[0], L"trace") {
@@ -439,9 +441,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 				if (e != NULL)
 					fprintf(th->runtime->env->out_stream,
 							"\t%ls(%"PRIu32":%"PRIu32")\n",
-							dbg->bytecode->getSymbolById(
-									dbg->bytecode, e->file), e->line,
-							e->charPos);
+							dbg->bytecode->getSymbolById(dbg->bytecode,
+									e->file), e->line, e->charPos);
 				frame = (ExecutionFrame*) frame->frame.prev;
 			}
 		} else CMD(argv[0], L"quit") {
@@ -495,8 +496,10 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 		for (size_t i = 0; i < dbg->bp_count; i++) {
 			DbgBreakpoint* dbbp = &dbg->breakpoints[i];
 			if (dbbp->fileid == e->file && dbbp->line == e->line) {
-				if ((((ExecutionFrame*) th->frame)->debug_flags & (1 << LINE_FLAG)) == 0
-						|| ((ExecutionFrame*) th->frame)->debug_field != dbbp->line) {
+				if ((((ExecutionFrame*) th->frame)->debug_flags
+						& (1 << LINE_FLAG)) == 0
+						|| ((ExecutionFrame*) th->frame)->debug_field
+								!= dbbp->line) {
 					/* On this line is breakpoint and it is
 					 * line first instruction*/
 					bool exec = true;
@@ -504,9 +507,12 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 						/* Checks if breakpoint has condition and
 						 * executes this condition */
 						th->runtime->state = RuntimeRunning;
-						YValue* val = th->runtime->env->eval(th->runtime->env, th->runtime,
-							string_input_stream(dbbp->condition), L"<eval>",
-							(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
+						YValue* val =
+								th->runtime->env->eval(th->runtime->env,
+										th->runtime,
+										string_input_stream(dbbp->condition),
+										L"<eval>",
+										(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 						th->exception = NULL;
 						if (val->type->type == BooleanT) {
 							exec = ((YBoolean*) val)->value;
@@ -527,14 +533,18 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 				return;
 			}
 		}
-		if ((((ExecutionFrame*) th->frame)->debug_flags & (1 << STEP_FLAG)) == 1 << STEP_FLAG) {
-			CodeTableEntry* last_e = (CodeTableEntry*) ((ExecutionFrame*) th->frame)->debug_ptr;
+		if ((((ExecutionFrame*) th->frame)->debug_flags & (1 << STEP_FLAG))
+				== 1 << STEP_FLAG) {
+			CodeTableEntry* last_e =
+					(CodeTableEntry*) ((ExecutionFrame*) th->frame)->debug_ptr;
 			if (last_e != NULL && last_e->line != e->line) {
 				((ExecutionFrame*) th->frame)->debug_flags &= ~(1 << STEP_FLAG);
 			}
 		}
-		if ((((ExecutionFrame*) th->frame)->debug_flags & (1 << NEXT_FLAG)) == 1 << NEXT_FLAG) {
-			CodeTableEntry* last_e = (CodeTableEntry*) ((ExecutionFrame*) th->frame)->debug_ptr;
+		if ((((ExecutionFrame*) th->frame)->debug_flags & (1 << NEXT_FLAG))
+				== 1 << NEXT_FLAG) {
+			CodeTableEntry* last_e =
+					(CodeTableEntry*) ((ExecutionFrame*) th->frame)->debug_ptr;
 			if (last_e == NULL)
 				DefaultDebugger_cli(debug, th);
 			if (last_e != NULL && last_e->line != e->line) {
@@ -556,8 +566,8 @@ void DefaultDebugger_enter_function(YDebug* debug, void* ptr, YThread* th) {
 			((ExecutionFrame*) th->frame)->debug_flags &= ~(1 << STEP_FLAG);
 			fprintf(th->runtime->env->out_stream,
 					"Stepped into function at %ls:%"PRIu32"\n",
-					getSymbolById(&th->runtime->symbols,
-							last_e->file), last_e->line);
+					getSymbolById(&th->runtime->symbols, last_e->file),
+					last_e->line);
 		}
 		DefaultDebugger_cli(debug, th);
 	}

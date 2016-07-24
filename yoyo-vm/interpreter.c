@@ -30,7 +30,7 @@
 void setRegister(YValue* v, size_t reg, YThread* th) {
 	ExecutionFrame* frame = (ExecutionFrame*) ((ExecutionFrame*) th->frame);
 	if (reg < frame->regc)
-		frame->regs[reg] = v!=NULL ? v : getNull(th);
+		frame->regs[reg] = v != NULL ? v : getNull(th);
 }
 /*Push value to frames stack. If stack is full it's being reallocated.*/
 void push(YValue* v, YThread* th) {
@@ -61,27 +61,30 @@ int64_t popInt(YThread* th) {
 
 void ExecutionFrame_mark(LocalFrame* f) {
 	ExecutionFrame* frame = (ExecutionFrame*) f;
-	for (size_t i=0;i<frame->regc;i++)
+	for (size_t i = 0; i < frame->regc; i++)
 		MARK(frame->regs[i]);
 	MARK(frame->retType);
-	for (size_t i=0;i<frame->stack_offset;i++) {
+	for (size_t i = 0; i < frame->stack_offset; i++) {
 		MARK(frame->stack[i]);
 	}
 }
 
 SourceIdentifier ExecutionFrame_get_source_id(LocalFrame* f) {
 	ExecutionFrame* frame = (ExecutionFrame*) f;
-	CodeTableEntry* ent = frame->proc->getCodeTableEntry(frame->proc, frame->pc);
-	if (ent==NULL) {
-		SourceIdentifier sid = {.file = -1};
-		return sid;	
+	CodeTableEntry* ent = frame->proc->getCodeTableEntry(frame->proc,
+			frame->pc);
+	if (ent == NULL) {
+		SourceIdentifier sid = { .file = -1 };
+		return sid;
 	}
-	SourceIdentifier sid = {.file = ent->file, .line = ent->line, .charPosition = ent->charPos};
+	SourceIdentifier sid = { .file = ent->file, .line = ent->line,
+			.charPosition = ent->charPos };
 	return sid;
 }
 
 /*Initialize execution frame, assign it to thread and call execute method on it*/
-YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope, YoyoType* retType, YThread* th) {
+YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope,
+		YoyoType* retType, YThread* th) {
 	ExecutionFrame frame;
 
 	// Init execution frame
@@ -329,9 +332,9 @@ YValue* execute(YThread* th) {
 				args[i] = pop(th);
 			YValue* val = getRegister(iarg1, th);
 			YObject* scope = NULL;
-			if (iarg2!=-1) {
+			if (iarg2 != -1) {
 				YValue* scl = getRegister(iarg2, th);
-				if (scl->type->type==ObjectT)
+				if (scl->type->type == ObjectT)
 					scope = (YObject*) scl;
 			}
 			if (val->type->type == LambdaT) {
@@ -350,8 +353,8 @@ YValue* execute(YThread* th) {
 			 * and return it. Execution has been ended*/
 			YValue* ret = getRegister(iarg0, th);
 			if (((ExecutionFrame*) th->frame)->retType != NULL
-					&& !((ExecutionFrame*) th->frame)->retType->verify(((ExecutionFrame*) th->frame)->retType, ret,
-							th)) {
+					&& !((ExecutionFrame*) th->frame)->retType->verify(
+							((ExecutionFrame*) th->frame)->retType, ret, th)) {
 				wchar_t* wstr = toString(ret, th);
 				throwException(L"Wrong return type", &wstr, 1, th);
 				free(wstr);
@@ -412,8 +415,8 @@ YValue* execute(YThread* th) {
 			if (sp->type->type == ObjectT) {
 				YObject* scope = (YObject*) sp;
 				YLambda* lmbd = newProcedureLambda(iarg1, bc, scope, argids,
-						newLambdaSignature(meth, argc, vararg, argTypes, retType, th),
-						th);
+						newLambdaSignature(meth, argc, vararg, argTypes,
+								retType, th), th);
 				setRegister((YValue*) lmbd, iarg0, th);
 			} else
 				setRegister(getNull(th), iarg0, th);

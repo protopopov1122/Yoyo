@@ -15,7 +15,7 @@ void FIS_unread(wint_t ch, InputStream* is) {
 }
 void FIS_reset(InputStream* is) {
 	FileInputStream* fis = (FileInputStream*) is;
-	rewind(fis->fd);	
+	rewind(fis->fd);
 }
 void FIS_close(InputStream* is) {
 	FileInputStream* fis = (FileInputStream*) is;
@@ -41,13 +41,13 @@ typedef struct StringInputStream {
 
 wint_t SIS_read(InputStream* is) {
 	StringInputStream* sis = (StringInputStream*) is;
-	if (sis->index>=wcslen(sis->wcs))
+	if (sis->index >= wcslen(sis->wcs))
 		return WEOF;
 	return sis->wcs[sis->index++];
 }
 void SIS_unread(wint_t ch, InputStream* is) {
 	StringInputStream* sis = (StringInputStream*) is;
-	if (sis->index>0)
+	if (sis->index > 0)
 		sis->index--;
 }
 void SIS_reset(InputStream* is) {
