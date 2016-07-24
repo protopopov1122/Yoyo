@@ -142,6 +142,22 @@ ytoken lex(ParseHandle* handle) {
 		do {
 				if (ch==L'\"')
 					break;
+				if (ch==L'\\') switch (readwc(handle)) {
+				case L'n':
+					ch = L'\n';
+					break;
+				case L't':
+					ch = L'\t';
+					break;
+				case L'0':
+					ch = L'\0';
+					break;
+				case L'r':
+					ch = L'\r';
+					break;
+				case '\\':
+					ch = L'\\';
+				}
 				wstr = realloc(wstr, sizeof(wchar_t) * (++wlen));
 				wstr[wlen - 1] = ch;
 				ch = readwc(handle);

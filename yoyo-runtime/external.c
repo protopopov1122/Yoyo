@@ -50,7 +50,7 @@ wchar_t* readLine(FILE* stream) {
 	wchar_t* wstr = NULL;
 	size_t size = 0;
 	wint_t wch;
-	while ((wch = getwc(stream)) != L'\n') {
+	while ((wch = fgetwc(stream)) != L'\n') {
 		wstr = realloc(wstr, sizeof(wchar_t) * (++size));
 		wstr[size - 1] = (wchar_t) wch;
 	}

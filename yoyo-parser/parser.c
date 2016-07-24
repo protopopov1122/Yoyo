@@ -515,10 +515,11 @@ NewReduce(Factor_reduce) {
 			while (!AssertOperator(handle->tokens[0], ClosingBraceOperator)) {
 				if (handle->grammar.statement.validate(handle)) {
 					/*Parse statement*/
-					length++;
-					block = realloc(block, sizeof(YNode*) * length);
-					ExpectReduce(&block[length - 1], statement,
+					YNode* nd;
+					ExpectReduce(&nd, statement,
 							L"Expected statement", freestmt, handle);
+					block = realloc(block, sizeof(YNode*) * (++length));
+					block[length - 1] = nd;
 				} else if (handle->grammar.function.validate(handle)) {
 					/*Parse function definition*/
 					YNode* nd;
@@ -751,7 +752,8 @@ NewReduce(Power_reduce) {
 	ExtractCoords(file, line, charPos, handle);
     ExpectReduce(&node, unary, L"Expected expression", ;, handle);
 		while ((AssertOperator(handle->tokens[0], MultiplyOperator)&&
-                AssertOperator(handle->tokens[1], MultiplyOperator))) {
+                AssertOperator(handle->tokens[1], MultiplyOperator))&&
+				!AssertOperator(handle->tokens[2], AssignOperator)) {
 					shift(handle);
                     shift(handle);
 					YNode* left;
@@ -769,9 +771,10 @@ NewReduce(Mul_div_reduce) {
 	YNode* node;
 	ExtractCoords(file, line, charPos, handle);
     ExpectReduce(&node, power, L"Expected expression", ;, handle);
-		while (AssertOperator(handle->tokens[0], MultiplyOperator)||
-						AssertOperator(handle->tokens[0], DivideOperator)||
-						AssertOperator(handle->tokens[0], ModuloOperator)) {
+		while ((AssertOperator(handle->tokens[0], MultiplyOperator)||
+					AssertOperator(handle->tokens[0], DivideOperator)||
+					AssertOperator(handle->tokens[0], ModuloOperator))&&
+					!AssertOperator(handle->tokens[1], AssignOperator)) {
 					YBinaryOperation op;
 					if (AssertOperator(handle->tokens[0], MultiplyOperator))
 						op = Multiply;
@@ -795,8 +798,9 @@ NewReduce(Add_sub_reduce) {
     YNode* node;
 	ExtractCoords(file, line, charPos, handle);
     ExpectReduce(&node, mul_div, L"Expected expression", ;, handle);
-		while (AssertOperator(handle->tokens[0], PlusOperator)||
-                AssertOperator(handle->tokens[0], MinusOperator)) {
+		while ((AssertOperator(handle->tokens[0], PlusOperator)||
+                AssertOperator(handle->tokens[0], MinusOperator))&&
+				!AssertOperator(handle->tokens[1], AssignOperator)) {
 					YBinaryOperation op;
 					if (AssertOperator(handle->tokens[0], PlusOperator))
 						op = Add;
@@ -1143,7 +1147,10 @@ NewReduce(Expr_reduce) {
 	} else if (AssertKeyword(handle->tokens[0], ReturnKeyword)) {
 		shift(handle);
 		YNode* value;
-		ExpectReduce(&value, expression, L"Expected expression", ;, handle);
+		if (Validate(expression, handle)) {
+			ExpectReduce(&value, expression, L"Expected expression", ;, handle);
+		} else
+			value = newNullNode();
 		out = newReturnNode(value);
 	} else if (AssertKeyword(handle->tokens[0], ThrowKeyword)) {
 		shift(handle);
@@ -1257,7 +1264,9 @@ NewReduce(Expr_reduce) {
 }
 
 NewValidate(Expression_validate) {
-	return Validate(expr, handle);
+	return Validate(expr, handle)||
+			AssertKeyword(handle->tokens[0], VarKeyword)||
+			AssertKeyword(handle->tokens[0], DelKeyword);
 }
 NewReduce(Expression_reduce) {
 	/*YNode* node;
