@@ -179,6 +179,8 @@ ytoken lex(ParseHandle* handle) {
 				wstr[wlen - 1] = ch;
 				ch = readwc(handle);
 				if (isOperator(ch)) {
+					if (ch==L'.'&&iswdigit(wstr[wlen - 1]))
+						continue;
 					unreadwc(ch, handle);
 					break;
 				}
@@ -198,6 +200,7 @@ ytoken lex(ParseHandle* handle) {
 		}
 
 	int64_t number = 0;
+	bool fp = false;
 	if (wcslen(wstr)>2&&wcsncmp(wstr, L"0x", 2)==0) {
 		for (size_t i=2;i<wcslen(wstr);i++) {
 			if (wstr[i]==L'_')
@@ -232,6 +235,10 @@ ytoken lex(ParseHandle* handle) {
 	else for (size_t i=0;i<wcslen(wstr);i++) {
 		if (wstr[i]==L'_')
 			continue;
+		if (wstr[i]==L'.') {
+			fp = true;
+			break;
+		}
 		if (!iswdigit(wstr[i])) {
 			number = -1;
 			break;
@@ -240,7 +247,21 @@ ytoken lex(ParseHandle* handle) {
 			number += wstr[i] - L'0';
 		}
 	}
-	if (number!=-1) {
+	if (fp) {
+		char *oldLocale = setlocale(LC_NUMERIC, NULL);
+	    setlocale(LC_NUMERIC, "C");
+		double d = wcstod(wstr, NULL);
+	    setlocale(LC_NUMERIC, oldLocale);
+		yconstant_t cnst = {.type = Fp64Constant};
+		cnst.value.fp64 = d;
+		addConstant(handle, cnst);
+		free(wstr);
+		ytoken tok = {.type = TokenConstant};
+		tok.value.cnst = cnst;
+		tok.line = line;
+		tok.charPos = charPos;
+		return tok;
+	} else if (number!=-1) {
 		yconstant_t cnst = {.type = Int64Constant};
 		cnst.value.i64 = number;
 		addConstant(handle, cnst);
