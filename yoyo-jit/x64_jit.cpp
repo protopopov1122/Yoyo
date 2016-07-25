@@ -108,6 +108,8 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
     cproc->cproc.free = x64CompiledProcedure_free;
 
 		map<int32_t, Label> label_map;
+		for (size_t i=0;i<proc->labels.length;i++)
+			label_map[proc->labels.table[i].id] = c.newLabel();
     c.addFunc(FuncBuilder2<YValue*, YObject*, YThread*>(kCallConvHost));
     // Frame initialization
     ProcedureFrame frame;
@@ -140,15 +142,8 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
     while (pc+13<=proc->code_length) {
 			for (size_t i=0;i<proc->labels.length;i++) {
 				if (proc->labels.table[i].value==pc) {
-					Label lab;
 					int32_t id = proc->labels.table[i].id;
-					if (label_map.find(id)==label_map.end()) {
-						lab = c.newLabel();
-						label_map[id] = lab;
-					}
-					else
-						lab = label_map[id];
-					c.bind(lab);
+					c.bind(label_map[id]);
 				}
 			}
 			
@@ -304,14 +299,8 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 			case VM_Xor: GenBin(xor_operation); 	break;
 
 			case VM_Jump: {
-				Label lab;
-				if (label_map.find(args[0])==label_map.end()) {
-					lab = c.newLabel();
-					label_map[args[0]] = lab;
-				}
-				else
-					lab = label_map[args[0]];
-				c.jmp(lab);
+				c.cmp(frame.th, frame.th);
+				c.je(label_map[args[0]]);	
 			}
 			break;
     	}
@@ -319,15 +308,8 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
     }
 		for (size_t i=0;i<proc->labels.length;i++) {
 				if (proc->labels.table[i].value==pc) {
-					Label lab;
 					int32_t id = proc->labels.table[i].id;
-					if (label_map.find(id)==label_map.end()) {
-						lab = c.newLabel();
-						label_map[id] = lab;
-					}
-					else
-						lab = label_map[id];
-					c.bind(lab);
+					c.bind(label_map[id]);
 				}
 			}
 
