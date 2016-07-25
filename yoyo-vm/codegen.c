@@ -150,6 +150,9 @@ void Procedure_preprocess(ProcedureBuilder *proc) {
 void YCodeGen_endProcedure(YCodeGen* builder) {
 	if (builder->proc != NULL) {
 		Procedure_preprocess(builder->proc);
+        if (builder->jit!=NULL)
+            builder->proc->proc->compiled =
+            		builder->jit->compile(builder->jit, builder->proc->proc, builder->bc);
 		ProcedureBuilder* proc = builder->proc;
 		builder->proc = proc->prev;
 		free(proc->regs);
@@ -1388,6 +1391,7 @@ int32_t ycompile(YoyoCEnvironment* env, YNode* root, FILE* err_stream) {
 		return -1;
 	YCodeGen builder;
 	builder.bc = env->bytecode;
+    builder.jit = env->jit;
 	builder.proc = NULL;
 	builder.newProcedure = YCodeGen_newProcedure;
 	builder.endProcedure = YCodeGen_endProcedure;

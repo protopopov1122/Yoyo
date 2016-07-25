@@ -14,7 +14,7 @@ typedef struct CompiledProcedure {
 } CompiledProcedure;
 
 typedef struct JitCompiler {
-	CompiledProcedure* (*compile)(ILProcedure*, ILBytecode*);
+	CompiledProcedure* (*compile)(struct JitCompiler*, ILProcedure*, ILBytecode*);
 	void (*free)(struct JitCompiler*);
 } JitCompiler;
 

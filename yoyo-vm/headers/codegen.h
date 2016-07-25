@@ -65,6 +65,7 @@ typedef struct ProcedureBuilder {
 
 typedef struct YCodeGen {
 	ILBytecode* bc;
+	JitCompiler* jit;
 
 	ProcedureBuilder* (*newProcedure)(struct YCodeGen*);
 	void (*endProcedure)(struct YCodeGen*);

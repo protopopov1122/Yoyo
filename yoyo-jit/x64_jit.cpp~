@@ -51,7 +51,6 @@ typedef struct ProcedureFrame {
 
 void x64_set_register(X86GpVar var, int32_t reg, ProcedureFrame* frame, X86Compiler* c) {
 	if (reg>-1&&reg<frame->regc) {
-		// TODO NULL check
 		c->dec(x86::ptr(frame->regs[reg], offsetof(YValue, o)+offsetof(YoyoObject, linkc)));
 		c->mov(frame->regs[reg], var);
 		c->inc(x86::ptr(frame->regs[reg], offsetof(YValue, o)+offsetof(YoyoObject, linkc)));
@@ -59,30 +58,9 @@ void x64_set_register(X86GpVar var, int32_t reg, ProcedureFrame* frame, X86Compi
 }
 
 void x64_push(X86GpVar var, ProcedureFrame* frame, X86Compiler* c) {
-	// TODO NULL check
 	c->mov(frame->stack.clone().setIndex(frame->stack_index), var);
-	c->add(frame->stack_index, imm(sizeof(void*)));
+	c->inc(frame->stack_index);
 	c->inc(x86::ptr(var, offsetof(YValue, o)+offsetof(YoyoObject, linkc)));
-}
-
-void x64_pop(X86GpVar var, ProcedureFrame* frame, X86Compiler* c) {
-	Label end_l = c->newLabel();
-	c->mov(var, frame->null_ptr);
-	c->cmp(frame->stack_index, 0);
-	c->je(end_l);
-
-	c->sub(frame->stack_index, imm(sizeof(void*)));
-	c->mov(var, frame->stack.clone().setIndex(frame->stack_index));
-	c->dec(x86::ptr(var, offsetof(YValue, o)+offsetof(YoyoObject, linkc)));
-
-	c->bind(end_l);
-}
-
-void x64_popInt(X86GpVar var, ProcedureFrame* frame, X86Compiler* c) {
-	X86GpVar ptr = c->newIntPtr();
-	x64_pop(ptr, frame, c);
-	c->mov(var, x86::ptr(ptr, offsetof(YInteger, value)));
-	c->unuse(ptr);
 }
 
 void Test_fun() {
@@ -202,61 +180,6 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 				c.unuse(val);
 			}
 			break;
-
-			case VM_Call: {
-				X86GpVar argc = c.newInt32("Call_argc");
-				X86GpVar rargs = c.newIntPtr("Call_args");
-				x64_popInt(argc, &frame, &c);
-
-				X86GpVar size_reg = c.newUInt32("Call_args_size");
-				c.mov(size_reg, argc);
-				c.imul(size_reg, imm(sizeof(YValue*)));
-				X86CallNode* malloc_call = c.call(imm_ptr(malloc),
-					FuncBuilder1<void*, size_t>(kCallConvHost));
-				malloc_call->setArg(0, size_reg);
-				malloc_call->setRet(0, rargs);
-				
-				c.mov(size_reg, argc);
-				X86GpVar index = c.newUInt32("Call_index");
-				X86GpVar value = c.newIntPtr("Call_value");
-				Label loop1_start = c.newLabel();
-				Label loop1_end = c.newLabel();
-				c.bind(loop1_start);
-				c.cmp(size_reg, imm(0));
-				c.je(loop1_end);
-				c.dec(size_reg);
-				c.mov(index, size_reg);
-				c.imul(index, sizeof(YValue*));
-				x64_pop(value, &frame, &c);
-				c.mov(x86::ptr(rargs, index), value);
-				c.jmp(loop1_start);
-				c.bind(loop1_end);
-				c.unuse(index);
-
-
-				X86GpVar lmbd = x64_get_register(args[1], &frame);
-				X86CallNode* invokeLambda_call = c.call(imm_ptr(invokeLambda),
-					FuncBuilder5<YValue*, YLambda*, YObject*, YValue**, int32_t, YThread*>(kCallConvHost));
-				invokeLambda_call->setArg(0, lmbd);
-				invokeLambda_call->setArg(1, imm_ptr(NULL));
-				invokeLambda_call->setArg(2, rargs);
-				invokeLambda_call->setArg(3, argc);
-				invokeLambda_call->setArg(4, frame.th);
-				invokeLambda_call->setRet(0, value);
-
-				x64_set_register(value, args[0], &frame, &c);
-
-
-				X86CallNode* free_call = c.call(imm_ptr(free),
-					FuncBuilder1<void, void*>(kCallConvHost));
-				free_call->setArg(0, rargs);
-
-				c.unuse(argc);	
-				c.unuse(rargs);
-				c.unuse(value);
-				c.unuse(size_reg);
-			}
-			break;
     	}
     	pc+=13;
     }
@@ -266,16 +189,19 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
     		c.unuse(frame.regs[i]);
     }
 
-		X86GpVar stack_el = c.newIntPtr();
 		Label stack_free_start = c.newLabel();
 		Label stack_free_end = c.newLabel();
 		c.bind(stack_free_start);
 		c.cmp(frame.stack_index, imm(0));
 		c.je(stack_free_end);
-		x64_pop(stack_el, &frame, &c);
+		c.dec(frame.stack_index);
+		c.dec(ptr(frame.stack.clone().setIndex(frame.stack_index), offsetof(YValue, o)+
+			offsetof(YoyoObject, linkc)));
+		X86CallNode* test_call = c.call(imm_ptr(Test_fun),
+			FuncBuilder0<void>(kCallConvHost));
+
 		c.jmp(stack_free_start);
 		c.bind(stack_free_end);
-		c.unuse(stack_el);
 
 
     X86GpVar ret = c.newIntPtr("return");

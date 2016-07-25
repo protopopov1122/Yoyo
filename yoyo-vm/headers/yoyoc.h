@@ -19,6 +19,7 @@
 
 #include "yoyo-runtime.h"
 #include "interpreter.h"
+#include "jit.h"
 
 typedef struct EnvEntry {
 	wchar_t* key;
@@ -28,6 +29,7 @@ typedef struct EnvEntry {
 typedef struct YoyoCEnvironment {
 	Environment env;
 	ILBytecode* bytecode;
+	JitCompiler* jit;
 
 	EnvEntry* envvars;
 	size_t envvars_size;
