@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <map>
 #include <asmjit/asmjit.h>
 
 using namespace std;
@@ -85,8 +86,10 @@ void x64_popInt(X86GpVar var, ProcedureFrame* frame, X86Compiler* c) {
 	c->unuse(ptr);
 }
 
-void Test_fun() {
-	printf("TEST\n");
+void test_fun(YValue* v, YThread* th) {
+	wchar_t* wcs = toString(v, th);
+	printf("\t%ls\n", wcs);
+	free(wcs);
 }
 
 #define x64_get_register(reg, frame) (reg>-1&&reg<(frame)->regc ? (frame)->regs[reg] : (frame)->null_ptr)
@@ -95,7 +98,7 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 	if (proc==NULL)
 		return NULL;
 	X64JitCompiler* jit = (X64JitCompiler*) jc;
-	FileLogger logger(stdout);
+	StringLogger logger;
 	X86Assembler a(jit->runtime);  
 	a.setLogger(&logger);
     X86Compiler c(&a);
@@ -104,6 +107,7 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
     cproc->runtime = jit->runtime;
     cproc->cproc.free = x64CompiledProcedure_free;
 
+		map<int32_t, Label> label_map;
     c.addFunc(FuncBuilder2<YValue*, YObject*, YThread*>(kCallConvHost));
     // Frame initialization
     ProcedureFrame frame;
@@ -134,6 +138,20 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 
     size_t pc = 0;
     while (pc+13<=proc->code_length) {
+			for (size_t i=0;i<proc->labels.length;i++) {
+				if (proc->labels.table[i].value==pc) {
+					Label lab;
+					int32_t id = proc->labels.table[i].id;
+					if (label_map.find(id)==label_map.end()) {
+						lab = c.newLabel();
+						label_map[id] = lab;
+					}
+					else
+						lab = label_map[id];
+					c.bind(lab);
+				}
+			}
+			
     	uint8_t opcode = proc->code[pc];
     	int32_t* args = (int32_t*) &proc->code[pc+1];
     	switch (opcode) {
@@ -257,9 +275,62 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 				c.unuse(size_reg);
 			}
 			break;
+
+			#define GenBin(op) {\
+				X86GpVar op1 = x64_get_register(args[1], &frame);\
+				X86GpVar op2 = x64_get_register(args[2], &frame);\
+				X86GpVar val = c.newIntPtr();\
+				c.mov(val, x86::ptr(op1, offsetof(YValue, type)));\
+				c.mov(val, x86::ptr(val, offsetof(YType, oper)+offsetof(Operations, op)));\
+				X86CallNode* call = c.call(val, FuncBuilder3<YValue*, YValue*, YValue*, YThread*>(kCallConvHost));\
+				call->setArg(0, op1);\
+				call->setArg(1, op2);\
+				call->setArg(2, frame.th);\
+				call->setRet(0, val);\
+				x64_set_register(val, args[0], &frame, &c);\
+				c.unuse(val);\
+			}
+
+			case VM_Add: GenBin(add_operation); 	break;
+			case VM_Subtract: GenBin(subtract_operation); 	break;
+			case VM_Multiply: GenBin(multiply_operation); 	break;
+			case VM_Divide: GenBin(divide_operation); 	break;
+			case VM_Modulo: GenBin(modulo_operation); 	break;
+			case VM_Power: GenBin(power_operation); 	break;
+			case VM_ShiftLeft: GenBin(shl_operation); 	break;
+			case VM_ShiftRight: GenBin(shr_operation); 	break;
+			case VM_And: GenBin(and_operation); 	break;
+			case VM_Or: GenBin(or_operation); 	break;
+			case VM_Xor: GenBin(xor_operation); 	break;
+
+			case VM_Jump: {
+				Label lab;
+				if (label_map.find(args[0])==label_map.end()) {
+					lab = c.newLabel();
+					label_map[args[0]] = lab;
+				}
+				else
+					lab = label_map[args[0]];
+				c.jmp(lab);
+			}
+			break;
     	}
     	pc+=13;
     }
+		for (size_t i=0;i<proc->labels.length;i++) {
+				if (proc->labels.table[i].value==pc) {
+					Label lab;
+					int32_t id = proc->labels.table[i].id;
+					if (label_map.find(id)==label_map.end()) {
+						lab = c.newLabel();
+						label_map[id] = lab;
+					}
+					else
+						lab = label_map[id];
+					c.bind(lab);
+				}
+			}
+
 
 		for (size_t i=0;i<proc->regc;i++) {
     		c.dec(x86::ptr(frame.regs[i], offsetof(YValue, o)+offsetof(YoyoObject, linkc)));
@@ -291,6 +362,8 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
     c.finalize();
     void* funcPtr = a.make();
     cproc->cproc.call = asmjit_cast<NativeProcedure>(funcPtr);
+
+		cout << logger.getString() << endl;
 
     return (CompiledProcedure*) cproc;
 }

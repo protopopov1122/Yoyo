@@ -86,8 +86,10 @@ SourceIdentifier ExecutionFrame_get_source_id(LocalFrame* f) {
 YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope,
 		YoyoType* retType, YThread* th) {
 	ILProcedure* proc = bytecode->procedures[procid];
-	if (proc->compiled!=NULL)
+	if (proc->compiled!=NULL) {
 		proc->compiled->call(scope, th);
+		return getNull(th);
+	}
 
 	ExecutionFrame frame;
 

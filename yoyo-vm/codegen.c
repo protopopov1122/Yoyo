@@ -149,10 +149,11 @@ void Procedure_preprocess(ProcedureBuilder *proc) {
 }
 void YCodeGen_endProcedure(YCodeGen* builder) {
 	if (builder->proc != NULL) {
-		Procedure_preprocess(builder->proc);
-        if (builder->jit!=NULL)
-            builder->proc->proc->compiled =
-            		builder->jit->compile(builder->jit, builder->proc->proc, builder->bc);
+		if (builder->jit==NULL)
+			Procedure_preprocess(builder->proc);
+		else
+  		builder->proc->proc->compiled =
+    		builder->jit->compile(builder->jit, builder->proc->proc, builder->bc);
 		ProcedureBuilder* proc = builder->proc;
 		builder->proc = proc->prev;
 		free(proc->regs);
