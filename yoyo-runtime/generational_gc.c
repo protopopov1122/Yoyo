@@ -80,6 +80,11 @@ void GenerationalGC_registrate(GarbageCollector* _gc, YoyoObject* ptr) {
 void generation_collect(GenerationalGC* gc, ObjectGeneration* gen) {
 	if (!gen->need_gc)
 		return;
+	for (size_t i=0;i<gen->size;i++) {
+		YoyoObject* ptr = gen->pool[i];
+		if (ptr->linkc!=0)
+			MARK(ptr);
+	}
 	const clock_t MAX_AGE = CLOCKS_PER_SEC;
 	gen->need_gc = false;
 	YoyoObject** newPool = malloc(sizeof(YoyoObject*) * gen->capacity);

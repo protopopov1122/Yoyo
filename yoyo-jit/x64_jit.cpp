@@ -93,6 +93,15 @@ void test_fun(YValue* v, YThread* th) {
 }
 
 #define x64_get_register(reg, frame) (reg>-1&&reg<(frame)->regc ? (frame)->regs[reg] : (frame)->null_ptr)
+#define x64_assert_type(var, tp, c) {X86GpVar _var = c.newIntPtr();\
+																		X86GpVar _val =  c.newInt16();\
+																		c.mov(_var, x86::ptr(var, offsetof(YValue, type)));\
+																		c.mov(_val, x86::ptr(_var, offsetof(YType, type)));\
+																		c.unuse(_var);\
+																		c.and_(_val, imm(0xFF));\
+																		c.cmp(_val, imm(tp));\
+																		c.unuse(_val);}
+
 
 CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode* bc) {
 	if (proc==NULL)
@@ -169,6 +178,23 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 					x64_set_register(val_ptr, args[0], &frame, &c);
     			c.unuse(val_ptr);
     		}
+				break;
+				case Constant::BooleanC: {
+    			X86GpVar var_c = c.newInt32("constant_%" PRId32, args[1]);
+    			c.mov(var_c, imm(((BooleanConstant*) cnst)->value));
+    			X86GpVar val_ptr = c.newIntPtr();
+
+    			X86CallNode* call = c.call(imm_ptr(newBoolean),
+    					FuncBuilder2<YValue*, int32_t, YThread*>(kCallConvHost));
+    			call->setArg(0, var_c);
+    			call->setArg(1, frame.th);
+    			call->setRet(0, val_ptr);
+
+    			c.unuse(var_c);
+					x64_set_register(val_ptr, args[0], &frame, &c);
+    			c.unuse(val_ptr);
+
+				}
     		break;
     		}
     	}
@@ -298,9 +324,124 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 			case VM_Or: GenBin(or_operation); 	break;
 			case VM_Xor: GenBin(xor_operation); 	break;
 
+			case VM_Compare: {
+				X86GpVar op1 = x64_get_register(args[1], &frame);
+				X86GpVar op2 = x64_get_register(args[2], &frame);
+				X86GpVar ptr = c.newIntPtr();
+				X86GpVar val = c.newInt64();
+				c.mov(ptr, x86::ptr(op1, offsetof(YValue, type)));
+				c.mov(ptr, x86::ptr(ptr, offsetof(YType, oper)+offsetof(Operations, compare)));
+				c.xor_(val, val);
+				X86CallNode* call = c.call(ptr, FuncBuilder3<int, YValue*, YValue*, YThread*>(kCallConvHost));
+				call->setArg(0, op1);
+				call->setArg(1, op2);
+				call->setArg(2, frame.th);
+				call->setRet(0, val);
+
+				X86CallNode* newInt_call = c.call(imm_ptr(newInteger),
+					FuncBuilder2<YValue*, int64_t, YThread*>(kCallConvHost));
+				newInt_call->setArg(0, val);
+				newInt_call->setArg(1, frame.th);
+				newInt_call->setRet(0, ptr);
+				x64_set_register(ptr, args[0], &frame, &c);
+				c.unuse(val);
+				c.unuse(ptr);
+
+			}
+			break;
+			case VM_Test: {
+				X86GpVar op1 = x64_get_register(args[1], &frame);
+				X86GpVar op2 = x64_get_register(args[2], &frame);
+				Label falseL = c.newLabel();
+				Label trueL = c.newLabel();
+				x64_assert_type(op1, IntegerT, c);
+				c.jne(falseL);
+				x64_assert_type(op2, IntegerT, c);
+				c.jne(falseL);
+
+				X86GpVar i_var = c.newInt64();
+				X86GpVar i2_var = c.newInt64();
+				c.mov(i_var, x86::ptr(op1, offsetof(YInteger, value)));
+				c.mov(i2_var, x86::ptr(op2, offsetof(YInteger, value)));
+				c.and_(i_var, i2_var);
+				c.unuse(i2_var);
+				c.cmp(i_var, imm(0));
+				c.jne(falseL);
+				c.unuse(i_var);
+
+    		X86GpVar val_ptr = c.newIntPtr();
+    		X86CallNode* call = c.call(imm_ptr(newBoolean),
+    			FuncBuilder2<YValue*, int32_t, YThread*>(kCallConvHost));
+    		call->setArg(0, imm(true));
+    		call->setArg(1, frame.th);
+    		call->setRet(0, val_ptr);
+				x64_set_register(val_ptr, args[0], &frame, &c);
+	   		c.unuse(val_ptr);
+				
+
+				c.bind(falseL);
+
+    		X86GpVar val_ptr = c.newIntPtr();
+    		X86CallNode* call = c.call(imm_ptr(newBoolean),
+    			FuncBuilder2<YValue*, int32_t, YThread*>(kCallConvHost));
+    		call->setArg(0, imm(true));
+    		call->setArg(1, frame.th);
+    		call->setRet(0, val_ptr);
+				x64_set_register(val_ptr, args[0], &frame, &c);
+	   		c.unuse(val_ptr);
+				c.jmp(trueL);
+
+				c.bind(falseL);
+
+    		X86GpVar val_ptr = c.newIntPtr();
+    		X86CallNode* call = c.call(imm_ptr(newBoolean),
+    			FuncBuilder2<YValue*, int32_t, YThread*>(kCallConvHost));
+    		call->setArg(0, imm(false));
+    		call->setArg(1, frame.th);
+    		call->setRet(0, val_ptr);
+				x64_set_register(val_ptr, args[0], &frame, &c);
+	   		c.unuse(val_ptr);
+
+				c.bind(trueL);
+
+			}
+			break;
+
 			case VM_Jump: {
 				c.cmp(frame.th, frame.th);
 				c.je(label_map[args[0]]);	
+			}
+			break;
+			case VM_JumpIfTrue: {
+				X86GpVar reg = x64_get_register(args[1], &frame);
+				Label notBool = c.newLabel();
+				x64_assert_type(reg, BooleanT, c);
+				c.jne(notBool);
+				X86GpVar tmp = c.newInt32();
+
+				c.mov(tmp, x86::ptr(reg, offsetof(YBoolean, value)));
+				c.and_(tmp, imm(1));
+
+				c.cmp(tmp, imm(true));
+				c.je(label_map[args[0]]);
+				c.unuse(tmp);
+				c.bind(notBool);
+			}
+			break;
+			case VM_JumpIfFalse: {
+				X86GpVar reg = x64_get_register(args[1], &frame);
+				Label notBool = c.newLabel();
+				x64_assert_type(reg, BooleanT, c);
+				c.jne(notBool);
+				X86GpVar tmp = c.newInt32();
+
+				c.mov(tmp, x86::ptr(reg, offsetof(YBoolean, value)));
+				c.and_(tmp, imm(1));
+
+				c.cmp(tmp, imm(false));
+				c.je(label_map[args[0]]);
+				c.unuse(tmp);
+				c.bind(notBool);
 			}
 			break;
     	}

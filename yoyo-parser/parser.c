@@ -856,13 +856,13 @@ NewReduce(Bitshift_reduce) {
 		YBinaryOperation op;
 		if (AssertOperator(handle->tokens[0], GreaterOperator))
 			op = ShiftRight;
-		if (AssertOperator(handle->tokens[0], LesserOperator))
+		else
 			op = ShiftLeft;
 		shift(handle);
 		shift(handle);
 		YNode* left;
 		ExpectReduce(&left, add_sub, L"Expected expression", node->free(node)
-		;, handle);
+			;, handle);
 		node = newBinaryNode(op, node, left);
 	}
 	SetCoords(node, file, line, charPos);
@@ -989,7 +989,7 @@ NewReduce(Logical_ops_reduce) {
 		YBinaryOperation op;
 		if (AssertOperator(handle->tokens[0], AndOperator))
 			op = LogicalAnd;
-		if (AssertOperator(handle->tokens[0], OrOperator))
+		else
 			op = LogicalOr;
 		shift(handle);
 		shift(handle);

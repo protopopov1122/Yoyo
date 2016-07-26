@@ -39,6 +39,11 @@ typedef struct PlainGC {
 
 void plain_gc_collect(GarbageCollector* _gc) {
 	PlainGC* gc = (PlainGC*) _gc;
+	for (size_t i=gc->used-1;i<gc->used;i--) {
+		YoyoObject* ptr = gc->objects[i];
+		if (ptr->linkc!=0)
+				MARK(ptr);
+	}
 	const clock_t MAX_AGE = CLOCKS_PER_SEC;
 	YoyoObject** newHeap = malloc(gc->size * sizeof(YoyoObject*)); /* Pointers to all necesarry objects are
 	 moved to another memory area to
