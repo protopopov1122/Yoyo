@@ -62,4 +62,7 @@
 	<opcode mnemonic="Iterate" code="0x33" />
 	<opcode mnemonic="NewInterface" code="0x34" />
 	<opcode mnemonic="ChType" code="0x35" />
+	<opcode mnemonic="FastCompare" code="0x36" />
+	<opcode mnemonic="Increment" code="0x37" />
+	<opcode mnemonic="Decrement" code="0x38" />
 </opcodes>

@@ -315,6 +315,14 @@ YValue* execute(YThread* th) {
 				setRegister(getNull(th), iarg0, th);
 		}
 			break;
+		case VM_FastCompare: {
+			YValue* v1 = getRegister(iarg0, th);
+			YValue* v2 = getRegister(iarg1, th);
+			int i = v1->type->oper.compare(v1, v2, th);
+			YValue* res = newBoolean((i & iarg2) != 0, th);
+			setRegister(res, iarg0, th);
+		}
+		break;
 			/*These instruction perform polymorph unary operations*/
 		case VM_Negate: {
 			YValue* v1 = getRegister(iarg1, th);
@@ -326,6 +334,38 @@ YValue* execute(YThread* th) {
 			setRegister(v1->type->oper.not_operation(v1, th), iarg0, th);
 		}
 			break;
+		case VM_Increment: {
+			YValue* v1 = getRegister(iarg1, th);
+			if (v1->type->type==IntegerT) {
+				int64_t i = getInteger(v1);
+				i++;
+				setRegister(newInteger(i, th), iarg0, th);
+			} else if (v1->type->type==FloatT) {
+				double i = getFloat(v1);
+				i++;
+				setRegister(newFloat(i, th), iarg0, th);
+			} else {
+				setRegister(v1, iarg0, th);
+			}
+
+		}
+		break;
+		case VM_Decrement: {
+			YValue* v1 = getRegister(iarg1, th);
+			if (v1->type->type==IntegerT) {
+				int64_t i = getInteger(v1);
+				i--;
+				setRegister(newInteger(i, th), iarg0, th);
+			} else if (v1->type->type==FloatT) {
+				double i = getFloat(v1);
+				i--;
+				setRegister(newFloat(i, th), iarg0, th);
+			} else {
+				setRegister(v1, iarg0, th);
+			}
+
+		}
+		break;
 
 		case VM_Call: {
 			/*Invoke lambda from register.

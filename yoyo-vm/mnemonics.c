@@ -71,5 +71,8 @@ Mnemonic Mnemonics[] = {
 	{0x33, L"Iterate"},
 	{0x34, L"NewInterface"},
 	{0x35, L"ChType"},
+	{0x36, L"FastCompare"},
+	{0x37, L"Increment"},
+	{0x38, L"Decrement"},
 };
-const size_t OPCODE_COUNT = 53;
+const size_t OPCODE_COUNT = 56;

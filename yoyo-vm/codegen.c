@@ -667,8 +667,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		int32_t endL = proc->nextLabel(proc);
 
 		proc->bind(proc, startL);
-		proc->append(proc, VM_Compare, reg, count, index);
-		proc->append(proc, VM_Test, reg, reg, COMPARE_EQUALS);
+		proc->append(proc, VM_Copy, reg, index, -1);
+		proc->append(proc, VM_FastCompare, reg, count, COMPARE_EQUALS);
 		proc->append(proc, VM_JumpIfTrue, endL, reg, -1);
 
 		proc->append(proc, VM_ArraySet, arr, index, val);
@@ -697,10 +697,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			proc->append(proc, VM_Not, reg, reg, -1);
 			break;
 		case PreDecrement: {
-			int32_t one = proc->nextRegister(proc);
-			proc->append(proc, VM_LoadInteger, one, 1, -1);
-			proc->append(proc, VM_Subtract, reg, reg, one);
-			proc->unuse(proc, one);
+			proc->append(proc, VM_Decrement, reg, reg, -1);
 			YModifier* mod = ymodifier(builder, env, un->argument);
 			if (mod == NULL) {
 				fprintf(env->env.out_stream,
@@ -713,10 +710,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		}
 			break;
 		case PreIncrement: {
-			int32_t one = proc->nextRegister(proc);
-			proc->append(proc, VM_LoadInteger, one, 1, -1);
-			proc->append(proc, VM_Add, reg, reg, one);
-			proc->unuse(proc, one);
+			proc->append(proc, VM_Increment, reg, reg, -1);
 			YModifier* mod = ymodifier(builder, env, un->argument);
 			if (mod == NULL) {
 				fprintf(env->env.out_stream,
@@ -730,10 +724,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			break;
 		case PostDecrement: {
 			int32_t res = proc->nextRegister(proc);
-			int32_t one = proc->nextRegister(proc);
-			proc->append(proc, VM_LoadInteger, one, 1, -1);
-			proc->append(proc, VM_Copy, res, reg, -1);
-			proc->append(proc, VM_Subtract, res, res, one);
+			proc->append(proc, VM_Decrement, res, reg, -1);
 
 			YModifier* mod = ymodifier(builder, env, un->argument);
 			if (mod == NULL) {
@@ -744,18 +735,13 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			}
 			mod->setter(mod, builder, env, false, res);
 			mod->free(mod);
-
-			proc->unuse(proc, one);
 			proc->unuse(proc, res);
 
 		}
 			break;
 		case PostIncrement: {
 			int32_t res = proc->nextRegister(proc);
-			int32_t one = proc->nextRegister(proc);
-			proc->append(proc, VM_LoadInteger, one, 1, -1);
-			proc->append(proc, VM_Copy, res, reg, -1);
-			proc->append(proc, VM_Add, res, res, one);
+			proc->append(proc, VM_Increment, res, reg, -1);
 
 			YModifier* mod = ymodifier(builder, env, un->argument);
 			if (mod == NULL) {
@@ -767,7 +753,6 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			mod->setter(mod, builder, env, false, res);
 			mod->free(mod);
 
-			proc->unuse(proc, one);
 			proc->unuse(proc, res);
 
 		}
@@ -850,30 +835,24 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			proc->append(proc, VM_Xor, out, left, right);
 			break;
 		case BEquals:
-			proc->append(proc, VM_Compare, out, left, right);
-			proc->append(proc, VM_Test, out, out, COMPARE_EQUALS);
+			proc->append(proc, VM_FastCompare, left, right, COMPARE_EQUALS);
 			break;
 		case NotEquals:
-			proc->append(proc, VM_Compare, out, left, right);
-			proc->append(proc, VM_Test, out, out, COMPARE_NOT_EQUALS);
+			proc->append(proc, VM_FastCompare, left, right, COMPARE_NOT_EQUALS);
 			break;
 		case Lesser:
-			proc->append(proc, VM_Compare, out, left, right);
-			proc->append(proc, VM_Test, out, out, COMPARE_LESSER);
+			proc->append(proc, VM_FastCompare, left, right, COMPARE_LESSER);
 			break;
 		case Greater:
-			proc->append(proc, VM_Compare, out, left, right);
-			proc->append(proc, VM_Test, out, out, COMPARE_GREATER);
+			proc->append(proc, VM_FastCompare, left, right, COMPARE_GREATER);
 			break;
 		case LesserOrEquals:
-			proc->append(proc, VM_Compare, out, left, right);
-			proc->append(proc, VM_Test, out, out,
-			COMPARE_LESSER_OR_EQUALS);
+			proc->append(proc, VM_FastCompare, left, right,
+					COMPARE_LESSER_OR_EQUALS);
 			break;
 		case GreaterOrEquals:
-			proc->append(proc, VM_Compare, out, left, right);
-			proc->append(proc, VM_Test, out, out,
-			COMPARE_GREATER_OR_EQUALS);
+			proc->append(proc, VM_FastCompare, left, right,
+					COMPARE_GREATER_OR_EQUALS);
 			break;
 		default:
 			break;
@@ -1238,8 +1217,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		for (size_t i = 0; i < swn->length; i++) {
 			labels[i] = proc->nextLabel(proc);
 			int32_t reg = ytranslate(builder, env, swn->cases[i].value);
-			proc->append(proc, VM_Compare, reg, valueReg, reg);
-			proc->append(proc, VM_Test, reg, reg, COMPARE_EQUALS);
+			proc->append(proc, VM_FastCompare, reg, valueReg, COMPARE_EQUALS);
 			proc->append(proc, VM_JumpIfTrue, labels[i], reg, -1);
 			proc->unuse(proc, reg);
 		}

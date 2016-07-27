@@ -72,6 +72,9 @@
 	#define VM_Iterate 0x33
 	#define VM_NewInterface 0x34
 	#define VM_ChType 0x35
+	#define VM_FastCompare 0x36
+	#define VM_Increment 0x37
+	#define VM_Decrement 0x38
 typedef struct Mnemonic{
 	uint8_t opcode;
 	wchar_t* mnemonic;
