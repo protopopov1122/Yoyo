@@ -222,6 +222,10 @@ YValue* execute(YThread* th) {
 			push(getRegister(iarg0, th), th);
 		}
 			break;
+		case VM_PushInteger: {
+			push(newInteger(iarg0, th), th);
+		}
+		break;
 
 			/*Next instructions load values from two registers,
 			 * perform polymorph binary operation and

@@ -17,6 +17,7 @@
 #include "headers/parser.h"
 
 #define NEW_BINARY(op, left, right) optimize_node(newBinaryNode(op, left, right)) 
+#define NEW_UNARY(op, arg) optimize_node(newUnaryNode(op, arg))
 
 wchar_t* getSymbol(ParseHandle* handle, wchar_t* wcs) {
 	for (size_t i = 0; i < handle->symbols_size; i++)
@@ -694,7 +695,7 @@ NewReduce(Unary_reduce) {
 		/*Get argument and save PreIncrement operation*/
 		YNode* arg;
 		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
-		unary = newUnaryNode(PreIncrement, arg);
+		unary = NEW_UNARY(PreIncrement, arg);
 	}
 
 	else if (AssertOperator(handle->tokens[0],
@@ -705,7 +706,7 @@ NewReduce(Unary_reduce) {
 		/*Get argument and save PreDecrement operation*/
 		YNode* arg;
 		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
-		unary = newUnaryNode(PreDecrement, arg);
+		unary = NEW_UNARY(PreDecrement, arg);
 	}
 
 	else if (AssertOperator(handle->tokens[0], PlusOperator)) {
@@ -723,7 +724,7 @@ NewReduce(Unary_reduce) {
 		shift(handle);
 		YNode* arg;
 		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
-		unary = newUnaryNode(Negate, arg);
+		unary = NEW_UNARY(Negate, arg);
 	}
 
 	else if (AssertOperator(handle->tokens[0], NotOperator)) {
@@ -732,7 +733,7 @@ NewReduce(Unary_reduce) {
 		shift(handle);
 		YNode* arg;
 		ExpectReduce(&arg, reference, L"Expected reference", ;, handle);
-		unary = newUnaryNode(Not, arg);
+		unary = NEW_UNARY(Not, arg);
 	}
 
 	else {
@@ -747,14 +748,14 @@ NewReduce(Unary_reduce) {
 			 * Get argument and save PostIncrement operation*/
 			shift(handle);
 			shift(handle);
-			unary = newUnaryNode(PostIncrement, out);
+			unary = NEW_UNARY(PostIncrement, out);
 		} else if (AssertOperator(handle->tokens[0],
 				MinusOperator) && AssertOperator(handle->tokens[1], MinusOperator)) {
 			/* It's '--' operation
 			 * Get argument and save PostDecrement operation*/
 			shift(handle);
 			shift(handle);
-			unary = newUnaryNode(PostDecrement, out);
+			unary = NEW_UNARY(PostDecrement, out);
 		}
 
 		else {
@@ -968,7 +969,7 @@ NewReduce(Logical_not_reduce) {
 	if (AssertOperator(handle->tokens[0], LogicalNotOperator)) {
 		shift(handle);
 		ExpectReduce(&node, comparison, L"Expected expression", ;, handle);
-		node = newUnaryNode(LogicalNot, node);
+		node = NEW_UNARY(LogicalNot, node);
 	} else {
 		ExpectReduce(&node, comparison, L"Expected expression", ;, handle);
 	}

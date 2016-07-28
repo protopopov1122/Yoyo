@@ -74,5 +74,6 @@ Mnemonic Mnemonics[] = {
 	{0x36, L"FastCompare"},
 	{0x37, L"Increment"},
 	{0x38, L"Decrement"},
+	{0x39, L"PushInteger"},
 };
-const size_t OPCODE_COUNT = 56;
+const size_t OPCODE_COUNT = 57;

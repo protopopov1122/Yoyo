@@ -80,5 +80,6 @@ typedef struct YCodeGen {
 
 int32_t ycompile(YoyoCEnvironment*, YNode*, FILE*);
 YModifier* ymodifier(YCodeGen*, YoyoCEnvironment*, YNode*);
+void optimize_procedure(ILProcedure*);
 
 #endif

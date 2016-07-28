@@ -2,7 +2,39 @@
 #include "math.h"
 
 YNode* fold_constants(YNode* nd) {
-	if (nd->type==BinaryN) {
+	if (nd->type==UnaryN) {
+		YUnaryNode* un = (YUnaryNode*) nd;
+		if (un->argument->type==ConstantN) {
+			yconstant_t cnst = ((YConstantNode*) un->argument)->id;
+			switch (un->operation) {
+				case Negate: {
+					if (cnst.type==Int64Constant) {
+						nd->free(nd);
+						yconstant_t newc = {.type = Int64Constant};
+						newc.value.i64 = -cnst.value.i64;
+						return newConstantNode(newc);
+					} else if (cnst.type==Int64Constant) {
+						nd->free(nd);
+						yconstant_t newc = {.type = Int64Constant};
+						newc.value.fp64 = -cnst.value.fp64;
+						return newConstantNode(newc);
+					}
+				}
+				break;
+				case Not: {
+					if (cnst.type==Int64Constant) {
+						nd->free(nd);
+						yconstant_t newc = {.type = Int64Constant};
+						newc.value.i64 = ~cnst.value.i64;
+						return newConstantNode(newc);
+					}
+				}
+				break;
+				default:
+				break;
+			}
+		}
+	} else 	if (nd->type==BinaryN) {
 		YBinaryNode* bin = (YBinaryNode*) nd;
 		if (bin->left->type==ConstantN&&
 				bin->right->type==ConstantN) {

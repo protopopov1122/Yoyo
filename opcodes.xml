@@ -65,4 +65,5 @@
 	<opcode mnemonic="FastCompare" code="0x36" />
 	<opcode mnemonic="Increment" code="0x37" />
 	<opcode mnemonic="Decrement" code="0x38" />
+	<opcode mnemonic="PushInteger" code="0x39" />
 </opcodes>
