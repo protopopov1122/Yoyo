@@ -65,7 +65,7 @@ LabelEntry* Procedure_getLabel(ILProcedure* proc, int32_t id) {
 	return NULL;
 }
 void Procedure_addCodeTableEntry(ILProcedure* proc, uint32_t line,
-		uint32_t charPos, uint32_t offset, uint32_t len, int32_t file) {
+		uint32_t charPos, uint32_t offset, uint32_t end, int32_t file) {
 	proc->codeTable.length++;
 	proc->codeTable.table = realloc(proc->codeTable.table,
 			sizeof(CodeTableEntry) * proc->codeTable.length);
@@ -73,14 +73,14 @@ void Procedure_addCodeTableEntry(ILProcedure* proc, uint32_t line,
 	proc->codeTable.table[i].line = line;
 	proc->codeTable.table[i].charPos = charPos;
 	proc->codeTable.table[i].offset = offset;
-	proc->codeTable.table[i].length = len;
+	proc->codeTable.table[i].end = end;
 	proc->codeTable.table[i].file = file;
 }
 CodeTableEntry* Procedure_getCodeTableEntry(ILProcedure* proc, uint32_t pc) {
 	CodeTableEntry* entry = NULL;
 	for (size_t i = 0; i < proc->codeTable.length; i++) {
 		CodeTableEntry* ent = &proc->codeTable.table[i];
-		if (ent->offset <= pc && pc <= ent->offset + ent->length) {
+		if (ent->offset <= pc && pc <= ent->end) {
 			if (entry == NULL)
 				entry = ent;
 			if (entry != NULL && ent->offset > entry->offset)

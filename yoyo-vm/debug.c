@@ -477,6 +477,21 @@ void DefaultDebugger_interpret_start(YDebug* debug, void* ptr, YThread* th) {
 }
 
 void DefaultDebugger_interpret_end(YDebug* debug, void* ptr, YThread* th) {
+	if (th->exception!=NULL) {
+		wchar_t* wstr = toString(th->exception, th);
+		fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
+		free(wstr);
+		YValue* e = th->exception;
+		if (e->type->type==ObjectT) {
+				YObject* obj = (YObject*) e;
+				if (OBJECT_HAS(obj, L"trace", th)) {
+					YValue* trace = OBJECT_GET(obj, L"trace", th);
+					wchar_t* wcs = toString(trace, th);
+					printf("%ls\n", wcs);
+					free(wcs);
+				}
+			}
+	}
 	fprintf(th->runtime->env->out_stream, "Thread #%"PRIu32" finished\n",
 			th->id);
 	DefaultDebugger_cli(debug, th);

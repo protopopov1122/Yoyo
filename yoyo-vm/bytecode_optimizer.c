@@ -12,6 +12,7 @@ typedef struct CommandStream {
 	size_t length;
 	size_t index;
 	LabelTable labels;
+	CodeTable codeTable;
 	ILProcedure* proc;
 
 	VMCommand* stream[4];
@@ -26,6 +27,7 @@ void CommandStream_close(CommandStream* cs) {
 			free(cs->stream[i]);
 	free(cs->input);
 	free(cs->labels.table);
+	free(cs->codeTable.table);
 	free(cs);
 }
 VMCommand* CommandStream_shift(CommandStream* cs) {
@@ -54,9 +56,19 @@ VMCommand* CommandStream_shift(CommandStream* cs) {
 	} else {
 		cs->stream[3] = NULL;
 	}
-	if (cs->stream[0]!=NULL) for (size_t i=0;i<cs->labels.length;i++) {
-		if (cs->labels.table[i].value == cs->stream[0]->old_position) {
-			cs->proc->labels.table[i].value = cs->proc->code_length;
+	if (cs->stream[0]!=NULL) {
+		for (size_t i=0;i<cs->labels.length;i++) {
+			if (cs->labels.table[i].value == cs->stream[0]->old_position) {
+				cs->proc->labels.table[i].value = cs->proc->code_length;
+			}
+		}
+		for (size_t i=0;i<cs->codeTable.length;i++) {
+			if (cs->codeTable.table[i].offset == cs->stream[0]->old_position) {
+				cs->proc->codeTable.table[i].offset = cs->proc->code_length;
+			}
+			if (cs->codeTable.table[i].end == cs->stream[0]->old_position) {
+				cs->proc->codeTable.table[i].end = cs->proc->code_length;
+			}
 		}
 	}
 
@@ -84,7 +96,10 @@ CommandStream* newCommandStream(ILProcedure* proc) {
 	free(proc->code);
 	cs->labels.length = proc->labels.length;
 	cs->labels.table = malloc(sizeof(LabelEntry) * proc->labels.length);
+	cs->codeTable.length = proc->codeTable.length;
+	cs->codeTable.table = malloc(sizeof(CodeTableEntry) * proc->codeTable.length);
 	memcpy(cs->labels.table, proc->labels.table, sizeof(LabelEntry) * proc->labels.length);
+	memcpy(cs->codeTable.table, proc->codeTable.table, sizeof(CodeTableEntry) * proc->codeTable.length);
 	proc->code = NULL;
 	proc->code_length = 0;
 	cs->stream[0] = NULL;

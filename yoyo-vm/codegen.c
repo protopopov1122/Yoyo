@@ -1367,10 +1367,9 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	default:
 		break;
 	}
-	size_t length = proc->proc->code_length - startLen;
 	if (node->line != -1 && node->charPos != -1)
 		proc->proc->addCodeTableEntry(proc->proc, node->line, node->charPos,
-				startLen, length,
+				startLen, proc->proc->code_length,
 				env->bytecode->getSymbolId(env->bytecode, node->fileName));
 	return output;
 }
