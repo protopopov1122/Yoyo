@@ -66,4 +66,17 @@
 	<opcode mnemonic="Increment" code="0x37" />
 	<opcode mnemonic="Decrement" code="0x38" />
 	<opcode mnemonic="PushInteger" code="0x39" />
+	<opcode mnemonic="JumpIfEquals" code="0x3A" />
+	<opcode mnemonic="DirectJumpIfEquals" code="0x3B" />
+	<opcode mnemonic="JumpIfNotEquals" code="0x3C" />
+	<opcode mnemonic="DirectJumpIfNotEquals" code="0x3D" />
+	<opcode mnemonic="JumpIfGreater" code="0x3E" />
+	<opcode mnemonic="DirectJumpIfGreater" code="0x3F" />
+	<opcode mnemonic="JumpIfLesser" code="0x40" />
+	<opcode mnemonic="DirectJumpIfLesser" code="0x41" />
+	<opcode mnemonic="JumpIfNotGreater" code="0x42" />
+	<opcode mnemonic="DirectJumpIfNotGreater" code="0x43" />
+	<opcode mnemonic="JumpIfNotLesser" code="0x44" />
+	<opcode mnemonic="DirectJumpIfNotLesser" code="0x45" />
+
 </opcodes>

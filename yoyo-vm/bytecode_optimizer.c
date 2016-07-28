@@ -119,22 +119,62 @@ CommandStream* newCommandStream(ILProcedure* proc) {
 void optimize_procedure(ILProcedure* proc) {
 	CommandStream* cs = newCommandStream(proc);
 	while(cs->stream[0]!=NULL) {
-		/*if (cs->stream[0]->opcode==VM_LoadInteger&&
-			cs->stream[1]->opcode==VM_Push) {
-			VMCommand cmd;
-			cmd.old_position = -1;
-			cmd.opcode = VM_PushInteger;
-			cmd.args[0] = cs->stream[0]->args[1];
-			cmd.args[1] = -1;
-			cmd.args[2] = -1;
-			cs->shift(cs);
-			cs->shift(cs);
-			cs->append(cs, &cmd);
-		} else {*/
-			if (cs->stream[0]->opcode!=VM_Nop)
-				cs->append(cs, cs->stream[0]);
-			cs->shift(cs);
-		//}
+		if (cs->stream[1]!=NULL) {
+			if (cs->stream[0]->opcode==VM_FastCompare&&
+				cs->stream[1]->opcode==VM_JumpIfFalse&&
+				cs->stream[0]->args[0]==cs->stream[1]->args[1]) {
+				VMCommand cmd;
+				cmd.old_position = -1;
+				cmd.args[0] = cs->stream[1]->args[0];
+				cmd.args[1] = cs->stream[0]->args[0];
+				cmd.args[2] = cs->stream[0]->args[1];
+				if (cs->stream[0]->args[2]==COMPARE_EQUALS) {
+					cmd.opcode = VM_JumpIfNotEquals;
+					cs->append(cs, &cmd);
+					cs->shift(cs);
+					cs->shift(cs);
+					continue;
+				}
+				if (cs->stream[0]->args[2]==COMPARE_NOT_EQUALS) {
+					cmd.opcode = VM_JumpIfEquals;
+					cs->append(cs, &cmd);
+					cs->shift(cs);
+					cs->shift(cs);
+					continue;
+				}
+				if (cs->stream[0]->args[2]==COMPARE_LESSER_OR_EQUALS) {
+					cmd.opcode = VM_JumpIfGreater;
+					cs->append(cs, &cmd);
+					cs->shift(cs);
+					cs->shift(cs);
+					continue;
+				}
+				if (cs->stream[0]->args[2]==COMPARE_GREATER_OR_EQUALS) {
+					cmd.opcode = VM_JumpIfLesser;
+					cs->append(cs, &cmd);
+					cs->shift(cs);
+					cs->shift(cs);
+					continue;
+				}
+				if (cs->stream[0]->args[2]==COMPARE_LESSER) {
+					cmd.opcode = VM_JumpIfNotLesser;
+					cs->append(cs, &cmd);
+					cs->shift(cs);
+					cs->shift(cs);
+					continue;
+				}
+				if (cs->stream[0]->args[2]==COMPARE_GREATER) {
+					cmd.opcode = VM_JumpIfNotGreater;
+					cs->append(cs, &cmd);
+					cs->shift(cs);
+					cs->shift(cs);
+					continue;
+				}
+			}
+		}
+		if (cs->stream[0]->opcode!=VM_Nop)
+			cs->append(cs, cs->stream[0]);
+		cs->shift(cs);
 	}
 	cs->close(cs);
 }

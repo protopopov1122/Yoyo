@@ -141,6 +141,30 @@ void Procedure_preprocess(ProcedureBuilder *proc) {
 			*opcode = VM_DirectJumpIfFalse;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
+		case VM_JumpIfEquals:
+			*opcode = VM_DirectJumpIfEquals;
+			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
+			break;
+		case VM_JumpIfNotEquals:
+			*opcode = VM_DirectJumpIfNotEquals;
+			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
+			break;
+		case VM_JumpIfGreater:
+			*opcode = VM_DirectJumpIfGreater;
+			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
+			break;
+		case VM_JumpIfLesser:
+			*opcode = VM_DirectJumpIfLesser;
+			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
+			break;
+		case VM_JumpIfNotLesser:
+			*opcode = VM_DirectJumpIfNotLesser;
+			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
+			break;
+		case VM_JumpIfNotGreater:
+			*opcode = VM_DirectJumpIfNotGreater;
+			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
+			break;
 		default:
 			break;
 		}

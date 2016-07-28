@@ -76,6 +76,18 @@
 	#define VM_Increment 0x37
 	#define VM_Decrement 0x38
 	#define VM_PushInteger 0x39
+	#define VM_JumpIfEquals 0x3A
+	#define VM_DirectJumpIfEquals 0x3B
+	#define VM_JumpIfNotEquals 0x3C
+	#define VM_DirectJumpIfNotEquals 0x3D
+	#define VM_JumpIfGreater 0x3E
+	#define VM_DirectJumpIfGreater 0x3F
+	#define VM_JumpIfLesser 0x40
+	#define VM_DirectJumpIfLesser 0x41
+	#define VM_JumpIfNotGreater 0x42
+	#define VM_DirectJumpIfNotGreater 0x43
+	#define VM_JumpIfNotLesser 0x44
+	#define VM_DirectJumpIfNotLesser 0x45
 typedef struct Mnemonic{
 	uint8_t opcode;
 	wchar_t* mnemonic;

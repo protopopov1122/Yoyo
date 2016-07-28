@@ -813,6 +813,132 @@ YValue* execute(YThread* th) {
 			}
 		}
 			break;
+		case VM_JumpIfEquals: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_EQUALS) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
+				continue;
+			}
+		}
+		break;
+		case VM_DirectJumpIfEquals: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_EQUALS) != 0) {
+				frame->pc = iarg0;
+				continue;
+			}
+		}
+		break;
+		case VM_JumpIfNotEquals: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_NOT_EQUALS) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
+				continue;
+			}
+		}
+		break;
+		case VM_DirectJumpIfNotEquals: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_NOT_EQUALS) != 0) {
+				frame->pc = iarg0;
+				continue;
+			}
+		}
+		break;
+		case VM_JumpIfGreater: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_GREATER) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
+				continue;
+			}
+		}
+		break;
+		case VM_DirectJumpIfGreater: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_GREATER) != 0) {
+				frame->pc = iarg0;
+				continue;
+			}
+		}
+		break;
+		case VM_JumpIfLesser: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_LESSER) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
+				continue;
+			}
+		}
+		break;
+		case VM_DirectJumpIfLesser: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_LESSER) != 0) {
+				frame->pc = iarg0;
+				continue;
+			}
+		}
+		break;
+		case VM_JumpIfNotLesser: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_GREATER_OR_EQUALS) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
+				continue;
+			}
+		}
+		break;
+		case VM_DirectJumpIfNotLesser: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_GREATER_OR_EQUALS) != 0) {
+				frame->pc = iarg0;
+				continue;
+			}
+		}
+		break;
+		case VM_JumpIfNotGreater: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_LESSER_OR_EQUALS) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
+				continue;
+			}
+		}
+		break;
+		case VM_DirectJumpIfNotGreater: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_LESSER_OR_EQUALS) != 0) {
+				frame->pc = iarg0;
+				continue;
+			}
+		}
+		break;
 		}
 		/*If there is an exception then get last catch block
 		 * and jump to an address. If catch stack is empty

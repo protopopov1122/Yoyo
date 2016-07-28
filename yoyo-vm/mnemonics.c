@@ -75,5 +75,17 @@ Mnemonic Mnemonics[] = {
 	{0x37, L"Increment"},
 	{0x38, L"Decrement"},
 	{0x39, L"PushInteger"},
+	{0x3A, L"JumpIfEquals"},
+	{0x3B, L"DirectJumpIfEquals"},
+	{0x3C, L"JumpIfNotEquals"},
+	{0x3D, L"DirectJumpIfNotEquals"},
+	{0x3E, L"JumpIfGreater"},
+	{0x3F, L"DirectJumpIfGreater"},
+	{0x40, L"JumpIfLesser"},
+	{0x41, L"DirectJumpIfLesser"},
+	{0x42, L"JumpIfNotGreater"},
+	{0x43, L"DirectJumpIfNotGreater"},
+	{0x44, L"JumpIfNotLesser"},
+	{0x45, L"DirectJumpIfNotLesser"},
 };
-const size_t OPCODE_COUNT = 57;
+const size_t OPCODE_COUNT = 69;
