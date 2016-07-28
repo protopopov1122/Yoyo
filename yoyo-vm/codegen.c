@@ -460,8 +460,15 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		int32_t reg = proc->nextRegister(proc);
 		yconstant_t cnst = ((YConstantNode*) node)->id;
 		int32_t cid = -1;
-		if (cnst.type == Int64Constant)
+		if (cnst.type == Int64Constant) {
+			int64_t value = cnst.value.i64;
+			if (value>=INT32_MIN&&
+				value<=INT32_MAX) {
+				proc->append(proc, VM_LoadInteger, reg, (int32_t) value, -1);
+				output = reg;
+			}
 			cid = builder->bc->addIntegerConstant(builder->bc, cnst.value.i64);
+		}
 		if (cnst.type == BoolConstant)
 			cid = builder->bc->addBooleanConstant(builder->bc,
 					cnst.value.boolean);
@@ -470,8 +477,10 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		if (cnst.type == WcsConstant) {
 			cid = builder->bc->addStringConstant(builder->bc, cnst.value.wcs);
 		}
-		proc->append(proc, VM_LoadConstant, reg, cid, -1);
-		output = reg;
+		if (output==-1) {
+			proc->append(proc, VM_LoadConstant, reg, cid, -1);
+			output = reg;
+		}
 	}
 		break;
 	case IdentifierReferenceN: {

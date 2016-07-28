@@ -16,6 +16,8 @@
 
 #include "headers/parser.h"
 
+#define NEW_BINARY(op, left, right) optimize_node(newBinaryNode(op, left, right)) 
+
 wchar_t* getSymbol(ParseHandle* handle, wchar_t* wcs) {
 	for (size_t i = 0; i < handle->symbols_size; i++)
 		if (wcscmp(handle->symbols[i], wcs) == 0)
@@ -782,7 +784,7 @@ NewReduce(Power_reduce) {
 		YNode* left;
 		ExpectReduce(&left, unary, L"Expected expression", node->free(node)
 		;, handle);
-		node = newBinaryNode(Power, node, left);
+		node = NEW_BINARY(Power, node, left);
 	}
 	SetCoords(node, file, line, charPos);
 	return node;
@@ -810,7 +812,7 @@ NewReduce(Mul_div_reduce) {
 		YNode* left;
 		ExpectReduce(&left, power, L"Expected expression", node->free(node)
 		;, handle);
-		node = newBinaryNode(op, node, left);
+		node = NEW_BINARY(op, node, left);
 	}
 	SetCoords(node, file, line, charPos);
 	return node;
@@ -835,7 +837,7 @@ NewReduce(Add_sub_reduce) {
 		YNode* left;
 		ExpectReduce(&left, mul_div, L"Expected expression", node->free(node)
 		;, handle);
-		node = newBinaryNode(op, node, left);
+		node = NEW_BINARY(op, node, left);
 	}
 	SetCoords(node, file, line, charPos);
 	return node;
@@ -863,7 +865,7 @@ NewReduce(Bitshift_reduce) {
 		YNode* left;
 		ExpectReduce(&left, add_sub, L"Expected expression", node->free(node)
 			;, handle);
-		node = newBinaryNode(op, node, left);
+		node = NEW_BINARY(op, node, left);
 	}
 	SetCoords(node, file, line, charPos);
 	return node;
@@ -894,7 +896,7 @@ NewReduce(Bitwise_reduce) {
 		YNode* left;
 		ExpectReduce(&left, bitshift, L"Expected expression", node->free(node)
 		;, handle);
-		node = newBinaryNode(op, node, left);
+		node = NEW_BINARY(op, node, left);
 	}
 	SetCoords(node, file, line, charPos);
 	return node;
@@ -914,7 +916,7 @@ NewReduce(Comparison_reduce) {
 		YNode* left;
 		ExpectReduce(&left, bitwise, L"Expected expression", node->free(node),
 				handle);
-		node = newBinaryNode(BEquals, node, left);
+		node = NEW_BINARY(BEquals, node, left);
 	} else if (AssertOperator(handle->tokens[0], LogicalNotOperator)&&
 	AssertOperator(handle->tokens[1], AssignOperator)) {
 		shift(handle);
@@ -922,7 +924,7 @@ NewReduce(Comparison_reduce) {
 		YNode* left;
 		ExpectReduce(&left, bitwise, L"Expected expression", node->free(node),
 				handle);
-		node = newBinaryNode(NotEquals, node, left);
+		node = NEW_BINARY(NotEquals, node, left);
 	} else if (AssertOperator(handle->tokens[0], GreaterOperator)&&
 	AssertOperator(handle->tokens[1], AssignOperator)) {
 		shift(handle);
@@ -930,7 +932,7 @@ NewReduce(Comparison_reduce) {
 		YNode* left;
 		ExpectReduce(&left, bitwise, L"Expected expression", node->free(node),
 				handle);
-		node = newBinaryNode(GreaterOrEquals, node, left);
+		node = NEW_BINARY(GreaterOrEquals, node, left);
 	} else if (AssertOperator(handle->tokens[0], LesserOperator)&&
 	AssertOperator(handle->tokens[1], AssignOperator)) {
 		shift(handle);
@@ -938,19 +940,19 @@ NewReduce(Comparison_reduce) {
 		YNode* left;
 		ExpectReduce(&left, bitwise, L"Expected expression", node->free(node),
 				handle);
-		node = newBinaryNode(LesserOrEquals, node, left);
+		node = NEW_BINARY(LesserOrEquals, node, left);
 	} else if (AssertOperator(handle->tokens[0], LesserOperator)) {
 		shift(handle);
 		YNode* left;
 		ExpectReduce(&left, bitwise, L"Expected expression", node->free(node),
 				handle);
-		node = newBinaryNode(Lesser, node, left);
+		node = NEW_BINARY(Lesser, node, left);
 	} else if (AssertOperator(handle->tokens[0], GreaterOperator)) {
 		shift(handle);
 		YNode* left;
 		ExpectReduce(&left, bitwise, L"Expected expression", node->free(node),
 				handle);
-		node = newBinaryNode(Greater, node, left);
+		node = NEW_BINARY(Greater, node, left);
 	}
 	SetCoords(node, file, line, charPos);
 	return node;
@@ -997,7 +999,7 @@ NewReduce(Logical_ops_reduce) {
 		ExpectReduce(&left, logical_not, L"Expected expression",
 				node->free(node)
 				;, handle);
-		node = newBinaryNode(op, node, left);
+		node = NEW_BINARY(op, node, left);
 	}
 	SetCoords(node, file, line, charPos);
 	return node;

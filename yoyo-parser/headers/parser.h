@@ -153,6 +153,8 @@ ytoken shift(ParseHandle*);
 ytoken lex(ParseHandle*);
 YNode* parse(ParseHandle*);
 
+YNode* optimize_node(YNode*);
+
 #define NewValidate(name) bool name(ParseHandle* handle)
 #define NewReduce(name) YNode* name(ParseHandle* handle)
 #define NewRule(grammar, name, v, r) grammar->name.validate = v;\
