@@ -63,11 +63,11 @@ void Types_init(YRuntime* runtime) {
 void* GCThread(void* ptr) {
 	YRuntime* runtime = (YRuntime*) ptr;
 	GarbageCollector* gc = runtime->gc;
+	sleep(5);
 	while (runtime->state == RuntimeRunning) {
-		sleep(1);
-
-		//MUTEX_LOCK(&runtime->runtime_mutex);
-
+		YIELD();
+		YIELD();
+		YIELD();
 		// Mark all root objects
 		MARK(runtime->global_scope);
 		for (size_t i = 0; i < runtime->thread_size; i++) {
@@ -233,7 +233,8 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 YThread* newThread(YRuntime* runtime) {
 	THREAD current_th = THREAD_SELF();
 	for (size_t i = 0; i < runtime->thread_count; i++)
-		if (THREAD_EQUAL(current_th, runtime->threads[i]->self))
+		if (runtime->threads[i]!=NULL&&
+			THREAD_EQUAL(current_th, runtime->threads[i]->self))
 			return runtime->threads[i];
 	YThread* th = malloc(sizeof(YThread));
 	th->runtime = runtime;
