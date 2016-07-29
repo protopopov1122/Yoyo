@@ -90,9 +90,9 @@ void* GCThread(void* ptr) {
 			}
 		}
 		MUTEX_UNLOCK(&runtime->runtime_mutex);
-		for (size_t i = 0; i < INT_POOL_SIZE; i++)
-			if (runtime->Constants.IntPool[i] != NULL)
-				MARK(runtime->Constants.IntPool[i]);
+		for (size_t i = 0; i < INT_CACHE_SIZE; i++)
+			if (runtime->Constants.IntCache[i] != NULL)
+				MARK(runtime->Constants.IntCache[i]);
 		MARK(runtime->Constants.TrueValue);
 		MARK(runtime->Constants.FalseValue);
 		MARK(runtime->Constants.NullPtr);
@@ -211,14 +211,14 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->thread_count = 0;
 	runtime->CoreThread = newThread(runtime);
 
-	runtime->gc = newGenerationalGC(1000, 3);
+	runtime->gc = newPlainGC(1000);
 	runtime->free = freeRuntime;
 	runtime->newObject = newHashObject;
 	runtime->wait = Runtime_wait;
 
 	Types_init(runtime);
-	for (size_t i = 0; i < INT_POOL_SIZE; i++)
-		runtime->Constants.IntPool[i] = NULL;
+	for (size_t i = 0; i < INT_CACHE_SIZE; i++)
+		runtime->Constants.IntCache[i] = NULL;
 
 	YThread* th = runtime->CoreThread;
 	runtime->Constants.TrueValue = (YBoolean*) newBooleanValue(true, th);

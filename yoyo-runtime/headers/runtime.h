@@ -118,7 +118,7 @@ typedef struct Environment {
 	wchar_t** (*getLoadedFiles)(struct Environment*);
 } Environment;
 
-#define INT_POOL_SIZE 8192
+#define INT_CACHE_SIZE 8192
 typedef struct YRuntime {
 	enum {
 		RuntimeRunning, RuntimePaused, RuntimeTerminated
@@ -129,7 +129,7 @@ typedef struct YRuntime {
 	YDebug* debugger;
 	YObject* global_scope;
 	struct {
-		YInteger* IntPool[INT_POOL_SIZE];
+		YInteger* IntCache[INT_CACHE_SIZE];
 		YBoolean* TrueValue;
 		YBoolean* FalseValue;
 		YValue* NullPtr;
