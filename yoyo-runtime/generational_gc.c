@@ -36,109 +36,109 @@ typedef struct ObjectGeneration {
 	YoyoObject** pool;
 	size_t size;
 	size_t capacity;
-	bool need_gc;
+	bool needGC;
+	MUTEX mutex;
 	struct ObjectGeneration* next_gen;
 } ObjectGeneration;
 
 typedef struct GenerationalGC {
 	GarbageCollector gc;
-
 	ObjectGeneration* generations;
 	size_t generation_count;
-	uint16_t generation_step;
 } GenerationalGC;
 
-void GenerationalGC_free(GarbageCollector* _gc) {
-	GenerationalGC* gc = (GenerationalGC*) _gc;
-	for (size_t i = 0; i < gc->generation_count; i++) {
-		for (size_t j = 0; j < gc->generations[i].size; j++)
-			gc->generations[i].pool[j]->free(gc->generations[i].pool[j]);
-		free(gc->generations[i].pool);
-	}
-	free(gc->generations);
-	DESTROY_MUTEX(&_gc->access_mutex);
-	free(gc);
-}
-
-void generation_registrate(ObjectGeneration* gen, YoyoObject* ptr) {
-	ptr->cycle = 0;
-	if (gen->size + 2 >= gen->capacity) {
-		gen->capacity = gen->capacity * 1.1 + 100;
+void generation_register(ObjectGeneration* gen, YoyoObject* ptr) {
+	MUTEX_LOCK(&gen->mutex);
+	if (gen->size+2>=gen->capacity) {
+		gen->capacity = gen->capacity * 2;
 		gen->pool = realloc(gen->pool, sizeof(YoyoObject*) * gen->capacity);
-		gen->need_gc = true;
+		gen->needGC = true;
 	}
 	gen->pool[gen->size++] = ptr;
+	ptr->marked = true;
+	ptr->cycle = 0;
+	MUTEX_UNLOCK(&gen->mutex);
 }
 
-void GenerationalGC_registrate(GarbageCollector* _gc, YoyoObject* ptr) {
-	MUTEX_LOCK(&_gc->access_mutex);
-	GenerationalGC* gc = (GenerationalGC*) _gc;
-	generation_registrate(&gc->generations[0], ptr);
-	MUTEX_UNLOCK(&_gc->access_mutex);
-}
-
-void generation_collect(GenerationalGC* gc, ObjectGeneration* gen) {
-	if (!gen->need_gc)
+void generation_collect(ObjectGeneration* gen) {
+	if (!gen->needGC)
 		return;
-	for (size_t i=0;i<gen->size;i++) {
-		YoyoObject* ptr = gen->pool[i];
-		if (ptr->linkc!=0)
-			MARK(ptr);
-	}
-	const clock_t MAX_AGE = CLOCKS_PER_SEC;
-	gen->need_gc = false;
+	gen->needGC = false;
+	MUTEX_LOCK(&gen->mutex);
+
 	YoyoObject** newPool = malloc(sizeof(YoyoObject*) * gen->capacity);
 	size_t newSize = 0;
-	for (size_t i = 0; i < gen->size; i++) {
+	const clock_t MAX_AGE = CLOCKS_PER_SEC;
+	for (size_t i=0;i<gen->size;i++) {
 		YoyoObject* ptr = gen->pool[i];
-		if ((!ptr->marked) && ptr->linkc == 0
-				&& clock() - ptr->age >= MAX_AGE) {
+		if ((!ptr->marked) &&
+			ptr->linkc == 0 &&
+			clock()-ptr->age>=MAX_AGE) {
 			ptr->free(ptr);
-		} else {
-			ptr->marked = false;
-			if (gen->next_gen != NULL && ptr->cycle >= gc->generation_step) {
-				generation_registrate(gen->next_gen, ptr);
-			} else {
-				ptr->cycle++;
+		} else if (gen->next_gen==NULL) {
 				newPool[newSize++] = ptr;
-			}
+				ptr->marked = false;
+				ptr->cycle++;
+		} else {
+				if (ptr->cycle<5) {
+					newPool[newSize++] = ptr;
+					ptr->marked = false;
+					ptr->cycle++;
+				}	else
+					generation_register(gen->next_gen, ptr);
 		}
 	}
+
 	free(gen->pool);
 	gen->pool = newPool;
 	gen->size = newSize;
-	if (gen->size * 2 < gen->capacity && gen->capacity > 1000) {
-		gen->capacity = gen->size * 2;
+	if (gen->size * 2 < gen->capacity) {
+		gen->capacity = gen->size * 1.1 + 1000;
 		gen->pool = realloc(gen->pool, sizeof(YoyoObject*) * gen->capacity);
 	}
+
+	MUTEX_UNLOCK(&gen->mutex);
 }
 
 void GenerationalGC_collect(GarbageCollector* _gc) {
 	GenerationalGC* gc = (GenerationalGC*) _gc;
-	for (ssize_t i = gc->generation_count - 1; i > -1; i--)
-		generation_collect(gc, &gc->generations[i]);
+	for (size_t i=gc->generation_count-1;i<gc->generation_count;i--) {
+		generation_collect(&gc->generations[i]);
+	}
+}
+void GenerationalGC_register(GarbageCollector* _gc, YoyoObject* ptr) {
+	GenerationalGC* gc = (GenerationalGC*) _gc;
+	generation_register(&gc->generations[0], ptr);
+}
+void GenerationalGC_free(GarbageCollector* _gc) {
+	GenerationalGC* gc = (GenerationalGC*) _gc;
+	for (size_t i=0;i<gc->generation_count;i++) {
+		for (size_t j=0;j<gc->generations[i].size;j++)
+			gc->generations[i].pool[j]->free(gc->generations[i].pool[j]);
+		DESTROY_MUTEX(&gc->generations[i].mutex);
+		free(gc->generations[i].pool);
+	}
+	free(gc->generations);
+	free(gc);
 }
 
-GarbageCollector* newGenerationalGC(size_t gen_cap, uint16_t step) {
-	size_t generation_count = 3;
-
+GarbageCollector* newGenerationalGC(size_t initCap, uint16_t gen_count) {
 	GenerationalGC* gc = malloc(sizeof(GenerationalGC));
-	gc->generation_count = generation_count;
-	gc->generation_step = step;
-	gc->generations = malloc(sizeof(ObjectGeneration) * gc->generation_count);
-	for (size_t i = 0; i < gc->generation_count; i++) {
-		gc->generations[i].capacity = gen_cap;
+	gc->generation_count = gen_count;
+	gc->generations = malloc(sizeof(ObjectGeneration) * gen_count);
+	for (size_t i=0;i<gen_count;i++) {
 		gc->generations[i].size = 0;
-		gc->generations[i].need_gc = false;
-		gc->generations[i].pool = malloc(sizeof(YoyoObject*) * gen_cap);
-		gc->generations[i].next_gen =
-				i + 1 < gc->generation_count ? &gc->generations[i + 1] : NULL;
+		gc->generations[i].capacity = initCap;
+		gc->generations[i].needGC = false;
+		gc->generations[i].pool = malloc(sizeof(YoyoObject*) * initCap);
+		NEW_MUTEX(&gc->generations[i].mutex);
 	}
-
-	NEW_MUTEX(&gc->gc.access_mutex);
+	for (size_t i=0;i<gen_count;i++)
+		gc->generations[i].next_gen = i+1<gen_count ?
+			&gc->generations[i+1] : NULL;
 
 	gc->gc.collect = GenerationalGC_collect;
-	gc->gc.registrate = GenerationalGC_registrate;
+	gc->gc.registrate = GenerationalGC_register;
 	gc->gc.free = GenerationalGC_free;
 	return (GarbageCollector*) gc;
 }

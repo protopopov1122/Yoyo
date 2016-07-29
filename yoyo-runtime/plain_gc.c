@@ -35,6 +35,7 @@ typedef struct PlainGC {
 	YoyoObject** objects;
 	size_t used;
 	size_t size;
+	bool collecting;
 } PlainGC;
 
 void plain_gc_collect(GarbageCollector* _gc) {
@@ -44,6 +45,8 @@ void plain_gc_collect(GarbageCollector* _gc) {
 		if (ptr->linkc!=0)
 				MARK(ptr);
 	}
+	gc->collecting = true;
+	MUTEX_LOCK(&_gc->access_mutex);
 	const clock_t MAX_AGE = CLOCKS_PER_SEC;
 	YoyoObject** newHeap = malloc(gc->size * sizeof(YoyoObject*)); /* Pointers to all necesarry objects are
 	 moved to another memory area to
@@ -76,6 +79,8 @@ void plain_gc_collect(GarbageCollector* _gc) {
 	memset(&newHeap[gc->used], 0, sizeof(YoyoObject*) * (gc->size - gc->used));
 	free(gc->objects);
 	gc->objects = newHeap;
+	MUTEX_UNLOCK(&_gc->access_mutex);
+	gc->collecting = false;
 }
 
 void plain_gc_mark(GarbageCollector* _gc, YoyoObject** roots, size_t rootc) {
@@ -119,11 +124,13 @@ void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 		gc->size = newSize;
 	}
 	gc->used++;
+	o->marked = true;
 	MUTEX_UNLOCK(&gc->gc.access_mutex);
 }
 GarbageCollector* newPlainGC(size_t isize) {
 	PlainGC* gc = malloc(sizeof(PlainGC));
 
+	gc->collecting = false;
 	gc->size = isize;
 	gc->used = 0;
 	gc->objects = calloc(1, sizeof(YoyoObject*) * isize);

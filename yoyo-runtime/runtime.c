@@ -66,9 +66,7 @@ void* GCThread(void* ptr) {
 	while (runtime->state == RuntimeRunning) {
 		sleep(1);
 
-		// Lock runtime
-		runtime->state = RuntimePaused;
-		MUTEX_LOCK(&runtime->runtime_mutex);
+		//MUTEX_LOCK(&runtime->runtime_mutex);
 
 		// Mark all root objects
 		MARK(runtime->global_scope);
@@ -78,18 +76,12 @@ void* GCThread(void* ptr) {
 				MARK(th->exception);
 				LocalFrame* frame = th->frame;
 				while (frame != NULL) {
-					/*for (size_t j = 0; j < frame->regc; j++)
-					 MARK(frame->regs[j]);
-					 for (size_t j = 0; j < frame->stack_offset; j++) {
-					 MARK(frame->stack[j]);
-					 MARK(frame->retType);
-					 }*/
 					frame->mark(frame);
 					frame = frame->prev;
 				}
 			}
 		}
-		MUTEX_UNLOCK(&runtime->runtime_mutex);
+//		MUTEX_UNLOCK(&runtime->runtime_mutex);
 		for (size_t i = 0; i < INT_CACHE_SIZE; i++)
 			if (runtime->Constants.IntCache[i] != NULL)
 				MARK(runtime->Constants.IntCache[i]);
@@ -113,8 +105,6 @@ void* GCThread(void* ptr) {
 
 		// Collect garbage
 		gc->collect(gc);
-		// Unlock runtime
-		runtime->state = RuntimeRunning;
 	}
 	gc->free(gc);
 	THREAD_EXIT(NULL);
