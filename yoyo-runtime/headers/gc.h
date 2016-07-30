@@ -35,6 +35,7 @@ typedef struct GarbageCollector {
 	void (*registrate)(struct GarbageCollector*, YoyoObject*);
 
 	MUTEX access_mutex;
+	bool panic;
 } GarbageCollector;
 
 YoyoObject* initYoyoObject(YoyoObject*, void (*)(YoyoObject*),

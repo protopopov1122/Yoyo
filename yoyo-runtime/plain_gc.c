@@ -53,7 +53,7 @@ void plain_gc_collect(GarbageCollector* _gc) {
 		if (ptr->linkc!=0)
 				MARK(ptr);
 	}
-	const clock_t MAX_AGE = CLOCKS_PER_SEC;
+	const clock_t MAX_AGE = 0;
 	YoyoObject** newHeap = malloc(gc->capacity * sizeof(YoyoObject*)); /* Pointers to all necesarry objects are
 	 moved to another memory area to
 	 prevent pointer array fragmentation*/
@@ -76,6 +76,7 @@ void plain_gc_collect(GarbageCollector* _gc) {
 			}
 		}
 	}
+	size_t freed = gc->size - nextIndex;
 	gc->size = nextIndex;
 
 	free(gc->objects);
@@ -92,6 +93,9 @@ void plain_gc_collect(GarbageCollector* _gc) {
 		gc->capacity = gc->size * 1.5;
 		newHeap = realloc(newHeap, gc->capacity * sizeof(YoyoObject*));
 	}
+	gc->gc.panic = false;
+	if (freed<gc->temporary_size)
+		gc->gc.panic = true;
 	free(gc->temporary);
 	MUTEX_UNLOCK(&gc->gc.access_mutex);
 }

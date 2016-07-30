@@ -71,8 +71,11 @@ void* GCThread(void* ptr) {
 		YIELD();
 		if (runtime->block_gc||
 			runtime->state==RuntimePaused||
-			clock()-last_gc<CLOCKS_PER_SEC/2)
+			clock()-last_gc<CLOCKS_PER_SEC/4)
 			continue;
+		bool panic = gc->panic;
+		if (panic)
+			runtime->state = RuntimePaused;
 		// Mark all root objects
 		MARK(runtime->global_scope);
 		for (size_t i = 0; i < runtime->thread_size; i++) {
@@ -112,6 +115,8 @@ void* GCThread(void* ptr) {
 
 		// Collect garbage
 		gc->collect(gc);
+		if (panic)
+			runtime->state = RuntimeRunning;
 		last_gc = clock();
 	}
 	gc->free(gc);
