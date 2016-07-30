@@ -367,10 +367,16 @@ void HashMapObject_remap(HashMapObject* obj) {
 			else {
 				obj->factor++;
 				AOEntry* e = newMap[index];
-				while (e->next != NULL)
+				while (e!=NULL&&e->next != NULL)
 					e = e->next;
-				e->next = newEntry;
-				newEntry->prev = e;
+				if (e!=NULL) {
+					e->next = newEntry;
+					newEntry->prev = e;
+				}
+				else {
+					newMap[index] = newEntry;
+					e = newEntry;
+				}
 			}
 
 			EntryAlloc->unuse(EntryAlloc, entry);
@@ -383,7 +389,6 @@ void HashMapObject_remap(HashMapObject* obj) {
 }
 
 void HashMapObject_putEntry(HashMapObject* obj, int32_t id, YValue* val) {
-	MUTEX_LOCK(&obj->access_mutex);
 	id = id < 0 ? -id : id;
 	size_t index = id % obj->map_size;
 	AOEntry* entry = obj->map[index];
@@ -418,40 +423,47 @@ void HashMapObject_putEntry(HashMapObject* obj, int32_t id, YValue* val) {
 			HashMapObject_remap(obj);
 		}
 	}
-
-	MUTEX_UNLOCK(&obj->access_mutex);
 }
 
 /*Methods that implement YObject interface.
  * Use procedures above to work with hash map*/
 bool HashMapObject_contains(YObject* o, int32_t id, YThread* th) {
 	HashMapObject* obj = (HashMapObject*) o;
-	if (obj->super != NULL && obj->super->contains(obj->super, id, th))
-		return true;
-	return HashMapObject_getEntry(obj, id) != NULL;
+	MUTEX_LOCK(&obj->access_mutex);
+	bool result = false;
+	if (obj->super != NULL && obj->super->contains(obj->super, id, th)) 
+		result = true;
+	else
+		result = HashMapObject_getEntry(obj, id) != NULL;
+ 	MUTEX_UNLOCK(&obj->access_mutex);
+	return result;
 }
 
 YValue* HashMapObject_get(YObject* o, int32_t id, YThread* th) {
 	HashMapObject* obj = (HashMapObject*) o;
+	MUTEX_LOCK(&obj->access_mutex);
+	YValue* value = getNull(th);
 	AOEntry* entry = HashMapObject_getEntry(obj, id);
 	if (entry != NULL)
-		return entry->value;
-	if (obj->super != NULL)
-		return obj->super->get(obj->super, id, th);
+		value = entry->value;
+	else if (obj->super != NULL)
+		value = obj->super->get(obj->super, id, th);
 	else {
 		wchar_t* name = getSymbolById(&th->runtime->symbols, id);
 		throwException(L"UnknownField", &name, 1, th);
-		return getNull(th);
 	}
+	MUTEX_UNLOCK(&obj->access_mutex);
+	return value;
 }
 
 void HashMapObject_put(YObject* o, int32_t id, YValue* value, bool newF,
 		YThread* th) {
 	HashMapObject* obj = (HashMapObject*) o;
+	MUTEX_LOCK(&obj->access_mutex);
 	if (newF || HashMapObject_getEntry(obj, id) != NULL) {
 		HashMapObject_putEntry(obj, id, value);
 		AOEntry* e = HashMapObject_getEntry(obj, id);
-		if (e->type != NULL && !e->type->verify(e->type, value, th)) {
+		if (e!=NULL && e->type != NULL && !e->type->verify(e->type, value, th)) {
 			wchar_t* name = getSymbolById(&th->runtime->symbols, id);
 			throwException(L"WrongFieldType", &name, 1, th);
 		}
@@ -459,7 +471,7 @@ void HashMapObject_put(YObject* o, int32_t id, YValue* value, bool newF,
 		obj->super->put(obj->super, id, value, false, th);
 	else
 		HashMapObject_putEntry(obj, id, value);
-
+	MUTEX_UNLOCK(&obj->access_mutex);
 }
 
 void HashMapObject_remove(YObject* o, int32_t id, YThread* th) {
@@ -493,27 +505,33 @@ void HashMapObject_remove(YObject* o, int32_t id, YThread* th) {
 void HashMapObject_setType(YObject* o, int32_t id, YoyoType* type, YThread* th) {
 	HashMapObject* obj = (HashMapObject*) o;
 	if (o->contains(o, id, th)) {
+		MUTEX_LOCK(&obj->access_mutex);
 		AOEntry* entry = HashMapObject_getEntry(obj, id);
-		entry->type = type;
-		if (!type->verify(type, entry->value, th)) {
-			wchar_t* name = getSymbolById(&th->runtime->symbols, id);
-			throwException(L"WrongFieldType", &name, 1, th);
-		}
+		if (entry!=NULL) {
+			entry->type = type;
+			if (!type->verify(type, entry->value, th)) {
+				wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+				throwException(L"WrongFieldType", &name, 1, th);
+			}
+		}	
+		MUTEX_UNLOCK(&obj->access_mutex);
 	} else if (obj->super != NULL && obj->super->contains(obj->super, id, th))
 		obj->super->setType(obj->super, id, type, th);
 }
 
 YoyoType* HashMapObject_getType(YObject* o, int32_t key, YThread* th) {
 	HashMapObject* obj = (HashMapObject*) o;
+	MUTEX_LOCK(&obj->access_mutex);
+	YoyoType* type = th->runtime->NullType.TypeConstant;
 	if (o->contains(o, key, th)) {
 		AOEntry* entry = HashMapObject_getEntry(obj, key);
 		if (entry->type != NULL)
-			return entry->type;
+			type = entry->type;
 	}
 	if (obj->super != NULL && obj->super->contains(obj->super, key, th))
-		return obj->super->getType(obj->super, key, th);
-
-	return th->runtime->NullType.TypeConstant;
+		type = obj->super->getType(obj->super, key, th);
+	MUTEX_UNLOCK(&obj->access_mutex);
+	return type;
 }
 
 void HashMapObject_mark(YoyoObject* ptr) {

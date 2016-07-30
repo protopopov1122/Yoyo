@@ -212,7 +212,7 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->block_gc = false;
 	runtime->gc = newPlainGC(1000);
 	runtime->free = freeRuntime;
-	runtime->newObject = newHashObject;
+	runtime->newObject = newTreeObject;
 	runtime->wait = Runtime_wait;
 
 	Types_init(runtime);
