@@ -63,11 +63,12 @@ void Types_init(YRuntime* runtime) {
 void* GCThread(void* ptr) {
 	YRuntime* runtime = (YRuntime*) ptr;
 	GarbageCollector* gc = runtime->gc;
-	sleep(5);
+	sleep(2);
+	clock_t last_gc = clock();
 	while (runtime->state == RuntimeRunning) {
 		YIELD();
-		YIELD();
-		YIELD();
+		if (clock()-last_gc<CLOCKS_PER_SEC/2)
+			continue;
 		// Mark all root objects
 		MARK(runtime->global_scope);
 		for (size_t i = 0; i < runtime->thread_size; i++) {
@@ -105,6 +106,7 @@ void* GCThread(void* ptr) {
 
 		// Collect garbage
 		gc->collect(gc);
+		last_gc = clock();
 	}
 	gc->free(gc);
 	THREAD_EXIT(NULL);
