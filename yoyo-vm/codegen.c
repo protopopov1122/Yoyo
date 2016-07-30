@@ -129,40 +129,40 @@ void Procedure_preprocess(ProcedureBuilder *proc) {
 		opcode = &proc->proc->code[offset];
 		args = (void*) &proc->proc->code[offset + 1];
 		switch (*opcode) {
-		case VM_Jump:
-			*opcode = VM_DirectJump;
+		case VM_Goto:
+			*opcode = VM_Jump;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfTrue:
-			*opcode = VM_DirectJumpIfTrue;
+		case VM_GotoIfTrue:
+			*opcode = VM_JumpIfTrue;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfFalse:
-			*opcode = VM_DirectJumpIfFalse;
+		case VM_GotoIfFalse:
+			*opcode = VM_JumpIfFalse;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfEquals:
-			*opcode = VM_DirectJumpIfEquals;
+		case VM_GotoIfEquals:
+			*opcode = VM_JumpIfEquals;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfNotEquals:
-			*opcode = VM_DirectJumpIfNotEquals;
+		case VM_GotoIfNotEquals:
+			*opcode = VM_JumpIfNotEquals;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfGreater:
-			*opcode = VM_DirectJumpIfGreater;
+		case VM_GotoIfGreater:
+			*opcode = VM_JumpIfGreater;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfLesser:
-			*opcode = VM_DirectJumpIfLesser;
+		case VM_GotoIfLesser:
+			*opcode = VM_JumpIfLesser;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfNotLesser:
-			*opcode = VM_DirectJumpIfNotLesser;
+		case VM_GotoIfNotLesser:
+			*opcode = VM_JumpIfNotLesser;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
-		case VM_JumpIfNotGreater:
-			*opcode = VM_DirectJumpIfNotGreater;
+		case VM_GotoIfNotGreater:
+			*opcode = VM_JumpIfNotGreater;
 			args[0] = proc->proc->getLabel(proc->proc, args[0])->value;
 			break;
 		default:
@@ -328,7 +328,7 @@ bool newVar, int32_t val) {
 
 	int32_t trueL = proc->nextLabel(proc);
 	int32_t falseL = proc->nextLabel(proc);
-	proc->append(proc, VM_JumpIfFalse, falseL, cond, -1);
+	proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 	proc->unuse(proc, cond);
 	YModifier* tmod = ymodifier(builder, env, mod->body);
 	if (tmod == NULL) {
@@ -339,7 +339,7 @@ bool newVar, int32_t val) {
 	}
 	tmod->setter(tmod, builder, env, newVar, val);
 	tmod->free(tmod);
-	proc->append(proc, VM_Jump, trueL, -1, -1);
+	proc->append(proc, VM_Goto, trueL, -1, -1);
 	proc->bind(proc, falseL);
 	tmod = ymodifier(builder, env, mod->elseBody);
 	if (tmod == NULL) {
@@ -360,7 +360,7 @@ void Conditinal_remover(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env) 
 
 	int32_t trueL = proc->nextLabel(proc);
 	int32_t falseL = proc->nextLabel(proc);
-	proc->append(proc, VM_JumpIfFalse, falseL, cond, -1);
+	proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 	proc->unuse(proc, cond);
 	YModifier* tmod = ymodifier(builder, env, mod->body);
 	if (tmod == NULL) {
@@ -371,7 +371,7 @@ void Conditinal_remover(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env) 
 	}
 	tmod->remover(tmod, builder, env);
 	tmod->free(tmod);
-	proc->append(proc, VM_Jump, trueL, -1, -1);
+	proc->append(proc, VM_Goto, trueL, -1, -1);
 	proc->bind(proc, falseL);
 	tmod = ymodifier(builder, env, mod->elseBody);
 	if (tmod == NULL) {
@@ -393,7 +393,7 @@ void Conditional_setType(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 
 	int32_t trueL = proc->nextLabel(proc);
 	int32_t falseL = proc->nextLabel(proc);
-	proc->append(proc, VM_JumpIfFalse, falseL, cond, -1);
+	proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 	proc->unuse(proc, cond);
 	YModifier* tmod = ymodifier(builder, env, mod->body);
 	if (tmod == NULL) {
@@ -404,7 +404,7 @@ void Conditional_setType(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 	}
 	tmod->typeSetter(tmod, builder, env, reg);
 	tmod->free(tmod);
-	proc->append(proc, VM_Jump, trueL, -1, -1);
+	proc->append(proc, VM_Goto, trueL, -1, -1);
 	proc->bind(proc, falseL);
 	tmod = ymodifier(builder, env, mod->elseBody);
 	if (tmod == NULL) {
@@ -703,12 +703,12 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->bind(proc, startL);
 		proc->append(proc, VM_Copy, reg, index, -1);
 		proc->append(proc, VM_FastCompare, reg, count, COMPARE_EQUALS);
-		proc->append(proc, VM_JumpIfTrue, endL, reg, -1);
+		proc->append(proc, VM_GotoIfTrue, endL, reg, -1);
 
 		proc->append(proc, VM_ArraySet, arr, index, val);
 		proc->append(proc, VM_Add, index, index, oneReg);
 
-		proc->append(proc, VM_Jump, startL, -1, -1);
+		proc->append(proc, VM_Goto, startL, -1, -1);
 		proc->bind(proc, endL);
 
 		proc->unuse(proc, val);
@@ -805,10 +805,10 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 					builder->bc->addBooleanConstant(builder->bc, false), -1);
 			int32_t endL = proc->nextLabel(proc);
 			int32_t cnd1 = ytranslate(builder, env, bin->left);
-			proc->append(proc, VM_JumpIfFalse, endL, cnd1, -1);
+			proc->append(proc, VM_GotoIfFalse, endL, cnd1, -1);
 			proc->unuse(proc, cnd1);
 			cnd1 = ytranslate(builder, env, bin->right);
-			proc->append(proc, VM_JumpIfFalse, endL, cnd1, -1);
+			proc->append(proc, VM_GotoIfFalse, endL, cnd1, -1);
 			proc->unuse(proc, cnd1);
 			proc->append(proc, VM_LoadConstant, output,
 					builder->bc->addBooleanConstant(builder->bc, true), -1);
@@ -821,10 +821,10 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 					builder->bc->addBooleanConstant(builder->bc, true), -1);
 			int32_t endL = proc->nextLabel(proc);
 			int32_t cnd1 = ytranslate(builder, env, bin->left);
-			proc->append(proc, VM_JumpIfTrue, endL, cnd1, -1);
+			proc->append(proc, VM_GotoIfTrue, endL, cnd1, -1);
 			proc->unuse(proc, cnd1);
 			cnd1 = ytranslate(builder, env, bin->right);
-			proc->append(proc, VM_JumpIfTrue, endL, cnd1, -1);
+			proc->append(proc, VM_GotoIfTrue, endL, cnd1, -1);
 			proc->unuse(proc, cnd1);
 			proc->append(proc, VM_LoadConstant, output,
 					builder->bc->addBooleanConstant(builder->bc, false), -1);
@@ -1023,13 +1023,13 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			int32_t trueL = proc->nextLabel(proc);
 			int32_t falseL = proc->nextLabel(proc);
 			int32_t cond = ytranslate(builder, env, cnd->cond);
-			proc->append(proc, VM_JumpIfFalse, falseL, cond, -1);
+			proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 			out = cond;
 
 			int32_t tReg = ytranslate(builder, env, cnd->body);
 			proc->append(proc, VM_Copy, out, tReg, -1);
 			proc->unuse(proc, tReg);
-			proc->append(proc, VM_Jump, trueL, -1, -1);
+			proc->append(proc, VM_Goto, trueL, -1, -1);
 			proc->bind(proc, falseL);
 			int32_t fReg = ytranslate(builder, env, cnd->elseBody);
 			proc->append(proc, VM_Copy, out, fReg, -1);
@@ -1039,13 +1039,13 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			int32_t trueL = proc->nextLabel(proc);
 			int32_t falseL = proc->nextLabel(proc);
 			int32_t cond = ytranslate(builder, env, cnd->cond);
-			proc->append(proc, VM_JumpIfFalse, falseL, cond, -1);
+			proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 			out = cond;
 
 			int32_t tReg = ytranslate(builder, env, cnd->body);
 			proc->append(proc, VM_Copy, out, tReg, -1);
 			proc->unuse(proc, tReg);
-			proc->append(proc, VM_Jump, trueL, -1, -1);
+			proc->append(proc, VM_Goto, trueL, -1, -1);
 			proc->bind(proc, falseL);
 			proc->append(proc, VM_LoadConstant, out,
 					env->bytecode->getNullConstant(env->bytecode), -1);
@@ -1066,16 +1066,16 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		if (loop->evalOnStart) {
 			proc->bind(proc, startL);
 			int32_t cond = ytranslate(builder, env, loop->cond);
-			proc->append(proc, VM_JumpIfFalse, endL, cond, -1);
+			proc->append(proc, VM_GotoIfFalse, endL, cond, -1);
 			proc->unuse(proc, cond);
 			proc->unuse(proc, ytranslate(builder, env, loop->body));
-			proc->append(proc, VM_Jump, startL, -1, -1);
+			proc->append(proc, VM_Goto, startL, -1, -1);
 			proc->bind(proc, endL);
 		} else {
 			proc->bind(proc, startL);
 			proc->unuse(proc, ytranslate(builder, env, loop->body));
 			int32_t cond = ytranslate(builder, env, loop->cond);
-			proc->append(proc, VM_JumpIfTrue, startL, cond, -1);
+			proc->append(proc, VM_GotoIfTrue, startL, cond, -1);
 			proc->unuse(proc, cond);
 			proc->bind(proc, endL);
 		}
@@ -1091,7 +1091,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 
 		proc->bind(proc, startL);
 		proc->unuse(proc, ytranslate(builder, env, loop->body));
-		proc->append(proc, VM_Jump, startL, -1, -1);
+		proc->append(proc, VM_Goto, startL, -1, -1);
 		proc->bind(proc, endL);
 
 		proc->endLoop(proc);
@@ -1109,12 +1109,12 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 
 		proc->bind(proc, realStartL);
 		int32_t cond = ytranslate(builder, env, loop->cond);
-		proc->append(proc, VM_JumpIfFalse, endL, cond, -1);
+		proc->append(proc, VM_GotoIfFalse, endL, cond, -1);
 		proc->unuse(proc, cond);
 		proc->unuse(proc, ytranslate(builder, env, loop->body));
 		proc->bind(proc, startL);
 		proc->unuse(proc, ytranslate(builder, env, loop->loop));
-		proc->append(proc, VM_Jump, realStartL, -1, -1);
+		proc->append(proc, VM_Goto, realStartL, -1, -1);
 		proc->bind(proc, endL);
 
 		proc->endLoop(proc);
@@ -1140,7 +1140,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->unuse(proc, val);
 		proc->unuse(proc, ytranslate(builder, env, loop->body));
 
-		proc->append(proc, VM_Jump, startL, -1, -1);
+		proc->append(proc, VM_Goto, startL, -1, -1);
 		proc->bind(proc, endL);
 		proc->endLoop(proc);
 		proc->append(proc, VM_Swap, temp, 0, -1);
@@ -1174,7 +1174,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		if (id != -1)
 			loop = proc->getLoop(proc, id);
 		if (loop != NULL) {
-			proc->append(proc, VM_Jump, loop->end, -1, -1);
+			proc->append(proc, VM_Goto, loop->end, -1, -1);
 		}
 	}
 		break;
@@ -1185,7 +1185,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		if (id != -1)
 			loop = proc->getLoop(proc, id);
 		if (loop != NULL) {
-			proc->append(proc, VM_Jump, loop->start, -1, -1);
+			proc->append(proc, VM_Goto, loop->start, -1, -1);
 		}
 	}
 		break;
@@ -1205,7 +1205,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->unuse(proc, reg);
 		if (catchL != -1)
 			proc->append(proc, VM_CloseCatch, -1, -1, -1);
-		proc->append(proc, VM_Jump, elseL != -1 ? elseL : endL, -1, -1);
+		proc->append(proc, VM_Goto, elseL != -1 ? elseL : endL, -1, -1);
 		if (catchL != -1) {
 			int32_t regExc = proc->nextRegister(proc);
 			int32_t tempReg = proc->nextRegister(proc);
@@ -1226,7 +1226,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 
 			proc->append(proc, VM_Swap, tempReg, 0, -1);
 			proc->unuse(proc, tempReg);
-			proc->append(proc, VM_Jump, finL != -1 ? finL : endL, -1, -1);
+			proc->append(proc, VM_Goto, finL != -1 ? finL : endL, -1, -1);
 		}
 		if (elseL != -1) {
 			proc->bind(proc, elseL);
@@ -1252,7 +1252,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			labels[i] = proc->nextLabel(proc);
 			int32_t reg = ytranslate(builder, env, swn->cases[i].value);
 			proc->append(proc, VM_FastCompare, reg, valueReg, COMPARE_EQUALS);
-			proc->append(proc, VM_JumpIfTrue, labels[i], reg, -1);
+			proc->append(proc, VM_GotoIfTrue, labels[i], reg, -1);
 			proc->unuse(proc, reg);
 		}
 		output = valueReg;
@@ -1261,13 +1261,13 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			proc->append(proc, VM_Copy, output, resR, -1);
 			proc->unuse(proc, resR);
 		}
-		proc->append(proc, VM_Jump, endL, -1, -1);
+		proc->append(proc, VM_Goto, endL, -1, -1);
 		for (size_t i = 0; i < swn->length; i++) {
 			proc->bind(proc, labels[i]);
 			int32_t resR = ytranslate(builder, env, swn->cases[i].stmt);
 			proc->append(proc, VM_Copy, output, resR, -1);
 			proc->unuse(proc, resR);
-			proc->append(proc, VM_Jump, endL, -1, -1);
+			proc->append(proc, VM_Goto, endL, -1, -1);
 		}
 		proc->bind(proc, endL);
 		free(labels);

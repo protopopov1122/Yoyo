@@ -116,8 +116,10 @@ YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope,
 	frame.breakpoint = &bp;
 
 	// Assign execution frame to thread
+	MUTEX_LOCK(&th->mutex);
 	frame.frame.prev = th->frame;
 	th->frame = (LocalFrame*) &frame;
+	MUTEX_UNLOCK(&th->mutex);
 	// Call debugger if nescesarry
 	if (frame.frame.prev == NULL)
 		DEBUG(th->runtime->debugger, interpret_start, &procid, th);
@@ -131,11 +133,14 @@ YValue* invoke(int32_t procid, ILBytecode* bytecode, YObject* scope,
 		DEBUG(th->runtime->debugger, interpret_end, &procid, th);
 
 	// Free resources and remove frame from stack
+	MUTEX_LOCK(&th->mutex);
+	th->frame = frame.frame.prev;
 	free(frame.regs);
 	free(frame.stack);
-	th->frame = frame.frame.prev;
+	MUTEX_UNLOCK(&th->mutex);
 
-	return out;
+
+		return out;
 }
 
 /*Procedure that interprets current frame bytecode
@@ -621,14 +626,14 @@ YValue* execute(YThread* th) {
 		}
 			break;
 
-		case VM_Jump: {
+		case VM_Goto: {
 			/*Get label id from argument, get label address and jump*/
 			uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
 			frame->pc = addr;
 			continue;
 		}
 			break;
-		case VM_JumpIfTrue: {
+		case VM_GotoIfTrue: {
 			/*Get label id from argument, get label address and jump
 			 * if condition is true*/
 			YValue* bln = getRegister(iarg1, th);
@@ -639,7 +644,7 @@ YValue* execute(YThread* th) {
 			}
 		}
 			break;
-		case VM_JumpIfFalse: {
+		case VM_GotoIfFalse: {
 			/*Get label id from argument, get label address and jump
 			 * if condition is false*/
 			YValue* bln = getRegister(iarg1, th);
@@ -650,14 +655,14 @@ YValue* execute(YThread* th) {
 			}
 		}
 			break;
-		case VM_DirectJump: {
-			/*Jump to an address*/
+		case VM_Jump: {
+			/*Goto to an address*/
 			frame->pc = iarg0;
 			continue;
 		}
 			break;
-		case VM_DirectJumpIfTrue: {
-			/*Jump to an address if condition is true*/
+		case VM_JumpIfTrue: {
+			/*Goto to an address if condition is true*/
 			YValue* bln = getRegister(iarg1, th);
 			if (bln->type->type == BooleanT && ((YBoolean*) bln)->value) {
 				frame->pc = iarg0;
@@ -665,8 +670,8 @@ YValue* execute(YThread* th) {
 			}
 		}
 			break;
-		case VM_DirectJumpIfFalse: {
-			/*Jump to an address if condition is false*/
+		case VM_JumpIfFalse: {
+			/*Goto to an address if condition is false*/
 			YValue* bln = getRegister(iarg1, th);
 			if (bln->type->type == BooleanT && !((YBoolean*) bln)->value) {
 				frame->pc = iarg0;
@@ -813,7 +818,7 @@ YValue* execute(YThread* th) {
 			}
 		}
 			break;
-		case VM_JumpIfEquals: {
+		case VM_GotoIfEquals: {
 			YValue* v1 = getRegister(iarg1, th);
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
@@ -824,12 +829,23 @@ YValue* execute(YThread* th) {
 			}
 		}
 		break;
-		case VM_DirectJumpIfEquals: {
+		case VM_JumpIfEquals: {
 			YValue* v1 = getRegister(iarg1, th);
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
 			if ((cmp & COMPARE_EQUALS) != 0) {
 				frame->pc = iarg0;
+				continue;
+			}
+		}
+		break;
+		case VM_GotoIfNotEquals: {
+			YValue* v1 = getRegister(iarg1, th);
+			YValue* v2 = getRegister(iarg2, th);
+			int cmp = v1->type->oper.compare(v1, v2, th);
+			if ((cmp & COMPARE_NOT_EQUALS) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
 				continue;
 			}
 		}
@@ -839,18 +855,18 @@ YValue* execute(YThread* th) {
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
 			if ((cmp & COMPARE_NOT_EQUALS) != 0) {
-				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
-				frame->pc = addr;
+				frame->pc = iarg0;
 				continue;
 			}
 		}
 		break;
-		case VM_DirectJumpIfNotEquals: {
+		case VM_GotoIfGreater: {
 			YValue* v1 = getRegister(iarg1, th);
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
-			if ((cmp & COMPARE_NOT_EQUALS) != 0) {
-				frame->pc = iarg0;
+			if ((cmp & COMPARE_GREATER) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
 				continue;
 			}
 		}
@@ -860,18 +876,18 @@ YValue* execute(YThread* th) {
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
 			if ((cmp & COMPARE_GREATER) != 0) {
-				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
-				frame->pc = addr;
+				frame->pc = iarg0;
 				continue;
 			}
 		}
 		break;
-		case VM_DirectJumpIfGreater: {
+		case VM_GotoIfLesser: {
 			YValue* v1 = getRegister(iarg1, th);
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
-			if ((cmp & COMPARE_GREATER) != 0) {
-				frame->pc = iarg0;
+			if ((cmp & COMPARE_LESSER) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
 				continue;
 			}
 		}
@@ -881,18 +897,18 @@ YValue* execute(YThread* th) {
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
 			if ((cmp & COMPARE_LESSER) != 0) {
-				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
-				frame->pc = addr;
+				frame->pc = iarg0;
 				continue;
 			}
 		}
 		break;
-		case VM_DirectJumpIfLesser: {
+		case VM_GotoIfNotLesser: {
 			YValue* v1 = getRegister(iarg1, th);
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
-			if ((cmp & COMPARE_LESSER) != 0) {
-				frame->pc = iarg0;
+			if ((cmp & COMPARE_GREATER_OR_EQUALS) != 0) {
+				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
+				frame->pc = addr;
 				continue;
 			}
 		}
@@ -902,23 +918,12 @@ YValue* execute(YThread* th) {
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
 			if ((cmp & COMPARE_GREATER_OR_EQUALS) != 0) {
-				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
-				frame->pc = addr;
-				continue;
-			}
-		}
-		break;
-		case VM_DirectJumpIfNotLesser: {
-			YValue* v1 = getRegister(iarg1, th);
-			YValue* v2 = getRegister(iarg2, th);
-			int cmp = v1->type->oper.compare(v1, v2, th);
-			if ((cmp & COMPARE_GREATER_OR_EQUALS) != 0) {
 				frame->pc = iarg0;
 				continue;
 			}
 		}
 		break;
-		case VM_JumpIfNotGreater: {
+		case VM_GotoIfNotGreater: {
 			YValue* v1 = getRegister(iarg1, th);
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);
@@ -929,7 +934,7 @@ YValue* execute(YThread* th) {
 			}
 		}
 		break;
-		case VM_DirectJumpIfNotGreater: {
+		case VM_JumpIfNotGreater: {
 			YValue* v1 = getRegister(iarg1, th);
 			YValue* v2 = getRegister(iarg2, th);
 			int cmp = v1->type->oper.compare(v1, v2, th);

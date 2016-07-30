@@ -121,7 +121,7 @@ void optimize_procedure(ILProcedure* proc) {
 	while(cs->stream[0]!=NULL) {
 		if (cs->stream[1]!=NULL) {
 			if (cs->stream[0]->opcode==VM_FastCompare&&
-				cs->stream[1]->opcode==VM_JumpIfFalse&&
+				cs->stream[1]->opcode==VM_GotoIfFalse&&
 				cs->stream[0]->args[0]==cs->stream[1]->args[1]) {
 				VMCommand cmd;
 				cmd.old_position = -1;
@@ -129,42 +129,42 @@ void optimize_procedure(ILProcedure* proc) {
 				cmd.args[1] = cs->stream[0]->args[0];
 				cmd.args[2] = cs->stream[0]->args[1];
 				if (cs->stream[0]->args[2]==COMPARE_EQUALS) {
-					cmd.opcode = VM_JumpIfNotEquals;
+					cmd.opcode = VM_GotoIfNotEquals;
 					cs->append(cs, &cmd);
 					cs->shift(cs);
 					cs->shift(cs);
 					continue;
 				}
 				if (cs->stream[0]->args[2]==COMPARE_NOT_EQUALS) {
-					cmd.opcode = VM_JumpIfEquals;
+					cmd.opcode = VM_GotoIfEquals;
 					cs->append(cs, &cmd);
 					cs->shift(cs);
 					cs->shift(cs);
 					continue;
 				}
 				if (cs->stream[0]->args[2]==COMPARE_LESSER_OR_EQUALS) {
-					cmd.opcode = VM_JumpIfGreater;
+					cmd.opcode = VM_GotoIfGreater;
 					cs->append(cs, &cmd);
 					cs->shift(cs);
 					cs->shift(cs);
 					continue;
 				}
 				if (cs->stream[0]->args[2]==COMPARE_GREATER_OR_EQUALS) {
-					cmd.opcode = VM_JumpIfLesser;
+					cmd.opcode = VM_GotoIfLesser;
 					cs->append(cs, &cmd);
 					cs->shift(cs);
 					cs->shift(cs);
 					continue;
 				}
 				if (cs->stream[0]->args[2]==COMPARE_LESSER) {
-					cmd.opcode = VM_JumpIfNotLesser;
+					cmd.opcode = VM_GotoIfNotLesser;
 					cs->append(cs, &cmd);
 					cs->shift(cs);
 					cs->shift(cs);
 					continue;
 				}
 				if (cs->stream[0]->args[2]==COMPARE_GREATER) {
-					cmd.opcode = VM_JumpIfNotGreater;
+					cmd.opcode = VM_GotoIfNotGreater;
 					cs->append(cs, &cmd);
 					cs->shift(cs);
 					cs->shift(cs);

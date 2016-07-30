@@ -59,14 +59,14 @@
 	#define VM_Catch 0x26
 	#define VM_OpenCatch 0x27
 	#define VM_CloseCatch 0x28
-	#define VM_Jump 0x29
-	#define VM_JumpIfFalse 0x2A
-	#define VM_JumpIfTrue 0x2B
+	#define VM_Goto 0x29
+	#define VM_GotoIfFalse 0x2A
+	#define VM_GotoIfTrue 0x2B
 	#define VM_Nop 0x2C
 	#define VM_Swap 0x2D
-	#define VM_DirectJump 0x2E
-	#define VM_DirectJumpIfTrue 0x2F
-	#define VM_DirectJumpIfFalse 0x30
+	#define VM_Jump 0x2E
+	#define VM_JumpIfTrue 0x2F
+	#define VM_JumpIfFalse 0x30
 	#define VM_Subsequence 0x31
 	#define VM_Iterator 0x32
 	#define VM_Iterate 0x33
@@ -76,18 +76,18 @@
 	#define VM_Increment 0x37
 	#define VM_Decrement 0x38
 	#define VM_PushInteger 0x39
-	#define VM_JumpIfEquals 0x3A
-	#define VM_DirectJumpIfEquals 0x3B
-	#define VM_JumpIfNotEquals 0x3C
-	#define VM_DirectJumpIfNotEquals 0x3D
-	#define VM_JumpIfGreater 0x3E
-	#define VM_DirectJumpIfGreater 0x3F
-	#define VM_JumpIfLesser 0x40
-	#define VM_DirectJumpIfLesser 0x41
-	#define VM_JumpIfNotGreater 0x42
-	#define VM_DirectJumpIfNotGreater 0x43
-	#define VM_JumpIfNotLesser 0x44
-	#define VM_DirectJumpIfNotLesser 0x45
+	#define VM_GotoIfEquals 0x3A
+	#define VM_JumpIfEquals 0x3B
+	#define VM_GotoIfNotEquals 0x3C
+	#define VM_JumpIfNotEquals 0x3D
+	#define VM_GotoIfGreater 0x3E
+	#define VM_JumpIfGreater 0x3F
+	#define VM_GotoIfLesser 0x40
+	#define VM_JumpIfLesser 0x41
+	#define VM_GotoIfNotGreater 0x42
+	#define VM_JumpIfNotGreater 0x43
+	#define VM_GotoIfNotLesser 0x44
+	#define VM_JumpIfNotLesser 0x45
 typedef struct Mnemonic{
 	uint8_t opcode;
 	wchar_t* mnemonic;

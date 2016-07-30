@@ -49,14 +49,14 @@
 	<opcode mnemonic="Catch" code="0x26" />
 	<opcode mnemonic="OpenCatch" code="0x27" />
 	<opcode mnemonic="CloseCatch" code="0x28" />
-	<opcode mnemonic="Jump" code="0x29" />
-	<opcode mnemonic="JumpIfFalse" code="0x2A" />
-	<opcode mnemonic="JumpIfTrue" code="0x2B" />
+	<opcode mnemonic="Goto" code="0x29" />
+	<opcode mnemonic="GotoIfFalse" code="0x2A" />
+	<opcode mnemonic="GotoIfTrue" code="0x2B" />
 	<opcode mnemonic="Nop" code="0x2C" />
 	<opcode mnemonic="Swap" code="0x2D" />
-	<opcode mnemonic="DirectJump" code="0x2E" />
-	<opcode mnemonic="DirectJumpIfTrue" code="0x2F" />
-	<opcode mnemonic="DirectJumpIfFalse" code="0x30" />
+	<opcode mnemonic="Jump" code="0x2E" />
+	<opcode mnemonic="JumpIfTrue" code="0x2F" />
+	<opcode mnemonic="JumpIfFalse" code="0x30" />
 	<opcode mnemonic="Subsequence" code="0x31" />
 	<opcode mnemonic="Iterator" code="0x32" />
 	<opcode mnemonic="Iterate" code="0x33" />
@@ -66,17 +66,17 @@
 	<opcode mnemonic="Increment" code="0x37" />
 	<opcode mnemonic="Decrement" code="0x38" />
 	<opcode mnemonic="PushInteger" code="0x39" />
-	<opcode mnemonic="JumpIfEquals" code="0x3A" />
-	<opcode mnemonic="DirectJumpIfEquals" code="0x3B" />
-	<opcode mnemonic="JumpIfNotEquals" code="0x3C" />
-	<opcode mnemonic="DirectJumpIfNotEquals" code="0x3D" />
-	<opcode mnemonic="JumpIfGreater" code="0x3E" />
-	<opcode mnemonic="DirectJumpIfGreater" code="0x3F" />
-	<opcode mnemonic="JumpIfLesser" code="0x40" />
-	<opcode mnemonic="DirectJumpIfLesser" code="0x41" />
-	<opcode mnemonic="JumpIfNotGreater" code="0x42" />
-	<opcode mnemonic="DirectJumpIfNotGreater" code="0x43" />
-	<opcode mnemonic="JumpIfNotLesser" code="0x44" />
-	<opcode mnemonic="DirectJumpIfNotLesser" code="0x45" />
+	<opcode mnemonic="GotoIfEquals" code="0x3A" />
+	<opcode mnemonic="JumpIfEquals" code="0x3B" />
+	<opcode mnemonic="GotoIfNotEquals" code="0x3C" />
+	<opcode mnemonic="JumpIfNotEquals" code="0x3D" />
+	<opcode mnemonic="GotoIfGreater" code="0x3E" />
+	<opcode mnemonic="JumpIfGreater" code="0x3F" />
+	<opcode mnemonic="GotoIfLesser" code="0x40" />
+	<opcode mnemonic="JumpIfLesser" code="0x41" />
+	<opcode mnemonic="GotoIfNotGreater" code="0x42" />
+	<opcode mnemonic="JumpIfNotGreater" code="0x43" />
+	<opcode mnemonic="GotoIfNotLesser" code="0x44" />
+	<opcode mnemonic="JumpIfNotLesser" code="0x45" />
 
 </opcodes>

@@ -20,6 +20,19 @@ threads = object {
 		}
 	}
 }
+sys.nop = $() pass
+
+sys.gc = object {
+	def block() {
+		mutex.lock();
+		sys.native("YSTD_SYSTEM_GC_BLOCK", null, null)();
+	}
+	def unblock() {
+		sys.native("YSTD_SYSTEM_GC_UNBLOCK", null, null)();
+		mutex.unlock();
+	}
+	mutex: threads.newMutex()
+}
 
 console = object {
 	print: sys.native("YSTD_CONSOLE_PRINT",

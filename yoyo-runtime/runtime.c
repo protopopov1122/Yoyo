@@ -41,6 +41,7 @@ void freeThread(YThread* th) {
 	runtime->thread_count--;
 
 	MUTEX_UNLOCK(&runtime->runtime_mutex);
+	DESTROY_MUTEX(&th->mutex);
 	free(th);
 }
 
@@ -65,21 +66,26 @@ void* GCThread(void* ptr) {
 	GarbageCollector* gc = runtime->gc;
 	sleep(2);
 	clock_t last_gc = clock();
-	while (runtime->state == RuntimeRunning) {
+	while (runtime->state == RuntimeRunning||
+		runtime->state == RuntimePaused) {
 		YIELD();
-		if (clock()-last_gc<CLOCKS_PER_SEC/2)
+		if (runtime->block_gc||
+			runtime->state==RuntimePaused||
+			clock()-last_gc<CLOCKS_PER_SEC/2)
 			continue;
 		// Mark all root objects
 		MARK(runtime->global_scope);
 		for (size_t i = 0; i < runtime->thread_size; i++) {
 			if (runtime->threads[i] != NULL) {
 				YThread* th = runtime->threads[i];
+				MUTEX_LOCK(&th->mutex);
 				MARK(th->exception);
 				LocalFrame* frame = th->frame;
 				while (frame != NULL) {
 					frame->mark(frame);
 					frame = frame->prev;
 				}
+				MUTEX_UNLOCK(&th->mutex);
 			}
 		}
 //		MUTEX_UNLOCK(&runtime->runtime_mutex);
@@ -203,6 +209,7 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->thread_count = 0;
 	runtime->CoreThread = newThread(runtime);
 
+	runtime->block_gc = false;
 	runtime->gc = newPlainGC(1000);
 	runtime->free = freeRuntime;
 	runtime->newObject = newHashObject;
@@ -239,6 +246,7 @@ YThread* newThread(YRuntime* runtime) {
 			THREAD_EQUAL(current_th, runtime->threads[i]->self))
 			return runtime->threads[i];
 	YThread* th = malloc(sizeof(YThread));
+	NEW_MUTEX(&th->mutex);
 	th->runtime = runtime;
 	th->state = Working;
 	th->free = freeThread;

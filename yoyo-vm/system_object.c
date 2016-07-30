@@ -93,6 +93,15 @@ YOYO_FUNCTION(YSTD_SYSTEM_EXIT) {
 	exit(0);
 	return getNull(th);
 }
+YOYO_FUNCTION(YSTD_SYSTEM_GC_BLOCK) {
+	th->runtime->block_gc = true;
+	return getNull(th);
+}
+YOYO_FUNCTION(YSTD_SYSTEM_GC_UNBLOCK) {
+	th->runtime->block_gc = false;
+	return getNull(th);
+}
+
 
 YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 	YRuntime* runtime = th->runtime;
@@ -146,14 +155,6 @@ YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 }
 
 YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
-	YoyoLambdaSignature* sig = newLambdaSignature(false, -1, false, NULL, NULL,
-			th);
-	if (args[1]->type->type == DeclarationT) {
-		YoyoType* type = (YoyoType*) args[1];
-		if (type->type == LambdaSignatureDT) {
-			sig = (YoyoLambdaSignature*) type;
-		}
-	}
 	wchar_t* wstr = toString(args[0], th);
 	char* cstr = malloc(sizeof(wchar_t) * wcslen(wstr) + 1);
 	wcstombs(cstr, wstr, wcslen(wstr));
@@ -169,6 +170,14 @@ YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
 		return getNull(th);
 	}
 	free(wstr);
+	YoyoLambdaSignature* sig = newLambdaSignature(false, -1, false, NULL, NULL,
+			th);
+	if (args[1]->type->type == DeclarationT) {
+		YoyoType* type = (YoyoType*) args[1];
+		if (type->type == LambdaSignatureDT) {
+			sig = (YoyoLambdaSignature*) type;
+		}
+	}
 	NativeLambda* lmbd = (NativeLambda*) newNativeLambda(-1, clb,
 			(YoyoObject*) args[2], th);
 	lmbd->lambda.sig = sig;

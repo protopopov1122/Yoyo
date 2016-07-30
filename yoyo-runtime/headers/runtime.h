@@ -94,6 +94,7 @@ typedef struct YThread {
 	LocalFrame* frame;
 
 	THREAD self;
+	MUTEX mutex;
 
 	YRuntime* runtime;
 	void (*free)(YThread*);
@@ -126,6 +127,7 @@ typedef struct YRuntime {
 	Environment* env;
 	SymbolMap symbols;
 	GarbageCollector* gc;
+	bool block_gc;
 	YDebug* debugger;
 	YObject* global_scope;
 	struct {
