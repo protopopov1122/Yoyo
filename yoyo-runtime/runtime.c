@@ -69,9 +69,9 @@ void* GCThread(void* ptr) {
 	while (runtime->state == RuntimeRunning||
 		runtime->state == RuntimePaused) {
 		YIELD();
-		if (runtime->block_gc||
+		if (!gc->panic&&(runtime->block_gc||
 			runtime->state==RuntimePaused||
-			clock()-last_gc<CLOCKS_PER_SEC/4)
+			clock()-last_gc<CLOCKS_PER_SEC/4))
 			continue;
 		bool panic = gc->panic;
 		if (panic)
@@ -217,7 +217,7 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->block_gc = false;
 	runtime->gc = newPlainGC(1000);
 	runtime->free = freeRuntime;
-	runtime->newObject = newTreeObject;
+	runtime->newObject = newHashObject;
 	runtime->wait = Runtime_wait;
 
 	Types_init(runtime);
