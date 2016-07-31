@@ -243,7 +243,7 @@ YValue* TreeObject_get(YObject* o, int32_t key, YThread* th) {
 void TreeObject_put(YObject* o, int32_t key, YValue* value, bool newF,
 		YThread* th) {
 	TreeObject* obj = (TreeObject*) o;
-	if (newF) {
+	if (newF || Leave_contains(obj->root, key)) {
 		obj->root = Leave_put(NULL, obj->root, key, value);
 		TreeObjectField* fld = Leave_search(obj->root, key);
 		if (fld->type != NULL && !fld->type->verify(fld->type, value, th)) {
@@ -504,8 +504,9 @@ void HashObject_put(YObject* o, int32_t id, YValue* value, bool newF,
 	YThread* th) {
 	HashTableObject* obj = (HashTableObject*) o;
 	MUTEX_LOCK(&obj->mutex);	
-	if (newF) {
-		HashTableEntry* e = HashTable_put(obj, id);
+	HashTableEntry* e = HashTable_get(obj, id);
+	if (newF || e != NULL) {
+		if (e==NULL) e =  HashTable_put(obj, id);
 		e->value = value;
 		if (e->type != NULL &&
 			!e->type->verify(e->type, value, th)) {

@@ -1,0 +1,68 @@
+/*This examples explains object use*/
+
+/*To create new object is used 'object' keyword.
+Object parent may be optionally specified after ':'
+operator. If it's not specified then object has
+default parent that includes some common methods.
+Objects can contain:
+    * fields - name : value
+    * methods - method name(args) body
+    * functions - def name(args) body*/
+
+grandfather = object {
+    name: "John"
+    surname: "Doe"
+    age->sys.types.int: 70
+    hobby: "cars"
+    
+    method getFullName() self.name+" "+self.surname
+    method getAge() self.age
+    def getHobby() hobby
+}
+
+father = object : grandfather {
+    name: "Joseph"
+    age: 40
+    hobby: "math"
+}
+
+son = object : father {
+    name: "Josh"
+    hobby: "guitar"
+    age: 18
+}
+/*Both methods and functions may
+be overloaded and use object scope
+and outer scope.
+Object fields can specify type.(name -> type : value)*/
+
+/*Methods are polymorph so they can use
+scope where they are defined and
+scope from where they are called(this
+scope passed as self variable).*/
+
+print(son.getAge());
+print(father.getFullName());
+
+/*Methods also may be used like this
+because they are special type of 
+lambdas. First argument will be passed
+as self variable*/
+
+getAge = grandfather.getAge;
+print(getAge(son));
+print(getAge(grandfather));
+
+/*Functions use only scope where they are
+defined*/
+print(son.getHobby());		// Will return the same
+print(father.getHobby());
+print(grandfather.getHobby());
+/*Functions also may used as lambdas(they are
+special type of lambdas)*/
+getHobby = son.getHobby;
+print(getHobby());
+
+/*Object field can be accesed directly*/
+son.age++;
+print(getAge(son));

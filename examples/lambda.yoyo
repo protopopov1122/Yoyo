@@ -1,0 +1,60 @@
+/*This example shows use of lambdas and functions*/
+
+/*All functions are lambdas and are first-class objects*/
+/*There are few types of lambdas*/
+
+quad=$(x) x*x;		// Standart
+print(quad(2));
+
+add=overload($(x, y) x+y;
+	    $(x) x+1;
+	    default arr arr.size());	// Overloaded may contain few lambdas
+					// That are called depending on argument
+					// count or default lambda that is called
+					// if nothing fits
+print(add(1,2));
+print(add(100));
+print(add(1,2,3,4,5,100));
+
+// Native lambda calls C function. Used in standart library or ffi
+
+/*All lambdas can have vararg*/
+lmbd=$(x, ?arr) print(x+" "+arr);
+lmbd(10);
+lmbd(3,1);
+lmbd(5,1,2,3);
+lmbd(100, [1,2,3]);
+
+/*Function definitions are transformed to overloaded lambdas*/
+def fun1(x) {
+    return x+1;
+}
+def fun1() 1
+
+print(fun1(100));
+print(fun1());
+
+lmbd1 = overload($() 1;
+		$(x) x+1;); // Equal to fun1
+print(lmbd1(10));
+print(lmbd1());
+
+/*Lambdas and functions may be passed as arguments*/
+
+def test(l) print(l(11));
+test($(x) x*100);
+
+/*There are methods. It's special type of lambdas.
+Their zero argument is scope(self).
+See 'object.yoyo' example.*/
+
+// Functions can be defined in nested blocks
+if true {
+    def nested1() print(100);
+    nested1(); // Prints 100
+}
+try nested1(); catch e print(e); // Error: undefined
+
+/*Lambdas can be called in some weird way*/
+print.call(fun1.call(10));
+lmbd.callArray([1,2,3,4]);

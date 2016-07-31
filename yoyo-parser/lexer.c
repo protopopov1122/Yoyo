@@ -165,8 +165,12 @@ ytoken lex(ParseHandle* handle) {
 			wstr[wlen - 1] = ch;
 			ch = readwc(handle);
 			if (isOperator(ch)) {
-				if (ch == L'.' && iswdigit(wstr[wlen - 1]))
-					continue;
+				if (ch == L'.' && iswdigit(wstr[wlen - 1])) {
+					wint_t nxt = readwc(handle);
+					unreadwc(nxt, handle);
+					if (iswdigit(nxt))
+						continue;
+				}
 				unreadwc(ch, handle);
 				break;
 			}
