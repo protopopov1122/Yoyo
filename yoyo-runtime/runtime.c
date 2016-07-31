@@ -217,7 +217,11 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->block_gc = false;
 	runtime->gc = newPlainGC(1000);
 	runtime->free = freeRuntime;
-	runtime->newObject = newHashObject;
+	if (env->getDefined(env, L"object")!=NULL&&
+		wcscmp(env->getDefined(env, L"object"), L"tree")==0)
+		runtime->newObject = newTreeObject;
+	else
+		runtime->newObject = newHashObject;
 	runtime->wait = Runtime_wait;
 
 	Types_init(runtime);

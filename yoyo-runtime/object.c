@@ -392,7 +392,7 @@ void HashTable_free(YoyoObject* ptr) {
 
 HashTableEntry* HashTable_get(HashTableObject* obj, int32_t id) {
 	size_t index = ((size_t) id) % obj->size;
-	HashTableEntry* e = obj->table[index];
+	HashTableEntry* e = *(obj->table + index);
 	while (e!=NULL&&
 		e->id != id)
 		e = e->next;

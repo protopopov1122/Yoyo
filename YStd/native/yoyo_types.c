@@ -41,8 +41,17 @@ YOYO_FUNCTION(YSTD_TYPES_TYPES) {
 	NEW_TYPE(obj, IntType, L"int", th);
 	NEW_TYPE(obj, LambdaType, L"lambda", th);
 	NEW_TYPE(obj, NullType, L"null", th);
-	NEW_TYPE(obj, ObjectType, L"object", th);
+	NEW_TYPE(obj, ObjectType, L"struct", th);
 	NEW_TYPE(obj, StringType, L"string", th);
 #undef NEW_TYPE
 	return (YValue*) obj;
+}
+YOYO_FUNCTION(YSTD_TYPES_TREE_OBJECT) {
+	YObject* super = args[0]->type->type==ObjectT ? (YObject*) args[0] : NULL;
+	return (YValue*) newTreeObject(super, th);
+}
+
+YOYO_FUNCTION(YSTD_TYPES_HASH_OBJECT) {
+	YObject* super = args[0]->type->type==ObjectT ? (YObject*) args[0] : NULL;
+	return (YValue*) newHashObject(super, th);
 }

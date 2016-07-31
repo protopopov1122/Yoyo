@@ -197,14 +197,6 @@ YOYO_FUNCTION(YSTD_SYSTEM_SHARED_LIBRARY) {
 	return getNull(th);
 }
 
-YOYO_FUNCTION(TEMP_PRINT) {
-	YRuntime* runtime = th->runtime;
-	wchar_t* wstr = toString(args[0], th);
-	fprintf(runtime->env->out_stream, "%ls\n", wstr);
-	fflush(runtime->env->out_stream);
-	free(wstr);
-	return getNull(th);
-}
 
 YObject* Yoyo_SystemObject(ILBytecode* bc, YThread* th) {
 	YObject* sys = OBJECT(NULL, th);
@@ -221,8 +213,6 @@ YObject* Yoyo_SystemObject(ILBytecode* bc, YThread* th) {
 	METHOD(sys, L"sharedLibrary", YSTD_SYSTEM_SHARED_LIBRARY, 1, th);
 	METHOD(sys, L"args", YSTD_SYSTEM_ARGS, 0, th);
 	OBJECT_NEW(sys, L"platform", newString(PLATFORM, th), th);
-
-	METHOD(sys, L"print", TEMP_PRINT, 1, th); // Temporary
 
 	return sys;
 }

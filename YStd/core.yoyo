@@ -1,5 +1,11 @@
 sys.types = sys.native("YSTD_TYPES_TYPES", null, null)();
 sys.types.signature = sys.native("YSTD_TYPES_SIGNATURE", null, null);
+sys.types.treeObject=overload(sys.native("YSTD_TYPES_TREE_OBJECT",
+	sys.types.signature(sys.types.struct, sys.types.struct), null)
+	$() sys.types.treeObject(null));
+sys.types.hashObject=overload(sys.native("YSTD_TYPES_HASH_OBJECT",
+	sys.types.signature(sys.types.struct, sys.types.struct), null)
+	$() sys.types.treeObject(null));
 
 threads = object {
 	newThread: sys.native("YSTD_THREADS_NEW_THREAD",
@@ -20,8 +26,6 @@ threads = object {
 		}
 	}
 }
-sys.nop = $() pass
-
 sys.gc = object {
 	def block() {
 		mutex.lock();
