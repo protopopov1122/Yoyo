@@ -189,10 +189,22 @@ References may be recursize:
 	o2 = object : o1;
 	o3 = object {
 	    field: 1
-	    def method() field++
+	    def lambda1() field++
+	    method method1() self.field++
 	}
+	/*
+	lambda1() - simple lambda. It can be called only with scope where
+	    it's defined. (e.g. o3.lambda1() and o4.lambda1() will be called in
+	    the same scope)
+	method1() - method. It is polymorph and can be called with scope
+	    of any object(e.g. o3.method1() and o4.method1() will be called in
+	    different scopes(o3.method1() will return 1,2,3,etc. but o4.method1()
+	    will return 2,3,4,etc.). This method also may be called independently
+	    with scope specifying(m = o3.method1; m(o3))
+	*/
 	o4 = object : o3 {
 	    test: 0
+	    field: 2
 	}
 /*   * interface may have multiple parents:*/
     i1 = interface {

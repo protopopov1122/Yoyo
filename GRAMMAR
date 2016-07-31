@@ -62,5 +62,5 @@ statement: expression ';'?
 arg_list: '(' _arg_list? ')'
 _arg_list: _arg (',' _arg)*
 _arg: ID ('->' expr)?
-function: 'def' ID arg_list ('->' expr)? statement
+function: ('def' | 'method') ID arg_list ('->' expr)? statement
 root: (function | statement)*
