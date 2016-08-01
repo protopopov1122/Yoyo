@@ -119,7 +119,7 @@ typedef struct Environment {
 	wchar_t** (*getLoadedFiles)(struct Environment*);
 } Environment;
 
-#define INT_CACHE_SIZE 4096 /* 2**12 */
+#define INT_CACHE_SIZE 8192 /* 2**12 */
 #define INT_POOL_SIZE 2048 /* 2**11 */
 
 typedef struct YRuntime {

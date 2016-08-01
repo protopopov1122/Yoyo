@@ -26,6 +26,7 @@ void freeRuntime(YRuntime* runtime) {
 	for (size_t i = 0; i < runtime->symbols.size; i++)
 		free(runtime->symbols.map[i].symbol);
 	free(runtime->symbols.map);
+	DESTROY_MUTEX(&runtime->symbols.mutex);
 	runtime->env->free(runtime->env, runtime);
 	for (uint32_t i = 0; i < runtime->threads_capacity; i++)
 		if (runtime->threads[i] != NULL)
@@ -66,8 +67,7 @@ void* GCThread(void* ptr) {
 	GarbageCollector* gc = runtime->gc;
 	sleep(2);
 	clock_t last_gc = clock();
-	while (runtime->state == RuntimeRunning||
-		runtime->state == RuntimePaused) {
+	while (runtime->state != RuntimeTerminated) {
 		YIELD();
 		if (!gc->panic&&(runtime->gc->block||
 			runtime->state==RuntimePaused||
@@ -231,6 +231,7 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 
 	runtime->symbols.map = NULL;
 	runtime->symbols.size = 0;
+	NEW_MUTEX(&runtime->symbols.mutex);
 
 	runtime->global_scope = th->runtime->newObject(NULL, th);
 	runtime->Constants.pool = th->runtime->newObject(NULL, th);
@@ -292,18 +293,26 @@ wchar_t* toString(YValue* v, YThread* th) {
 int32_t getSymbolId(SymbolMap* map, wchar_t* wsym) {
 	if (wsym == NULL)
 		return -1;
+	MUTEX_LOCK(&map->mutex);
 	for (size_t i = 0; i < map->size; i++)
-		if (wcscmp(map->map[i].symbol, wsym) == 0)
-			return map->map[i].id;
+		if (wcscmp(map->map[i].symbol, wsym) == 0) {
+			int32_t value = map->map[i].id;
+			MUTEX_UNLOCK(&map->mutex);
+			return value;
+		}
 	int32_t id = (int32_t) map->size++;
 	map->map = realloc(map->map, sizeof(SymbolMapEntry) * map->size);
 	map->map[id].id = id;
 	map->map[id].symbol = calloc(1, sizeof(wchar_t) * (wcslen(wsym) + 1));
 	wcscpy(map->map[id].symbol, wsym);
+	MUTEX_UNLOCK(&map->mutex);
 	return id;
 }
 wchar_t* getSymbolById(SymbolMap* map, int32_t id) {
 	if (id < 0 || id >= map->size)
 		return NULL;
-	return map->map[id].symbol;
+	MUTEX_LOCK(&map->mutex);
+	wchar_t* wcs = map->map[id].symbol;
+	MUTEX_UNLOCK(&map->mutex);
+	return wcs;
 }

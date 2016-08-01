@@ -70,6 +70,7 @@ typedef struct SymbolMapEntry {
 typedef struct SymbolMap {
 	SymbolMapEntry* map;
 	size_t size;
+	MUTEX mutex;
 } SymbolMap;
 
 int32_t getSymbolId(SymbolMap*, wchar_t*);

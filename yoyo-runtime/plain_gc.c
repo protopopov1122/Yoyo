@@ -56,20 +56,20 @@ void plain_gc_collect(GarbageCollector* _gc) {
 	 moved to another memory area to
 	 prevent pointer array fragmentation*/
 	size_t nextIndex = 0;
-	for (size_t i = gc->size - 1; i < gc->size; i--) {
-		if (gc->objects[i] != NULL) {
-			if ((!gc->objects[i]->marked) && gc->objects[i]->linkc == 0)
+	for (size_t i = 0; i < gc->size; i++) {
+		YoyoObject* ptr = gc->objects[i];
+		if (ptr != NULL) {
+			if ((!ptr->marked) && ptr->linkc == 0)
 					/*Project is garbage only if:
 					 * it's unmarked
 					 * it has zero link count on it
 					 * it was created MAX_AGE processor clocks ago*/
 					{
-				gc->objects[i]->free(gc->objects[i]);
+				ptr->free(ptr);
 			} else    // Object isn't garbage
 			{
-				newHeap[nextIndex++] = gc->objects[i];
-				gc->objects[i]->marked = false;
-				gc->objects[i] = NULL;
+				newHeap[nextIndex++] = ptr;
+				ptr->marked = false;
 			}
 		}
 	}

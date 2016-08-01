@@ -104,6 +104,10 @@ YValue* number_div(YValue* v1, YValue* v2, YThread* th) {
 	} else {
 		int64_t i1 = getInteger(v1);
 		int64_t i2 = getInteger(v2);
+		if (i2==0) {
+				throwException(L"DivisionByZero", NULL, 0, th);
+				return getNull(th);
+		}
 		return newInteger(i1 / i2, th);
 	}
 }
@@ -112,6 +116,10 @@ YValue* number_mod(YValue* v1, YValue* v2, YThread* th) {
 	if (v1->type->type == IntegerT && v2->type->type == IntegerT) {
 		int64_t i1 = getInteger(v1);
 		int64_t i2 = getInteger(v2);
+		if (i2==0) {
+				throwException(L"DivisionByZero", NULL, 0, th);
+				return getNull(th);
+		}
 		return newInteger(i1 % i2, th);
 	} else
 		return getNull(th);
