@@ -27,10 +27,10 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 	Environment* env = runtime->env;
 	FILE* file = env->getFile(env, wpath);
 	if (file == NULL) {
-		yerror(ErrorFileNotFound, wpath, runtime->CoreThread);
+		yerror(ErrorFileNotFound, wpath, yoyo_thread(runtime));
 		return false;
 	} else {
-		YThread* th = newThread(runtime);
+		YThread* th = yoyo_thread(runtime);
 		runtime->env->eval(runtime->env, runtime,
 				file_input_stream(runtime->env->getFile(runtime->env, wpath)),
 				wpath,
@@ -179,8 +179,8 @@ void Yoyo_main(char** argv, int argc) {
 	RUNTIME = runtime;
 
 	OBJECT_NEW(runtime->global_scope, L"sys",
-			Yoyo_SystemObject(ycenv->bytecode, runtime->CoreThread),
-			runtime->CoreThread);
+			Yoyo_SystemObject(ycenv->bytecode, yoyo_thread(runtime)),
+			yoyo_thread(runtime));
 
 	/* Executes specified file only if 'core.yoyo' is found and valid */
 	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {
@@ -190,7 +190,7 @@ void Yoyo_main(char** argv, int argc) {
 	}
 
 	/* Waits all threads to finish and frees resources */
-	YThread* current_th = newThread(runtime);
+	YThread* current_th = yoyo_thread(runtime);
 	current_th->free(current_th);
 	runtime->wait(runtime);
 	runtime->free(runtime);

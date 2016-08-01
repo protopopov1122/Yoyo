@@ -21,7 +21,7 @@
  * with runtime and perform garbage collection*/
 
 void freeRuntime(YRuntime* runtime) {
-	DEBUG(runtime->debugger, onunload, NULL, runtime->CoreThread);
+	DEBUG(runtime->debugger, onunload, NULL, yoyo_thread(runtime));
 	runtime->state = RuntimeTerminated;
 	for (size_t i = 0; i < runtime->symbols.size; i++)
 		free(runtime->symbols.map[i].symbol);
@@ -93,14 +93,14 @@ void* GCThread(void* ptr) {
 		}
 //		MUTEX_UNLOCK(&runtime->runtime_mutex);
 		for (size_t i = 0; i < INT_CACHE_SIZE; i++)
-			if (runtime->Constants.IntCache[i] != NULL)
-				MARK(runtime->Constants.IntCache[i]);
+			MARK(runtime->Constants.IntCache[i]);
+		for (size_t i = 0; i < INT_POOL_SIZE; i++)
+			MARK(runtime->Constants.IntPool[i]);
 		MARK(runtime->Constants.TrueValue);
 		MARK(runtime->Constants.FalseValue);
 		MARK(runtime->Constants.NullPtr);
 		MARK(runtime->Constants.pool);
 		MARK(runtime->global_scope);
-		MARK(runtime->AbstractObject);
 #define MARKTYPE(type) MARK(runtime->type.TypeConstant);
 		MARKTYPE(ArrayType);
 		MARKTYPE(BooleanType);
@@ -207,12 +207,9 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->state = RuntimeRunning;
 	NEW_MUTEX(&runtime->runtime_mutex);
 
-	runtime->thread_size = 10;
-	runtime->threads = malloc(sizeof(YThread*) * runtime->thread_size);
-	for (size_t i = 0; i < runtime->thread_size; i++)
-		runtime->threads[i] = NULL;
+	runtime->thread_size = 1;
+	runtime->threads = calloc(runtime->thread_size, sizeof(YThread*));
 	runtime->thread_count = 0;
-	runtime->CoreThread = newThread(runtime);
 
 	runtime->block_gc = false;
 	runtime->gc = newPlainGC(1000);
@@ -225,30 +222,28 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->wait = Runtime_wait;
 
 	Types_init(runtime);
-	for (size_t i = 0; i < INT_CACHE_SIZE; i++)
-		runtime->Constants.IntCache[i] = NULL;
+	memset(runtime->Constants.IntCache, 0, sizeof(YInteger*) * INT_CACHE_SIZE);
+	memset(runtime->Constants.IntPool, 0, sizeof(YInteger*) * INT_POOL_SIZE);
 
-	YThread* th = runtime->CoreThread;
+	YThread* th = yoyo_thread(runtime);
 	runtime->Constants.TrueValue = (YBoolean*) newBooleanValue(true, th);
 	runtime->Constants.FalseValue = (YBoolean*) newBooleanValue(false, th);
 	runtime->Constants.NullPtr = NULL;
-	runtime->AbstractObject = NULL;
 
 	runtime->symbols.map = NULL;
 	runtime->symbols.size = 0;
 
 	runtime->global_scope = th->runtime->newObject(NULL, th);
 	runtime->Constants.pool = th->runtime->newObject(NULL, th);
-	runtime->AbstractObject = th->runtime->newObject(NULL, th);
 
 	NEW_THREAD(&runtime->gc_thread, GCThread, runtime);
 
-	DEBUG(runtime->debugger, onload, NULL, runtime->CoreThread);
+	DEBUG(runtime->debugger, onload, NULL, yoyo_thread(runtime));
 
 	return runtime;
 }
 
-YThread* newThread(YRuntime* runtime) {
+YThread* yoyo_thread(YRuntime* runtime) {
 	THREAD current_th = THREAD_SELF();
 	for (size_t i = 0; i < runtime->thread_count; i++)
 		if (runtime->threads[i]!=NULL&&

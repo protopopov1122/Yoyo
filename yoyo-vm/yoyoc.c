@@ -35,7 +35,7 @@ void YoyoC_free(Environment* _env, YRuntime* runtime) {
 	free(env);
 }
 YObject* YoyoC_system(Environment* env, YRuntime* runtime) {
-	YThread* th = runtime->CoreThread;
+	YThread* th = yoyo_thread(runtime);
 	YObject* obj = th->runtime->newObject(NULL, th);
 	return obj;
 }
@@ -47,7 +47,7 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime, InputStream* is,
 		env->bytecode = newBytecode(&runtime->symbols);
 	}
 	CompilationResult res = yoyoc(env, is, wname);
-	YThread* th = newThread(runtime);
+	YThread* th = yoyo_thread(runtime);
 	if (res.pid != -1) {
 		if (scope == NULL)
 			scope = runtime->global_scope;

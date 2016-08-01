@@ -465,7 +465,7 @@ uint64_t Float_hashCode(YValue* v, YThread* th) {
 void Int_type_init(YRuntime* runtime) {
 	runtime->IntType.type = IntegerT;
 	runtime->IntType.TypeConstant = newAtomicType(IntegerT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->IntType.oper.add_operation = number_add;
 	runtime->IntType.oper.subtract_operation = number_sub;
 	runtime->IntType.oper.multiply_operation = number_mul;
@@ -492,7 +492,7 @@ void Int_type_init(YRuntime* runtime) {
 void Float_type_init(YRuntime* runtime) {
 	runtime->FloatType.type = FloatT;
 	runtime->FloatType.TypeConstant = newAtomicType(FloatT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->FloatType.oper.add_operation = number_add;
 	runtime->FloatType.oper.subtract_operation = number_sub;
 	runtime->FloatType.oper.multiply_operation = number_mul;

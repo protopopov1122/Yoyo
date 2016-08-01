@@ -119,7 +119,9 @@ typedef struct Environment {
 	wchar_t** (*getLoadedFiles)(struct Environment*);
 } Environment;
 
-#define INT_CACHE_SIZE 8192
+#define INT_CACHE_SIZE 4096 /* 2**12 */
+#define INT_POOL_SIZE 2048 /* 2**11 */
+
 typedef struct YRuntime {
 	enum {
 		RuntimeRunning, RuntimePaused, RuntimeTerminated
@@ -132,6 +134,7 @@ typedef struct YRuntime {
 	YObject* global_scope;
 	struct {
 		YInteger* IntCache[INT_CACHE_SIZE];
+		YInteger* IntPool[INT_POOL_SIZE];
 		YBoolean* TrueValue;
 		YBoolean* FalseValue;
 		YValue* NullPtr;
@@ -146,12 +149,10 @@ typedef struct YRuntime {
 	YType LambdaType;
 	YType DeclarationType;
 	YType NullType;
-	YObject* AbstractObject;
 
 	YThread** threads;
 	size_t thread_size;
 	size_t thread_count;
-	YThread* CoreThread;
 
 	MUTEX runtime_mutex;
 	COND suspend_cond;
@@ -163,7 +164,7 @@ typedef struct YRuntime {
 } YRuntime;
 
 YValue* invokeLambda(YLambda*, YObject*, YValue**, size_t, YThread*);
-YThread* newThread(YRuntime*);
+YThread* yoyo_thread(YRuntime*);
 YRuntime* newRuntime(Environment*, YDebug*);
 wchar_t* toString(YValue*, YThread*);
 

@@ -280,7 +280,7 @@ YValue* String_subseq(YValue* v, size_t start, size_t end, YThread* th) {
 void String_type_init(YRuntime* runtime) {
 	runtime->StringType.type = StringT;
 	runtime->StringType.TypeConstant = newAtomicType(StringT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->StringType.oper.add_operation = concat_operation;
 	runtime->StringType.oper.subtract_operation = undefined_binary_operation;
 	runtime->StringType.oper.multiply_operation = String_mul;

@@ -80,7 +80,7 @@ YValue* Decl_or(YValue* v1, YValue* v2, YThread* th) {
 void Declaration_type_init(YRuntime* runtime) {
 	runtime->DeclarationType.type = DeclarationT;
 	runtime->DeclarationType.TypeConstant = newAtomicType(DeclarationT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->DeclarationType.oper.add_operation = concat_operation;
 	runtime->DeclarationType.oper.subtract_operation =
 			undefined_binary_operation;

@@ -267,7 +267,7 @@ YoyoIterator* Array_iterator(YValue* v, YThread* th) {
 void Array_type_init(YRuntime* runtime) {
 	runtime->ArrayType.type = ArrayT;
 	runtime->ArrayType.TypeConstant = newAtomicType(ArrayT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->ArrayType.oper.add_operation = concat_operation;
 	runtime->ArrayType.oper.subtract_operation = undefined_binary_operation;
 	runtime->ArrayType.oper.multiply_operation = undefined_binary_operation;

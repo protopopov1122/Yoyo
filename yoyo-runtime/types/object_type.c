@@ -103,7 +103,7 @@ YValue* Object_readProperty(int32_t id, YValue* v, YThread* th) {
 void Object_type_init(YRuntime* runtime) {
 	runtime->ObjectType.type = ObjectT;
 	runtime->ObjectType.TypeConstant = newAtomicType(ObjectT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->ObjectType.oper.add_operation = concat_operation;
 	runtime->ObjectType.oper.subtract_operation = undefined_binary_operation;
 	runtime->ObjectType.oper.multiply_operation = undefined_binary_operation;

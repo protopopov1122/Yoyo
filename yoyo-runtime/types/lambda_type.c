@@ -62,7 +62,7 @@ YValue* Lambda_readProperty(int32_t key, YValue* v, YThread* th) {
 void Lambda_type_init(YRuntime* runtime) {
 	runtime->LambdaType.type = LambdaT;
 	runtime->LambdaType.TypeConstant = newAtomicType(LambdaT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->LambdaType.oper.add_operation = concat_operation;
 	runtime->LambdaType.oper.subtract_operation = undefined_binary_operation;
 	runtime->LambdaType.oper.multiply_operation = undefined_binary_operation;

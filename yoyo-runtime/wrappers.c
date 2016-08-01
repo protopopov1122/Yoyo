@@ -328,7 +328,7 @@ YValue* IteratorWrapper_next(YoyoIterator* i, YThread* th) {
 		YValue* v = iter->object->get(iter->object, id, th);
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
-			return invokeLambda(exec, NULL, NULL, 0, th);
+			return invokeLambda(exec, iter->object, NULL, 0, th);
 		}
 	}
 	return getNull(th);
@@ -340,7 +340,7 @@ bool IteratorWrapper_hasNext(YoyoIterator* i, YThread* th) {
 		YValue* v = iter->object->get(iter->object, id, th);
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
-			YValue* ret = invokeLambda(exec, NULL, NULL, 0, th);
+			YValue* ret = invokeLambda(exec, iter->object, NULL, 0, th);
 			if (ret->type->type == BooleanT)
 				return ((YBoolean*) ret)->value;
 		}
@@ -354,7 +354,7 @@ void IteratorWrapper_reset(YoyoIterator* i, YThread* th) {
 		YValue* v = iter->object->get(iter->object, id, th);
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
-			invokeLambda(exec, NULL, NULL, 0, th);
+			invokeLambda(exec, iter->object, NULL, 0, th);
 		}
 	}
 }
@@ -458,7 +458,7 @@ size_t ArrayObject_size(YArray* a, YThread* th) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
-			YValue* out = invokeLambda(exec, NULL, NULL, 0, th);
+			YValue* out = invokeLambda(exec, array->object, NULL, 0, th);
 			if (out->type->type == IntegerT)
 				return (size_t) ((YInteger*) out)->value;
 		}
@@ -473,7 +473,7 @@ YValue* ArrayObject_get(YArray* a, size_t index, YThread* th) {
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
 			YValue* arg = newInteger(index, th);
-			return invokeLambda(exec, NULL, &arg, 1, th);
+			return invokeLambda(exec, array->object, &arg, 1, th);
 		}
 	}
 	return 0;
@@ -486,7 +486,7 @@ void ArrayObject_set(YArray* a, size_t index, YValue* value, YThread* th) {
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
 			YValue* args[] = { newInteger(index, th), value };
-			invokeLambda(exec, NULL, args, 2, th);
+			invokeLambda(exec, array->object, args, 2, th);
 		}
 	}
 }
@@ -497,7 +497,7 @@ void ArrayObject_add(YArray* a, YValue* value, YThread* th) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
-			invokeLambda(exec, NULL, &value, 1, th);
+			invokeLambda(exec, array->object, &value, 1, th);
 		}
 	}
 }
@@ -509,7 +509,7 @@ void ArrayObject_insert(YArray* a, size_t index, YValue* value, YThread* th) {
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
 			YValue* args[] = { newInteger(index, th), value };
-			invokeLambda(exec, NULL, args, 2, th);
+			invokeLambda(exec, array->object, args, 2, th);
 		}
 	}
 }
@@ -521,7 +521,7 @@ void ArrayObject_remove(YArray* a, size_t index, YThread* th) {
 		if (v->type->type == LambdaT) {
 			YLambda* exec = (YLambda*) v;
 			YValue* args[] = { newInteger(index, th) };
-			invokeLambda(exec, NULL, args, 1, th);
+			invokeLambda(exec, array->object, args, 1, th);
 		}
 	}
 }

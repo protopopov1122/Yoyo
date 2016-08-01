@@ -34,7 +34,7 @@ int Null_compare(YValue* v1, YValue* v2, YThread* th) {
 
 void Null_type_init(YRuntime* runtime) {
 	runtime->NullType.type = AnyT;
-	runtime->NullType.TypeConstant = newAtomicType(AnyT, runtime->CoreThread);
+	runtime->NullType.TypeConstant = newAtomicType(AnyT, yoyo_thread(runtime));
 	runtime->NullType.oper.add_operation = concat_operation;
 	runtime->NullType.oper.subtract_operation = undefined_binary_operation;
 	runtime->NullType.oper.multiply_operation = undefined_binary_operation;

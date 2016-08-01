@@ -1,6 +1,7 @@
-var hashMap, hashSet, list;
+var hashMap, hashSet, list, range, xrange;
 
 {
+	util = import("util.yoyo");
 	rawHashMap = sys.native("YSTD_COLLECTIONS_HASH_MAP_NEW",
 		sys.types.signature(sys.types.any), null);
 	rawHashSet = sys.native("YSTD_COLLECTIONS_HASH_SET_NEW",
@@ -45,4 +46,15 @@ var hashMap, hashSet, list;
 		return set;
 	}
 	list = rawList;
+	
+	def range(start->sys.types.int, end->sys.types.int, step->sys.types.int) util.arrays.wrapObject(object {
+	        method size() (end - start) / step
+	        method get(i) if i<0 || i>=self.size()
+	    			throw "WrongIndex";
+	    		      else
+	    		        start + step * i;
+	    		        
+	}).tuple()
+	def range(start->sys.types.int, end->sys.types.int)
+	    range(start, end, if start<end 1 else -1);
 }

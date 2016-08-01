@@ -59,7 +59,7 @@ YValue* Boolean_readProperty(int32_t key, YValue* v, YThread* th) {
 void Boolean_type_init(YRuntime* runtime) {
 	runtime->BooleanType.type = BooleanT;
 	runtime->BooleanType.TypeConstant = newAtomicType(BooleanT,
-			runtime->CoreThread);
+			yoyo_thread(runtime));
 	runtime->BooleanType.oper.add_operation = concat_operation;
 	runtime->BooleanType.oper.subtract_operation = undefined_binary_operation;
 	runtime->BooleanType.oper.multiply_operation = undefined_binary_operation;
