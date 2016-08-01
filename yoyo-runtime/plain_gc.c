@@ -24,13 +24,12 @@ YoyoObject* initYoyoObject(YoyoObject* o, void (*mark)(YoyoObject*),
 	o->linkc = 0;
 	o->free = hfree;
 	o->mark = mark;
-	o->age = clock();
-	o->cycle = 0;
 	return o;
 }
 
 typedef struct PlainGC {
 	GarbageCollector gc;
+	MUTEX mutex;
 
 	YoyoObject** objects;
 	size_t size;
@@ -80,7 +79,7 @@ void plain_gc_collect(GarbageCollector* _gc) {
 	free(gc->objects);
 	gc->objects = newHeap;
 	gc->collecting = false;
-	MUTEX_LOCK(&gc->gc.access_mutex);
+	MUTEX_LOCK(&gc->mutex);
 	if (gc->capacity<=gc->size+gc->temporary_size) {
 		gc->capacity = gc->size+gc->temporary_size+100;
 		gc->objects = realloc(gc->objects, sizeof(YoyoObject*) * gc->capacity);
@@ -95,7 +94,7 @@ void plain_gc_collect(GarbageCollector* _gc) {
 	if (freed<gc->temporary_size)
 		gc->gc.panic = true;
 	free(gc->temporary);
-	MUTEX_UNLOCK(&gc->gc.access_mutex);
+	MUTEX_UNLOCK(&gc->mutex);
 }
 
 void plain_gc_free(GarbageCollector* _gc) {
@@ -105,14 +104,14 @@ void plain_gc_free(GarbageCollector* _gc) {
 			gc->objects[i]->free(gc->objects[i]);
 	}
 	free(gc->objects);
-	DESTROY_MUTEX(&gc->gc.access_mutex);
+	DESTROY_MUTEX(&gc->mutex);
 	free(gc);
 }
 
 void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 	PlainGC* gc = (PlainGC*) _gc;
-	MUTEX_LOCK(&gc->gc.access_mutex);
-	if (!gc->collecting) { 
+	MUTEX_LOCK(&gc->mutex);
+	if (!gc->collecting) {
 		if (gc->size+2>=gc->capacity) {
 			gc->capacity = gc->capacity*1.1+100;
 			gc->objects = realloc(gc->objects, sizeof(YoyoObject*) * gc->capacity);
@@ -128,7 +127,7 @@ void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 		gc->temporary[gc->temporary_size++] = o;
 		o->marked = true;
 	}
-	MUTEX_UNLOCK(&gc->gc.access_mutex);
+	MUTEX_UNLOCK(&gc->mutex);
 }
 GarbageCollector* newPlainGC(size_t icapacity) {
 	PlainGC* gc = malloc(sizeof(PlainGC));
@@ -137,7 +136,8 @@ GarbageCollector* newPlainGC(size_t icapacity) {
 	gc->capacity = icapacity;
 	gc->size = 0;
 	gc->objects = calloc(1, sizeof(YoyoObject*) * icapacity);
-	NEW_MUTEX(&gc->gc.access_mutex);
+	gc->gc.block = false;
+	NEW_MUTEX(&gc->mutex);
 	gc->gc.collect = plain_gc_collect;
 	gc->gc.free = plain_gc_free;
 	gc->gc.registrate = plain_gc_registrate;

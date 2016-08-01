@@ -129,7 +129,6 @@ typedef struct YRuntime {
 	Environment* env;
 	SymbolMap symbols;
 	GarbageCollector* gc;
-	bool block_gc;
 	YDebug* debugger;
 	YObject* global_scope;
 	struct {
@@ -151,8 +150,8 @@ typedef struct YRuntime {
 	YType NullType;
 
 	YThread** threads;
-	size_t thread_size;
-	size_t thread_count;
+	size_t threads_capacity;
+	size_t threads_size;
 
 	MUTEX runtime_mutex;
 	COND suspend_cond;

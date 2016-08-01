@@ -24,9 +24,6 @@ typedef struct YoyoObject {
 	void (*mark)(struct YoyoObject*);
 	uint16_t linkc;
 	void (*free)(struct YoyoObject*);
-
-	clock_t age;
-	uint32_t cycle;
 } YoyoObject;
 
 typedef struct GarbageCollector {
@@ -34,8 +31,8 @@ typedef struct GarbageCollector {
 	void (*free)(struct GarbageCollector*);
 	void (*registrate)(struct GarbageCollector*, YoyoObject*);
 
-	MUTEX access_mutex;
 	bool panic;
+	bool block;
 } GarbageCollector;
 
 YoyoObject* initYoyoObject(YoyoObject*, void (*)(YoyoObject*),

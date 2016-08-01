@@ -94,11 +94,11 @@ YOYO_FUNCTION(YSTD_SYSTEM_EXIT) {
 	return getNull(th);
 }
 YOYO_FUNCTION(YSTD_SYSTEM_GC_BLOCK) {
-	th->runtime->block_gc = true;
+	th->runtime->gc->block = true;
 	return getNull(th);
 }
 YOYO_FUNCTION(YSTD_SYSTEM_GC_UNBLOCK) {
-	th->runtime->block_gc = false;
+	th->runtime->gc->block = false;
 	return getNull(th);
 }
 
