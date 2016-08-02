@@ -119,8 +119,23 @@ typedef struct Environment {
 	wchar_t** (*getLoadedFiles)(struct Environment*);
 } Environment;
 
+#ifndef INT_CACHE_SIZE
 #define INT_CACHE_SIZE 8192 /* 2**12 */
+#endif
+#ifndef INT_POOL_SIZE
 #define INT_POOL_SIZE 2048 /* 2**11 */
+#endif
+
+typedef struct RuntimeConstants {
+	size_t IntCacheSize;
+	size_t IntPoolSize;
+	YInteger** IntCache;
+	YInteger* IntPool[INT_POOL_SIZE];
+	YBoolean* TrueValue;
+	YBoolean* FalseValue;
+	YValue* NullPtr;
+	YObject* pool;
+} RuntimeConstants;
 
 typedef struct YRuntime {
 	enum {
@@ -131,14 +146,7 @@ typedef struct YRuntime {
 	GarbageCollector* gc;
 	YDebug* debugger;
 	YObject* global_scope;
-	struct {
-		YInteger* IntCache[INT_CACHE_SIZE];
-		YInteger* IntPool[INT_POOL_SIZE];
-		YBoolean* TrueValue;
-		YBoolean* FalseValue;
-		YValue* NullPtr;
-		YObject* pool;
-	} Constants;
+	RuntimeConstants Constants;
 	YType IntType;
 	YType FloatType;
 	YType BooleanType;

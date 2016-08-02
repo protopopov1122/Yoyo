@@ -31,6 +31,7 @@ void freeRuntime(YRuntime* runtime) {
 	for (uint32_t i = 0; i < runtime->threads_capacity; i++)
 		if (runtime->threads[i] != NULL)
 			runtime->threads[i]->free(runtime->threads[i]);
+	free(runtime->Constants.IntCache);
 	free(runtime->threads);
 	free(runtime);
 }
@@ -92,7 +93,7 @@ void* GCThread(void* ptr) {
 			}
 		}
 //		MUTEX_UNLOCK(&runtime->runtime_mutex);
-		for (size_t i = 0; i < INT_CACHE_SIZE; i++)
+		for (size_t i = 0; i < runtime->Constants.IntCacheSize; i++)
 			MARK(runtime->Constants.IntCache[i]);
 		for (size_t i = 0; i < INT_POOL_SIZE; i++)
 			MARK(runtime->Constants.IntPool[i]);
@@ -221,7 +222,14 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->wait = Runtime_wait;
 
 	Types_init(runtime);
-	memset(runtime->Constants.IntCache, 0, sizeof(YInteger*) * INT_CACHE_SIZE);
+	runtime->Constants.IntCacheSize = INT_CACHE_SIZE;
+	runtime->Constants.IntPoolSize = INT_POOL_SIZE;
+	if (env->getDefined(env, L"IntCache")!=NULL) {
+		size_t cache_size = wcstoul(env->getDefined(env, L"IntCache"), NULL, 0);
+		if (cache_size>0)
+			runtime->Constants.IntCacheSize = cache_size;
+	}
+	runtime->Constants.IntCache = calloc(runtime->Constants.IntCacheSize, sizeof(YInteger*));
 	memset(runtime->Constants.IntPool, 0, sizeof(YInteger*) * INT_POOL_SIZE);
 
 	YThread* th = yoyo_thread(runtime);
