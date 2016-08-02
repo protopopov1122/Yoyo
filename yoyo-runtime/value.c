@@ -85,8 +85,9 @@ YValue* newIntegerValue(int64_t value, YThread* th) {
  * and returned.*/
 YValue* newInteger(int64_t value, YThread* th) {
 	RuntimeConstants* cnsts = &th->runtime->Constants;
-	if (value >= -INT_POOL_SIZE/2 && value<INT_POOL_SIZE/2) {
-		size_t index = ((uint_fast64_t) value % (INT_POOL_SIZE - 1));
+	size_t pool_size = cnsts->IntPoolSize;
+	if (value >= -pool_size/2 && value<pool_size/2) {
+		size_t index = ((uint_fast64_t) value % (pool_size - 1));
 		YInteger* i = cnsts->IntPool[index];
 		if (i==NULL) {
 			i = (YInteger*) newIntegerValue(value, th);

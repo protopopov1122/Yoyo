@@ -130,7 +130,7 @@ typedef struct RuntimeConstants {
 	size_t IntCacheSize;
 	size_t IntPoolSize;
 	YInteger** IntCache;
-	YInteger* IntPool[INT_POOL_SIZE];
+	YInteger** IntPool;
 	YBoolean* TrueValue;
 	YBoolean* FalseValue;
 	YValue* NullPtr;
