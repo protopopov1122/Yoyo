@@ -20,7 +20,6 @@
 #include "yoyo-runtime.h"
 #include "opcodes.h"
 #include "bytecode.h"
-#include "yoyo_io.h"
 
 /*Procedures used to interpret bytecode.
  * See virtual machine description and 'interpreter.c'.*/

@@ -16,7 +16,6 @@
 
 #include "jit.h"
 #include "bytecode.h"
-#include "yoyo_io.h"
 
 /* File contains methods to build bytecode and get access to it.
  * Work with bytecode internal structures like
@@ -80,7 +79,7 @@ CodeTableEntry* Procedure_getCodeTableEntry(ILProcedure* proc, uint32_t pc) {
 	CodeTableEntry* entry = NULL;
 	for (size_t i = 0; i < proc->codeTable.length; i++) {
 		CodeTableEntry* ent = &proc->codeTable.table[i];
-		if (ent->offset <= pc && pc <= ent->end) {
+		if (ent->offset <= pc && pc < ent->end) {
 			if (entry == NULL)
 				entry = ent;
 			if (entry != NULL && ent->offset > entry->offset)
@@ -238,10 +237,6 @@ Constant* Bytecode_getConstant(ILBytecode* bc, int32_t id) {
 	return NULL;
 }
 
-void Bytecode_export(ILBytecode* bc, FILE* out) {
-	exportBytecode(bc, out);
-}
-
 ILBytecode* newBytecode(SymbolMap* sym) {
 	ILBytecode* bc = malloc(sizeof(ILBytecode));
 
@@ -256,7 +251,6 @@ ILBytecode* newBytecode(SymbolMap* sym) {
 	bc->newProcedure = Bytecode_newProcedure;
 	bc->getSymbolId = Bytecode_getSymbolId;
 	bc->getSymbolById = Bytecode_getSymbolById;
-	bc->exportBytecode = Bytecode_export;
 
 	bc->addIntegerConstant = Bytecode_addIntegerConstant;
 	bc->addFloatConstant = Bytecode_addFloatConstant;

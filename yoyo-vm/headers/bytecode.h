@@ -130,7 +130,6 @@ typedef struct ILBytecode {
 	int32_t (*getNullConstant)(struct ILBytecode*);
 	Constant* (*getConstant)(struct ILBytecode*, int32_t);
 
-	void (*exportBytecode)(struct ILBytecode*, FILE*);
 } ILBytecode;
 
 ILBytecode* newBytecode(SymbolMap*);

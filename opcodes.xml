@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (C) 2016 Jevgenijs Protopopovs <protopopov1122@yandex.ru> -->
-<!-- This program is free software: you can redistribute it and/or modify 
-	it under the terms of the GNU General Public License as published by the 
-	Free Software Foundation, either version 3 of the License, or (at your option) 
-	any later version. This program is distributed in the hope that it will be 
-	useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
-	or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for 
-	more details. You should have received a copy of the GNU General Public License 
+<!-- This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by the
+	Free Software Foundation, either version 3 of the License, or (at your option)
+	any later version. This program is distributed in the hope that it will be
+	useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+	or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+	more details. You should have received a copy of the GNU General Public License
 	along with this program. If not, see <http://www.gnu.org/licenses/>. -->
 <opcodes>
-	<opcode mnemonic="Halt" code="0x0" />
-	<opcode mnemonic="LoadConstant" code="0x1" />
-	<opcode mnemonic="LoadInteger" code="0x2" />
-	<opcode mnemonic="Copy" code="0x3" />
-	<opcode mnemonic="Push" code="0x4" />
-	<opcode mnemonic="Pop" code="0x5" />
-	<opcode mnemonic="Add" code="0x7" />
-	<opcode mnemonic="Subtract" code="0x8" />
-	<opcode mnemonic="Multiply" code="0x9" />
-	<opcode mnemonic="Divide" code="0xA" />
-	<opcode mnemonic="Modulo" code="0xB" />
-	<opcode mnemonic="Power" code="0xC" />
-	<opcode mnemonic="Negate" code="0xD" />
-	<opcode mnemonic="Not" code="0xE" />
-	<opcode mnemonic="LogicalNot" code="0xF" />
-	<opcode mnemonic="ShiftRight" code="0x10" />
-	<opcode mnemonic="ShiftLeft" code="0x11" />
-	<opcode mnemonic="Or" code="0x12" />
-	<opcode mnemonic="And" code="0x13" />
-	<opcode mnemonic="Xor" code="0x14" />
-	<opcode mnemonic="Compare" code="0x15" />
-	<opcode mnemonic="Test" code="0x16" />
-	<opcode mnemonic="Call" code="0x17" />
-	<opcode mnemonic="Return" code="0x18" />
-	<opcode mnemonic="NewObject" code="0x19" />
-	<opcode mnemonic="NewLambda" code="0x1A" />
+	<opcode mnemonic="Halt" code="0x0" comment="Unused" />
+	<opcode mnemonic="LoadConstant" code="0x1" comment="Load constant(arg1) in register(arg0)" />
+	<opcode mnemonic="LoadInteger" code="0x2" comment="Load integer(arg1) in register(arg0)" />
+	<opcode mnemonic="Copy" code="0x3" comment="Copy register(arg1) to register(arg0)" />
+	<opcode mnemonic="Push" code="0x4" comment="Push register(arg0) to stack" />
+	<opcode mnemonic="Pop" code="0x5" comment="Pop from stack to register(arg0)" />
+	<opcode mnemonic="Add" code="0x7" comment="Add register(arg1) value to register(arg2) and save to register(arg0)" />
+	<opcode mnemonic="Subtract" code="0x8" comment="Add register(arg2) value from register(arg1) and save to register(arg0)" />
+	<opcode mnemonic="Multiply" code="0x9" comment="Multiply register(arg1) value by register(arg2) and save to register(arg0)" />
+	<opcode mnemonic="Divide" code="0xA" comment="Divide register(arg1) value by register(arg2) and save to register(arg0)" />
+	<opcode mnemonic="Modulo" code="0xB" comment="Divide register(arg1) value by register(arg2) and save remainder to register(arg0)" />
+	<opcode mnemonic="Power" code="0xC" comment="Raise register(arg1) value to the power register(arg2) and save to register(arg0)" />
+	<opcode mnemonic="Negate" code="0xD" comment="Get negative value of register(arg1) and save to register(arg0)" />
+	<opcode mnemonic="Not" code="0xE" comment="Perform binary not operation on register(arg1) and save to register(arg0)" />
+	<opcode mnemonic="LogicalNot" code="0xF" comment="Perform logical not to boolean register(arg1) and save to register(arg0)" />
+	<opcode mnemonic="ShiftRight" code="0x10" comment="Shift integer in register(arg1) by register(arg2) to right and save to register(arg0)" />
+	<opcode mnemonic="ShiftLeft" code="0x11" comment="Shift integer in register(arg1) by register(arg2) to left and save to register(arg0)" />
+	<opcode mnemonic="Or" code="0x12" comment="Perform binary or operation on register(arg1) and register(arg2) save result to register(arg0)" />
+	<opcode mnemonic="And" code="0x13" comment="Perform binary and operation on register(arg1) and register(arg2) save result to register(arg0)" />
+	<opcode mnemonic="Xor" code="0x14" comment="Perform binary xor operation on register(arg1) and register(arg2) save result to register(arg0)" />
+	<opcode mnemonic="Compare" code="0x15" comment="Compare values in register(arg1) and register(arg2) and save integer result in register(arg0)" />
+	<opcode mnemonic="Test" code="0x16" comment="Perform and command on register(arg1) and arg2 and save to register(arg0)" />
+	<opcode mnemonic="Call" code="0x17" comment="Pop argument count and arguments from stack(argc on top, args in reverse order), get scope from register(arg2)  if exists, execute lambda in register(arg1) with that arguments and scope and save result to register(arg0)" />
+	<opcode mnemonic="Return" code="0x18" comment="Return value from register(arg0) and exit procedure" />
+	<opcode mnemonic="NewObject" code="0x19" comment="Create new object with parent in register(arg1) and save result to register(arg0)" />
+	<opcode mnemonic="NewLambda" code="0x1A" comment="Pop method, vararg flag, argument count, argument identifiers and types, return type from stack, create lamnda with scope(arg2) from procedure(arg1) and save to register(arg0)" />
 	<opcode mnemonic="NewOverload" code="0x1B" />
 	<opcode mnemonic="NewArray" code="0x1C" />
 	<opcode mnemonic="NewComplexObject" code="0x1D" />

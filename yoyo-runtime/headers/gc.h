@@ -39,7 +39,6 @@ YoyoObject* initYoyoObject(YoyoObject*, void (*)(YoyoObject*),
 		void (*)(YoyoObject*));
 
 GarbageCollector* newPlainGC(size_t);
-GarbageCollector* newGenerationalGC(size_t, uint16_t);
 YoyoObject* initAtomicYoyoObject(YoyoObject*, void (*)(YoyoObject*));
 
 #define MARK(ptr) if (ptr!=NULL&&!((YoyoObject*) ptr)->marked) ((YoyoObject*) ptr)->mark((YoyoObject*) ptr);
