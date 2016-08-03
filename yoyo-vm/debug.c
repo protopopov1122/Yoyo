@@ -382,11 +382,44 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						}
 						fprintf(th->runtime->env->out_stream, "\n");
 					}
+				} else CMD(req, L"runtime") {
+					if (th->runtime->newObject == newTreeObject)
+						printf("Object: AVL tree\n");
+					else
+						printf("Object: hash table\n");
+					printf("Integer pool size: %zu\n"
+								"Integer cache size: %zu\n",
+								th->runtime->Constants.IntPoolSize,
+								th->runtime->Constants.IntCacheSize);
+					printf("Thread count: %zu\n", th->runtime->threads_size);
+					for (size_t i=0;i<th->runtime->threads_capacity;i++) {
+						YThread* t = th->runtime->threads[i];
+						if (t==NULL)
+							continue;
+						printf("\tThread #%"PRIu32, t->id);
+						if (t->frame != NULL) {
+							SourceIdentifier sid = t->frame->get_source_id(t->frame);
+							if (sid.file!=-1)
+								printf(" at %ls(%"PRIu32":%"PRIu32")", getSymbolById(&th->runtime->symbols, sid.file),
+									sid.line, sid.charPosition);
+						}
+						printf("\n");
+					}
 				} else
 					fprintf(th->runtime->env->out_stream,
 							"Unknown argument '%ls'. Use 'help' command.\n",
 							req);
-			}
+			} else printf("Command prints runtime information. Available arguments:\n"
+										"\tfiles - list loaded files\n"
+										"\tfile - list file. Format: ls file [name]\n"
+										"\tline - list current line/lines before and after it. Format: ls line [before] [after]\n"
+										"\tbytecode - list common information about bytecode\n"
+										"\tprocs - procedure list\n"
+										"\tproc -  list procedure. Format: ls proc [id]\n"
+										"\tsymbols - list symbol and identifiers\n"
+										"\tconstants - list constants\n"
+										"\tbreaks - list breakpoints\n"
+										"\truntime - list common runtime information\n");
 		} else CMD(argv[0], L"rm") {
 			if (argc > 1) {
 				wchar_t* req = argv[1];
@@ -410,7 +443,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					}
 				} else
 					fprintf(th->runtime->env->out_stream,
-							"Unknown argument '%ls'. Use 'help; command.\n",
+							"Unknown argument '%ls'. Use 'help' command.\n",
 							req);
 			}
 		} else CMD(argv[0], L"eval") {
@@ -434,16 +467,29 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 				th->runtime->state = RuntimePaused;
 			}
 		} else CMD(argv[0], L"trace") {
-			ExecutionFrame* frame = ((ExecutionFrame*) th->frame);
+			YThread* t = th;
+			if (argc > 1) {
+				t = NULL;
+				uint32_t tid = (uint32_t) wcstoul(argv[1], NULL, 0);
+				for (size_t i=0;i<th->runtime->threads_capacity;i++)
+					if (th->runtime->threads[i]->id == tid) {
+						t = th->runtime->threads[i];
+						break;
+					}
+				if (t==NULL) {
+					printf("Thread #%"PRIu32" not found\n", tid);
+					continue;
+				}
+			}
+			LocalFrame* frame = t->frame;
 			while (frame != NULL) {
-				ILProcedure* proc = frame->proc;
-				CodeTableEntry* e = proc->getCodeTableEntry(proc, frame->pc);
-				if (e != NULL)
+				SourceIdentifier sid = frame->get_source_id(frame);
+				if (sid.file != -1)
 					fprintf(th->runtime->env->out_stream,
 							"\t%ls(%"PRIu32":%"PRIu32")\n",
-							dbg->bytecode->getSymbolById(dbg->bytecode,
-									e->file), e->line, e->charPos);
-				frame = (ExecutionFrame*) frame->frame.prev;
+							getSymbolById(&th->runtime->symbols,
+									sid.file), sid.line, sid.charPosition);
+				frame = frame->prev;
 			}
 		} else CMD(argv[0], L"quit") {
 			exit(0);
@@ -451,8 +497,19 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 			debug->mode = NoDebug;
 			work = false;
 		} else CMD(argv[0], L"help")
-			fprintf(th->runtime->env->out_stream,
-					"There must be debugger manual, but I am not written it yet\n");
+			printf("Yoyo debugger.\n"
+						"Available commands:\n"
+						"\tbreak - add breakpoint. Format: break [filename] line\n"
+						"\tbreak? - add condition to existing breakpoint. Format: break? id condition\n"
+						"\trun - continue execution\n"
+						"\tnext - execute next line\n"
+						"\tstep - execute next line, step into function on call\n"
+						"\tnodebug - stop debugging, continue execution\n"
+						"\tquit - stop execution, quit debugger\n"
+						"\ttrace - print thread backtrace. Format: trace [thread id]\n"
+						"\teval - execute code in current scope\n"
+						"\trm - remove breakpoint. Format: rm break breakpoint_id\n"
+						"\tls - list information. Type 'ls' for manual\n");
 		else
 			fprintf(th->runtime->env->out_stream,
 					"Unknown command '%ls'. Use 'help' command.\n", argv[0]);
