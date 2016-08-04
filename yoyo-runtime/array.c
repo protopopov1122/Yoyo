@@ -33,10 +33,12 @@ typedef struct DefaultArray {
 void DefaultArray_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	DefaultArray* arr = (DefaultArray*) ptr;
+	MUTEX_LOCK(&arr->access_mutex);
 	for (size_t i = 0; i < arr->size; i++) {
 		if (arr->array[i] != NULL)
 			MARK(arr->array[i]);
 	}
+	MUTEX_UNLOCK(&arr->access_mutex);
 }
 void DefaultArray_free(YoyoObject* ptr) {
 	DefaultArray* arr = (DefaultArray*) ptr;
@@ -46,7 +48,6 @@ void DefaultArray_free(YoyoObject* ptr) {
 }
 
 void DefaultArray_prepare(DefaultArray* arr, size_t index, YThread* th) {
-	MUTEX_LOCK(&arr->access_mutex);
 	if (index >= arr->size) {
 		if (index + 1 < arr->capacity)
 			arr->size = index + 1;
@@ -59,7 +60,6 @@ void DefaultArray_prepare(DefaultArray* arr, size_t index, YThread* th) {
 			arr->capacity = nextC;
 		}
 	}
-	MUTEX_UNLOCK(&arr->access_mutex);
 }
 
 size_t DefaultArray_size(YArray* a, YThread* th) {
@@ -68,19 +68,25 @@ size_t DefaultArray_size(YArray* a, YThread* th) {
 }
 YValue* DefaultArray_get(YArray* a, size_t index, YThread* th) {
 	DefaultArray* arr = (DefaultArray*) a;
+	MUTEX_LOCK(&arr->access_mutex);
 	if (index >= arr->size) {
 		YValue* yint = newInteger(index, th);
 		wchar_t* wstr = toString(yint, th);
 		throwException(L"WrongArrayIndex", &wstr, 1, th);
 		free(wstr);
+		MUTEX_UNLOCK(&arr->access_mutex);
 		return getNull(th);
 	}
-	return arr->array[index];
+	YValue* val = arr->array[index];
+	MUTEX_UNLOCK(&arr->access_mutex);
+	return val;
 }
 void DefaultArray_add(YArray* a, YValue* val, YThread* th) {
 	DefaultArray* arr = (DefaultArray*) a;
+	MUTEX_LOCK(&arr->access_mutex);
 	DefaultArray_prepare(arr, arr->size, th);
 	arr->array[arr->size - 1] = val;
+	MUTEX_UNLOCK(&arr->access_mutex);
 }
 void DefaultArray_insert(YArray* arr, size_t index, YValue* val, YThread* th) {
 	DefaultArray* array = (DefaultArray*) arr;
@@ -91,8 +97,8 @@ void DefaultArray_insert(YArray* arr, size_t index, YValue* val, YThread* th) {
 		free(wstr);
 		return;
 	}
-	DefaultArray_prepare(array, array->size, th);
 	MUTEX_LOCK(&array->access_mutex);
+	DefaultArray_prepare(array, array->size, th);
 	for (size_t i = array->size - 1; i > index; i--) {
 		array->array[i] = array->array[i - 1];
 	}
@@ -102,8 +108,10 @@ void DefaultArray_insert(YArray* arr, size_t index, YValue* val, YThread* th) {
 }
 void DefaultArray_set(YArray* a, size_t index, YValue* value, YThread* th) {
 	DefaultArray* arr = (DefaultArray*) a;
+	MUTEX_LOCK(&arr->access_mutex);
 	DefaultArray_prepare(arr, index, th);
 	arr->array[index] = value;
+	MUTEX_UNLOCK(&arr->access_mutex);
 }
 void DefaultArray_remove(YArray* a, size_t index, YThread* th) {
 	DefaultArray* arr = (DefaultArray*) a;
@@ -111,7 +119,7 @@ void DefaultArray_remove(YArray* a, size_t index, YThread* th) {
 
 	size_t newCap = arr->capacity - 1;
 	size_t newSize = arr->size - 1;
-	YValue** newArr = malloc(sizeof(YValue*) * newCap);
+	YValue** newArr = newCap==0 ? NULL : malloc(sizeof(YValue*) * newCap);
 	for (size_t i = 0; i < index; i++)
 		newArr[i] = arr->array[i];
 	for (size_t i = index + 1; i < arr->size; i++)
@@ -191,12 +199,20 @@ YArray* newArray(YThread* th) {
 }
 
 void Array_addAll(YArray* dst, YArray* src, YThread* th) {
+	((YoyoObject*) dst)->linkc++;
+	((YoyoObject*) src)->linkc++;
 	for (size_t i = 0; i < src->size(src, th); i++)
 		dst->add(dst, src->get(src, i, th), th);
+	((YoyoObject*) dst)->linkc--;
+	((YoyoObject*) src)->linkc--;
 }
 void Array_insertAll(YArray* dst, YArray* src, size_t index, YThread* th) {
+	((YoyoObject*) dst)->linkc++;
+	((YoyoObject*) src)->linkc++;
 	for (size_t i = src->size(src, th) - 1; i < src->size(src, th); i--)
 		dst->insert(dst, index, src->get(src, i, th), th);
+	((YoyoObject*) dst)->linkc--;
+	((YoyoObject*) src)->linkc--;
 }
 
 YArray* Array_flat(YArray* arr, YThread* th) {

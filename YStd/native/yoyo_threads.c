@@ -28,6 +28,23 @@ void* launch_new_thread(void* ptr) {
 	nth->mark = false;
 	invokeLambda(nth->lambda, NULL, NULL, 0, th);
 	nth->lambda->parent.o.linkc--;
+	if (th->exception!=NULL) {
+			YValue* e = th->exception;
+			th->exception = NULL;
+			wchar_t* wstr = toString(e, th);
+			fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
+			if (e->type->type==ObjectT) {
+				YObject* obj = (YObject*) e;
+				if (OBJECT_HAS(obj, L"trace", th)) {
+					YValue* trace = OBJECT_GET(obj, L"trace", th);
+					wchar_t* wcs = toString(trace, th);
+					printf("%ls\n", wcs);
+					free(wcs);
+				}
+			}
+			free(wstr);
+
+	}
 	th->free(th);
 	free(nth);
 	THREAD_EXIT(NULL);

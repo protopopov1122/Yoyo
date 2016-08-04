@@ -34,7 +34,7 @@ threads = object {
 			notify: sys.native("YSTD_THREADS_CONDITION_NOTIFY", 
 				sys.types.signature(sys.types.any), cond)
 			notifyAll: sys.native("YSTD_THREADS_CONDITION_NOTIFY_ALL", 
-				sys.types.signature(sys.types.boolean), cond)
+				sys.types.signature(sys.types.any), cond)
 		}
 	}
 }
