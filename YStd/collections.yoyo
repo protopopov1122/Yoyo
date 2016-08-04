@@ -45,7 +45,11 @@ var hashMap, hashSet, list, range, xrange;
 			set.add(el);
 		return set;
 	}
-	list = rawList;
+	list = $(?arr) {
+		lst = rawList();
+		lst.addAll(arr);
+		return lst;
+	}
 	
 	def range(start->sys.types.int, end->sys.types.int, step->sys.types.int) util.arrays.wrapObject(object {
 	        method size() (end - start) / step

@@ -376,8 +376,13 @@ size_t List_size(YArray* a, YThread* th) {
 }
 YValue* List_get(YArray* a, size_t index, YThread* th) {
 	YList* list = (YList*) a;
-	if (index >= list->length)
+	if (index >= list->length) {
+		YValue* yint = newInteger(index, th);
+		wchar_t* wstr = toString(yint, th);
+		throwException(L"WrongArrayIndex", &wstr, 1, th);
+		free(wstr);
 		return getNull(th);
+	}
 	MUTEX_LOCK(&list->mutex);
 	size_t i = 0;
 	ListEntry* e = list->list;
@@ -413,8 +418,13 @@ void List_add(YArray* a, YValue* v, YThread* th) {
 }
 void List_set(YArray* a, size_t index, YValue* value, YThread* th) {
 	YList* list = (YList*) a;
-	if (index >= list->length)
+	if (index >= list->length) {
+		YValue* yint = newInteger(index, th);
+		wchar_t* wstr = toString(yint, th);
+		throwException(L"WrongArrayIndex", &wstr, 1, th);
+		free(wstr);
 		return;
+	}
 	MUTEX_LOCK(&list->mutex);
 	size_t i = 0;
 	ListEntry* e = list->list;
@@ -446,8 +456,13 @@ void List_insert(YArray* a, size_t index, YValue* value, YThread* th) {
 		return;
 	}
 	MUTEX_UNLOCK(&list->mutex);
-	if (index > list->length)
+	if (index > list->length) {
+		YValue* yint = newInteger(index, th);
+		wchar_t* wstr = toString(yint, th);
+		throwException(L"WrongArrayIndex", &wstr, 1, th);
+		free(wstr);
 		return;
+	}
 	else if (index == list->length) {
 		List_add(a, value, th);
 		return;
@@ -473,8 +488,13 @@ void List_insert(YArray* a, size_t index, YValue* value, YThread* th) {
 
 void List_remove(YArray* a, size_t index, YThread* th) {
 	YList* list = (YList*) a;
-	if (index >= list->length)
+	if (index >= list->length) {
+		YValue* yint = newInteger(index, th);
+		wchar_t* wstr = toString(yint, th);
+		throwException(L"WrongArrayIndex", &wstr, 1, th);
+		free(wstr);
 		return;
+	}
 	MUTEX_LOCK(&list->mutex);
 	size_t i = 0;
 	ListEntry* e = list->list;
