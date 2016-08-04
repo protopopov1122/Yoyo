@@ -1038,7 +1038,17 @@ NewReduce(Expr_reduce) {
 		shift(handle);
 		YNode* cond;
 		YNode* body;
+		bool parentheses = false;
+		if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+			shift(handle);
+			parentheses = true;
+		}
 		ExpectReduce(&cond, expression, L"Expected expression", ;, handle);
+		if (parentheses) {
+			ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", cond->free(cond), handle);
+			shift(handle);
+		}
 		ExpectReduce(&body, statement, L"Expected statement", cond->free(cond),
 				handle);
 		YNode* elseBody = NULL;
@@ -1065,8 +1075,18 @@ NewReduce(Expr_reduce) {
 		if (AssertKeyword(handle->tokens[0], CatchKeyword)) {
 			/*Parses 'catch' argument and body*/
 			shift(handle);
+			bool parentheses = false;
+			if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+				shift(handle);
+				parentheses = true;
+			}
 			ExpectReduce(&catchRef, expression, L"Expected expression",
 					tryBody->free(tryBody), handle);
+			if (parentheses) {
+				ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+					L"Expected ')'", tryBody->free(tryBody), handle);
+				shift(handle);
+			}
 			ExpectReduce(&catchBody, statement, L"Expected statement", {
 				tryBody->free(tryBody)
 				;
@@ -1105,8 +1125,18 @@ NewReduce(Expr_reduce) {
 
 		shift(handle);
 
+		bool parentheses = false;
+		if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+			shift(handle);
+			parentheses = true;
+		}
 		ExpectReduce(&value, expression, L"Expected expression", freestmt,
 				handle);
+		if (parentheses) {
+			ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", value->free(value), handle);
+			shift(handle);
+		}
 		ExpectOperator(handle->tokens[0], OpeningBraceOperator, L"Expected '{",
 				freestmt, handle);
 		shift(handle);
@@ -1139,6 +1169,11 @@ NewReduce(Expr_reduce) {
 		shift(handle);
 		size_t length = 1;
 		YNode** scopes = malloc(sizeof(YNode*));
+		bool parentheses = false;
+		if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+			shift(handle);
+			parentheses = true;
+		}
 		ExpectReduce(&scopes[0], expr, L"Expected expresion", free(scopes),
 				handle);
 #define freestmt {\
@@ -1155,6 +1190,11 @@ NewReduce(Expr_reduce) {
 			scopes = realloc(scopes, sizeof(YNode*) * length);
 			scopes[length - 1] = n;
 		}
+		if (parentheses) {
+			ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", freestmt, handle);
+			shift(handle);
+		}
 		YNode* body;
 		ExpectReduce(&body, statement, L"Expected statement", freestmt, handle);
 #undef freestmt
@@ -1163,7 +1203,17 @@ NewReduce(Expr_reduce) {
 		shift(handle);
 		YNode* scope;
 		YNode* body;
+		bool parentheses = false;
+		if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+			shift(handle);
+			parentheses = true;
+		}
 		ExpectReduce(&scope, expression, L"Expected expression", ;, handle);
+		if (parentheses) {
+			ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", scope->free(scope), handle);
+			shift(handle);
+		}
 		ExpectReduce(&body, statement, L"Expected statement",
 				scope->free(scope), handle);
 		out = newWithNode(scope, body);
@@ -1212,7 +1262,17 @@ NewReduce(Expr_reduce) {
 		shift(handle);
 		YNode* cond;
 		YNode* body;
+		bool parentheses = false;
+		if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+			shift(handle);
+			parentheses = true;
+		}
 		ExpectReduce(&cond, expression, L"Expected expression", ;, handle);
+		if (parentheses) {
+			ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", cond->free(cond), handle);
+			shift(handle);
+		}
 		ExpectReduce(&body, statement, L"Expected statement", cond->free(cond),
 				handle);
 		return newWhileLoopNode(id, true, cond, body);
@@ -1232,8 +1292,18 @@ NewReduce(Expr_reduce) {
 		if (AssertKeyword(handle->tokens[0], WhileKeyword)) {
 			shift(handle);
 			YNode* cond;
+			bool parentheses = false;
+			if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+				shift(handle);
+				parentheses = true;
+			}
 			ExpectReduce(&cond, expression, L"Expected expression",
 					body->free(body), handle);
+			if (parentheses) {
+				ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+					L"Expected ')'", body->free(body); cond->free(cond);, handle);
+				shift(handle);
+			}
 			return newWhileLoopNode(id, false, cond, body);
 		} else {
 			return newLoopNode(id, body);
@@ -1253,6 +1323,11 @@ NewReduce(Expr_reduce) {
 		YNode* cond;
 		YNode* loop;
 		YNode* body;
+		bool parentheses = false;
+		if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+			shift(handle);
+			parentheses = true;
+		}
 		ExpectReduce(&init, statement, L"Expects statement", ;, handle);
 		ExpectReduce(&cond, statement, L"Expects statement", init->free(init),
 				handle);
@@ -1262,6 +1337,13 @@ NewReduce(Expr_reduce) {
 			cond->free(cond)
 			;
 		}, handle);
+		if (parentheses) {
+			ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", init->free(init);
+													cond->free(cond);
+													loop->free(loop);, handle);
+			shift(handle);
+		}
 		ExpectReduce(&body, statement, L"Expects statement", {
 			init->free(init)
 			;
@@ -1286,12 +1368,23 @@ NewReduce(Expr_reduce) {
 		YNode* col;
 		YNode* body;
 
+		bool parentheses = false;
+		if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+			shift(handle);
+			parentheses = true;
+		}
 		ExpectReduce(&refnode, expression, L"Expected expression", ;, handle);
 		ExpectOperator(handle->tokens[0], ColonOperator, L"Expected ':'",
 				refnode->free(refnode), handle);
 		shift(handle);
 		ExpectReduce(&col, expression, L"Expected expression",
 				refnode->free(refnode), handle);
+		if (parentheses) {
+			ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", refnode->free(refnode);
+													col->free(col);, handle);
+			shift(handle);
+		}
 		ExpectReduce(&body, expression, L"Expected statement", {
 			refnode->free(refnode)
 			;
