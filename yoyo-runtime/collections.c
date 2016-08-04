@@ -343,17 +343,20 @@ typedef struct YList {
 
 	ListEntry* list;
 	size_t length;
+	MUTEX mutex;
 } YList;
 
 void List_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	YList* list = (YList*) ptr;
+	MUTEX_LOCK(&list->mutex);
 	ListEntry* e = list->list;
 	while (e != NULL) {
 		YoyoObject* ho = (YoyoObject*) e->value;
 		MARK(ho);
 		e = e->next;
 	}
+	MUTEX_UNLOCK(&list->mutex);
 }
 void List_free(YoyoObject* ptr) {
 	YList* list = (YList*) ptr;
@@ -363,6 +366,7 @@ void List_free(YoyoObject* ptr) {
 		e = e->next;
 		free(entry);
 	}
+	DESTROY_MUTEX(&list->mutex);
 	free(list);
 }
 
@@ -374,18 +378,23 @@ YValue* List_get(YArray* a, size_t index, YThread* th) {
 	YList* list = (YList*) a;
 	if (index >= list->length)
 		return getNull(th);
+	MUTEX_LOCK(&list->mutex);
 	size_t i = 0;
 	ListEntry* e = list->list;
 	while (e != NULL) {
-		if (i == index)
+		if (i == index) {
+			MUTEX_UNLOCK(&list->mutex);
 			return e->value;
+		}
 		i++;
 		e = e->next;
 	}
+	MUTEX_UNLOCK(&list->mutex);
 	return getNull(th);
 }
 void List_add(YArray* a, YValue* v, YThread* th) {
 	YList* list = (YList*) a;
+	MUTEX_LOCK(&list->mutex);
 	ListEntry* e = malloc(sizeof(ListEntry));
 	e->value = v;
 	e->next = NULL;
@@ -400,11 +409,13 @@ void List_add(YArray* a, YValue* v, YThread* th) {
 		e->prev = entry;
 	}
 	list->length++;
+	MUTEX_UNLOCK(&list->mutex);
 }
 void List_set(YArray* a, size_t index, YValue* value, YThread* th) {
 	YList* list = (YList*) a;
 	if (index >= list->length)
 		return;
+	MUTEX_LOCK(&list->mutex);
 	size_t i = 0;
 	ListEntry* e = list->list;
 	while (e != NULL) {
@@ -415,9 +426,11 @@ void List_set(YArray* a, size_t index, YValue* value, YThread* th) {
 		i++;
 		e = e->next;
 	}
+	MUTEX_UNLOCK(&list->mutex);
 }
 void List_insert(YArray* a, size_t index, YValue* value, YThread* th) {
 	YList* list = (YList*) a;
+	MUTEX_LOCK(&list->mutex);
 	ListEntry* entry = malloc(sizeof(ListEntry));
 	entry->value = value;
 	entry->prev = NULL;
@@ -429,14 +442,17 @@ void List_insert(YArray* a, size_t index, YValue* value, YThread* th) {
 		}
 		list->list = entry;
 		list->length++;
+		MUTEX_UNLOCK(&list->mutex);
 		return;
 	}
+	MUTEX_UNLOCK(&list->mutex);
 	if (index > list->length)
 		return;
 	else if (index == list->length) {
 		List_add(a, value, th);
 		return;
 	}
+	MUTEX_LOCK(&list->mutex);
 	ListEntry* e = list->list;
 	size_t i = 0;
 	while (e != NULL) {
@@ -452,12 +468,14 @@ void List_insert(YArray* a, size_t index, YValue* value, YThread* th) {
 		i++;
 		e = e->next;
 	}
+	MUTEX_UNLOCK(&list->mutex);
 }
 
 void List_remove(YArray* a, size_t index, YThread* th) {
 	YList* list = (YList*) a;
 	if (index >= list->length)
 		return;
+	MUTEX_LOCK(&list->mutex);
 	size_t i = 0;
 	ListEntry* e = list->list;
 	while (e != NULL) {
@@ -475,6 +493,7 @@ void List_remove(YArray* a, size_t index, YThread* th) {
 		i++;
 		e = e->next;
 	}
+	MUTEX_UNLOCK(&list->mutex);
 }
 
 YArray* newList(YThread* th) {
@@ -483,6 +502,7 @@ YArray* newList(YThread* th) {
 	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) list);
 	list->array.parent.type = &th->runtime->ArrayType;
 
+	NEW_MUTEX(&list->mutex);
 	list->length = 0;
 	list->list = NULL;
 

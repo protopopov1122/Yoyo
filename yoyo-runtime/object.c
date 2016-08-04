@@ -303,9 +303,11 @@ YoyoType* TreeObject_getType(YObject* o, int32_t key, YThread* th) {
 void TreeObject_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	TreeObject* obj = (TreeObject*) ptr;
+	MUTEX_LOCK(&obj->access_mutex);
 	if (obj->super != NULL)
 		MARK(obj->super);
 	Leave_mark(obj->root);
+	MUTEX_UNLOCK(&obj->access_mutex);
 }
 void TreeObject_free(YoyoObject* ptr) {
 	TreeObject* obj = (TreeObject*) ptr;
