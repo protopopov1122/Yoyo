@@ -19,12 +19,15 @@
 typedef struct NewThread {
 	YLambda* lambda;
 	YRuntime* runtime;
+	bool mark;
 } NewThread;
 
 void* launch_new_thread(void* ptr) {
 	NewThread* nth = (NewThread*) ptr;
 	YThread* th = yoyo_thread(nth->runtime);
+	nth->mark = false;
 	invokeLambda(nth->lambda, NULL, NULL, 0, th);
+	nth->lambda->parent.o.linkc--;
 	th->free(th);
 	free(nth);
 	THREAD_EXIT(NULL);
@@ -34,11 +37,15 @@ void* launch_new_thread(void* ptr) {
 YOYO_FUNCTION(YSTD_THREADS_NEW_THREAD) {
 	if (args[0]->type->type == LambdaT) {
 		YLambda* lambda = (YLambda*) args[0];
+		args[0]->o.linkc++;
 		NewThread* nth = malloc(sizeof(NewThread));
 		nth->lambda = lambda;
 		nth->runtime = th->runtime;
+		nth->mark = true;
 		THREAD pthr;
 		NEW_THREAD(&pthr, launch_new_thread, nth);
+		while (nth->mark)
+			YIELD();
 	}
 	return getNull(th);
 }
@@ -79,4 +86,37 @@ YOYO_FUNCTION(YSTD_THREADS_NEW_MUTEX) {
 	NEW_MUTEX(mutex);
 	YValue* ptr = newRawPointer(mutex, YoyoMutex_free, th);
 	return ptr;
+}
+
+YOYO_FUNCTION(YSTD_THREADS_CONDITION_WAIT) {
+	MUTEX mutex;
+	NEW_MUTEX(&mutex);
+	COND* cond = ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	COND_WAIT(cond, &mutex);
+	DESTROY_MUTEX(&mutex);
+	return getNull(th);
+}
+
+YOYO_FUNCTION(YSTD_THREADS_CONDITION_NOTIFY) {
+	COND* cond = ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	COND_SIGNAL(cond);
+	return getNull(th);
+}
+
+YOYO_FUNCTION(YSTD_THREADS_CONDITION_NOTIFY_ALL) {
+	COND* cond = ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	COND_BROADCAST(cond);
+	return getNull(th);
+}
+
+void YoyoCondition_free(void* ptr) {
+	COND* cond = (COND*) ptr;
+	DESTROY_COND(cond);
+	free(cond);
+}
+
+YOYO_FUNCTION(YSTD_THREADS_NEW_CONDITION) {
+	COND* cond = malloc(sizeof(COND));
+	NEW_COND(cond);
+	return (YValue*) newRawPointer(cond, YoyoCondition_free, th);
 }

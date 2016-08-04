@@ -128,7 +128,7 @@ void* GCThread(void* ptr) {
 
 // Wait while there are working threads
 void Runtime_wait(YRuntime* runtime) {
-	while (runtime->threads_size > 0)
+	while (runtime->threads_size>0)
 		YIELD();
 }
 /*Procedure used to invoke lambdas.
