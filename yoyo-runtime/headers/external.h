@@ -19,21 +19,10 @@
 
 #include <unistd.h>
 #include <dlfcn.h>
+#include <pthread.h>
+
 
 #if defined(_WIN32)
-
-#ifdef WINVER
-#undef WINVER
-#endif
-#define WINVER 0x0600
-#ifdef _WIN32_WINNT
-#undef _WIN32_WINNT
-#endif
-#define _WIN32_WINNT 0x0600
-
-#define interface __INTERFACE
-#include <windows.h>
-#undef interface
 
 #define PLATFORM L"windows"
 #define SIZE_T "%Iu"
@@ -41,28 +30,7 @@
 #define WCSTOK_STATE(state)
 #define OS_WIN
 
-#define YIELD() Sleep(0)
-typedef HANDLE THREAD;
-void win_new_thread(void*, void* (*)(void*), void*);
-#define NEW_THREAD(th, proc, value) win_new_thread(th, proc, value)
-#define THREAD_EXIT(ptr) return NULL;
-#define THREAD_SELF() GetCurrentThread()
-#define THREAD_EQUAL(t1, t2) (GetThreadId(t1)==GetThreadId(t2))
-typedef CRITICAL_SECTION MUTEX;
-#define NEW_MUTEX(mutex) InitializeCriticalSectionAndSpinCount(mutex, 0x400)
-#define DESTROY_MUTEX(mutex)
-#define MUTEX_LOCK(mutex) EnterCriticalSection(mutex)
-#define MUTEX_UNLOCK(mutex) LeaveCriticalSection(mutex)
-#define MUTEX_TRYLOCK(mutex) TryEnterCriticalSection(mutex)
-typedef CONDITION_VARIABLE COND;
-#define NEW_COND(cond) InitializeConditionVariable(cond)
-#define DESTROY_COND(cond)
-#define COND_SIGNAL(cond) WakeConditionVariable(cond)
-#define COND_BROADCAST(cond) WakeAllConditionVariable(cond)
-#define COND_WAIT(cond, mutex) SleepConditionVariableCS(cond, mutex, INFINITE)
-
 #elif defined(__linux__) || defined(__unix__)
-#include <pthread.h>
 
 #ifdef __linux__
 #define PLATFORM L"linux"
@@ -75,6 +43,14 @@ typedef CONDITION_VARIABLE COND;
 #define SIZE_T "%zu"
 #define WCSTOK(str, del, st) wcstok(str, del, st)
 #define WCSTOK_STATE(state) wchar_t* state = NULL;
+
+
+#else
+
+#define OS_UNKNOWN
+#define PLATFORM L"unknown"
+
+#endif
 
 #define YIELD() sched_yield()
 typedef pthread_t THREAD;
@@ -94,13 +70,6 @@ typedef pthread_cond_t COND;
 #define COND_SIGNAL(cond) pthread_cond_signal(cond)
 #define COND_BROADCAST(cond) pthread_cond_broadcast(cond)
 #define COND_WAIT(cond, mutex) pthread_cond_wait(cond, mutex)
-
-#else
-
-#define OS_UNKNOWN
-#define PLATFORM L"unknown"
-
-#endif
 
 wchar_t* readLine(FILE* stream);
 

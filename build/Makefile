@@ -27,7 +27,7 @@ dbg_release=
 dbg=$(dbg_$(result))
 
 c_platform_linux=-rdynamic -lm -lpthread -ldl
-c_platform_win=-static -Wno-pedantic -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi
+c_platform_win=-static -Wno-pedantic -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi -lpthread
 c_platform=$(c_platform_$(target))
 
 misc=

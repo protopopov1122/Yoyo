@@ -59,24 +59,3 @@ wchar_t* readLine(FILE* stream) {
 	return wstr;
 }
 
-#ifdef OS_WIN
-
-typedef struct ThreadInfo {
-	void* (*fun)(void*);
-	void* ptr;
-}ThreadInfo;
-
-DWORD WINAPI start_win_thread(CONST LPVOID param) {
-	ThreadInfo* info = (ThreadInfo*) param;
-	info->fun(info->ptr);
-	free(info);
-	ExitThread(0);
-}
-
-void win_new_thread(void* none, void* (*fun)(void*), void* ptr) {
-	ThreadInfo* info = malloc(sizeof(ThreadInfo));
-	info->fun = fun;
-	info->ptr = ptr;
-	CreateThread(NULL, 0, start_win_thread, info, 0, NULL);
-}
-#endif
