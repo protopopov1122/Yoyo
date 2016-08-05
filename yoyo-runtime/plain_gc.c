@@ -24,6 +24,7 @@ YoyoObject* initYoyoObject(YoyoObject* o, void (*mark)(YoyoObject*),
 	o->linkc = 0;
 	o->free = hfree;
 	o->mark = mark;
+	o->age = clock();
 	return o;
 }
 
@@ -52,6 +53,7 @@ void plain_gc_collect(GarbageCollector* _gc) {
 		if (ptr->linkc!=0)
 				MARK(ptr);
 	}
+	const clock_t MAX_AGE = CLOCKS_PER_SEC;
 	YoyoObject** newHeap = malloc(gc->capacity * sizeof(YoyoObject*)); /* Pointers to all necesarry objects are
 	 moved to another memory area to
 	 prevent pointer array fragmentation*/
@@ -59,7 +61,7 @@ void plain_gc_collect(GarbageCollector* _gc) {
 	for (size_t i = 0; i < gc->size; i++) {
 		YoyoObject* ptr = gc->objects[i];
 		if (ptr != NULL) {
-			if ((!ptr->marked) && ptr->linkc == 0)
+			if ((!ptr->marked) && ptr->linkc == 0 && clock()-ptr->age >= MAX_AGE)
 					/*Project is garbage only if:
 					 * it's unmarked
 					 * it has zero link count on it

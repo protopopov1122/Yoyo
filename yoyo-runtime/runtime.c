@@ -274,7 +274,7 @@ YThread* yoyo_thread(YRuntime* runtime) {
 	MUTEX_LOCK(&runtime->runtime_mutex);
 
 	if (runtime->threads_size + 1 >= runtime->threads_capacity) {
-		size_t newSz = runtime->threads_capacity / 10 + runtime->threads_capacity;
+		size_t newSz = 10 + runtime->threads_capacity;
 		runtime->threads = realloc(runtime->threads, sizeof(YThread*) * newSz);
 		runtime->threads_capacity = newSz;
 	}
