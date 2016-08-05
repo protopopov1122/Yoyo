@@ -29,7 +29,7 @@ void* launch_new_thread(void* ptr) {
 	invokeLambda(nth->lambda, NULL, NULL, 0, th);
 	nth->lambda->parent.o.linkc--;
 	if (th->exception!=NULL) {
-			YValue* e = th->exception;
+		YValue* e = th->exception;
 			th->exception = NULL;
 			wchar_t* wstr = toString(e, th);
 			fprintf(th->runtime->env->out_stream, "%ls\n", wstr);

@@ -49,8 +49,8 @@ void win_new_thread(void*, void* (*)(void*), void*);
 #define THREAD_SELF() GetCurrentThread()
 #define THREAD_EQUAL(t1, t2) (GetThreadId(t1)==GetThreadId(t2))
 typedef CRITICAL_SECTION MUTEX;
-#define NEW_MUTEX(mutex) InitializeCriticalSection(mutex)
-#define DESTROY_MUTEX(mutex) DeleteCriticalSection(mutex)
+#define NEW_MUTEX(mutex) InitializeCriticalSectionAndSpinCount(mutex, 0x400)
+#define DESTROY_MUTEX(mutex)
 #define MUTEX_LOCK(mutex) EnterCriticalSection(mutex)
 #define MUTEX_UNLOCK(mutex) LeaveCriticalSection(mutex)
 #define MUTEX_TRYLOCK(mutex) TryEnterCriticalSection(mutex)

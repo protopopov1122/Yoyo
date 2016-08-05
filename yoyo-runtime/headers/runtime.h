@@ -90,11 +90,11 @@ typedef struct YThread {
 		Working, Paused
 	} state;
 
+	MUTEX mutex;
 	YValue* exception;
 	LocalFrame* frame;
 
 	THREAD self;
-	MUTEX mutex;
 
 	YRuntime* runtime;
 	void (*free)(YThread*);

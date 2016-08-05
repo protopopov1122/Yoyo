@@ -69,5 +69,5 @@ input = $(str) {
 }
 eval=sys.eval;
 import = sys.import;
-exit = sys.exit
+// `exit = sys.exit;
 

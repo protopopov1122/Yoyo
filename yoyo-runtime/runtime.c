@@ -37,6 +37,7 @@ void freeRuntime(YRuntime* runtime) {
 	free(runtime);
 }
 void freeThread(YThread* th) {
+	DESTROY_MUTEX(&th->mutex);
 	YRuntime* runtime = th->runtime;
 	MUTEX_LOCK(&runtime->runtime_mutex);
 
@@ -44,7 +45,6 @@ void freeThread(YThread* th) {
 	runtime->threads_size--;
 
 	MUTEX_UNLOCK(&runtime->runtime_mutex);
-	DESTROY_MUTEX(&th->mutex);
 	free(th);
 }
 
@@ -264,13 +264,13 @@ YThread* yoyo_thread(YRuntime* runtime) {
 			THREAD_EQUAL(current_th, runtime->threads[i]->self))
 			return runtime->threads[i];
 	YThread* th = malloc(sizeof(YThread));
-	NEW_MUTEX(&th->mutex);
 	th->runtime = runtime;
 	th->state = Working;
 	th->free = freeThread;
 	th->frame = NULL;
 	th->exception = NULL;
 	th->self = THREAD_SELF();
+	NEW_MUTEX(&th->mutex);
 	MUTEX_LOCK(&runtime->runtime_mutex);
 
 	if (runtime->threads_size + 1 >= runtime->threads_capacity) {
