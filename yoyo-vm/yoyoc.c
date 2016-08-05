@@ -134,6 +134,7 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	env->files = malloc(sizeof(wchar_t*));
 	env->files[0] = NULL;
 	env->files_size = 1;
+	env->jit = NULL;
 	return env;
 }
 
@@ -141,7 +142,7 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input,
 		wchar_t* name) {
 	ParseHandle handle;
 	FILE* errfile = tmpfile();
-	handle.error_stream = errfile;
+	handle.error_stream = errfile!=NULL ? errfile : stderr;
 	handle.input = input;
 	handle.charPos = 0;
 	handle.line = 1;

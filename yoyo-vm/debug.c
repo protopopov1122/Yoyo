@@ -387,11 +387,11 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						printf("Object: AVL tree\n");
 					else
 						printf("Object: hash table\n");
-					printf("Integer pool size: %zu\n"
-								"Integer cache size: %zu\n",
+					printf("Integer pool size: "SIZE_T"\n"
+								"Integer cache size: "SIZE_T"\n",
 								th->runtime->Constants.IntPoolSize,
 								th->runtime->Constants.IntCacheSize);
-					printf("Thread count: %zu\n", th->runtime->threads_size);
+					printf("Thread count: "SIZE_T"\n", th->runtime->threads_size);
 					for (size_t i=0;i<th->runtime->threads_capacity;i++) {
 						YThread* t = th->runtime->threads[i];
 						if (t==NULL)

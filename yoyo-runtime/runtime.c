@@ -277,6 +277,8 @@ YThread* yoyo_thread(YRuntime* runtime) {
 		size_t newSz = 10 + runtime->threads_capacity;
 		runtime->threads = realloc(runtime->threads, sizeof(YThread*) * newSz);
 		runtime->threads_capacity = newSz;
+		memset(&runtime->threads[runtime->threads_size], 0, sizeof(YThread*) *
+			(runtime->threads_capacity - runtime->threads_size));
 	}
 	th->id = runtime->threads_size++;
 	runtime->threads[th->id] = th;

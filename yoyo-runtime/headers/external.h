@@ -22,6 +22,15 @@
 
 #if defined(_WIN32)
 
+#ifdef WINVER
+#undef WINVER
+#endif
+#define WINVER 0x0600
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0600
+
 #define interface __INTERFACE
 #include <windows.h>
 #undef interface
@@ -47,10 +56,10 @@ typedef CRITICAL_SECTION MUTEX;
 #define MUTEX_TRYLOCK(mutex) TryEnterCriticalSection(mutex)
 typedef CONDITION_VARIABLE COND;
 #define NEW_COND(cond) InitializeConditionVariable(cond)
-#define DESTROY_COND(cond) DeleteConditionVariable(cond)
+#define DESTROY_COND(cond)
 #define COND_SIGNAL(cond) WakeConditionVariable(cond)
-#define COND_BROADCAST (cond) WakeAllConditionVariable(cond)
-#define COND_WAIT(cond, mutex) SleepConditionVariable(cond, mutex, INFINITE)
+#define COND_BROADCAST(cond) WakeAllConditionVariable(cond)
+#define COND_WAIT(cond, mutex) SleepConditionVariableCS(cond, mutex, INFINITE)
 
 #elif defined(__linux__) || defined(__unix__)
 #include <pthread.h>

@@ -72,10 +72,10 @@ YValue* TraceFrame_toString(YLambda* l, YObject* scp, YValue** args,
 
 	const char* fmt = "%ls(%ls : %ls)";
 	size_t size = snprintf(NULL, 0, fmt, file_s, line_s, chPos_s);
-	char* cstr = malloc(sizeof(char) * size);
+	char* cstr = calloc(1, sizeof(char) * (size+1));
 	sprintf(cstr, fmt, file_s, line_s, chPos_s);
-	wchar_t* wstr = malloc(sizeof(wchar_t) * (strlen(cstr) + 1));
-	mbstowcs(wstr, cstr, sizeof(wchar_t) * (strlen(cstr)));
+	wchar_t* wstr = calloc(1, sizeof(wchar_t) * (strlen(cstr) + 1));
+	mbstowcs(wstr, cstr, strlen(cstr));
 	free(cstr);
 
 	free(line_s);
