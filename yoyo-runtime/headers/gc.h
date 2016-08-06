@@ -25,6 +25,8 @@ typedef struct YoyoObject {
 	uint16_t linkc;
 	void (*free)(struct YoyoObject*);
 	clock_t age;
+
+	struct YoyoObject* prev;
 } YoyoObject;
 
 typedef struct GarbageCollector {

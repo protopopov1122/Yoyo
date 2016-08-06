@@ -25,42 +25,36 @@ YoyoObject* initYoyoObject(YoyoObject* o, void (*mark)(YoyoObject*),
 	o->free = hfree;
 	o->mark = mark;
 	o->age = clock();
+	o->prev = NULL;
 	return o;
 }
 
 typedef struct PlainGC {
 	GarbageCollector gc;
 	MUTEX mutex;
-
-	YoyoObject** objects;
+	
+	YoyoObject* objects;
+	YoyoObject* temporary;
 	size_t size;
-	size_t capacity;
-
-	YoyoObject** temporary;
 	size_t temporary_size;
-	size_t temporary_capacity;
+
 	bool collecting;
 } PlainGC;
 
 void plain_gc_collect(GarbageCollector* _gc) {
 	PlainGC* gc = (PlainGC*) _gc;
 	gc->temporary_size = 0;
-	gc->temporary_capacity = 1000;
-	gc->temporary = malloc(sizeof(YoyoObject*) * gc->temporary_capacity);
+	gc->temporary = NULL;
 	gc->collecting = true;
-	for (size_t i=0;i<gc->size;i++) {
-		YoyoObject* ptr = gc->objects[i];
+	for (YoyoObject* ptr = gc->objects; ptr!=NULL; ptr = ptr->prev) {
 		if (ptr->linkc!=0)
 				MARK(ptr);
 	}
+	YoyoObject* newPool = NULL;
+	size_t newSize = 0;
 	const clock_t MAX_AGE = CLOCKS_PER_SEC;
-	YoyoObject** newHeap = malloc(gc->capacity * sizeof(YoyoObject*)); /* Pointers to all necesarry objects are
-	 moved to another memory area to
-	 prevent pointer array fragmentation*/
-	size_t nextIndex = 0;
-	for (size_t i = 0; i < gc->size; i++) {
-		YoyoObject* ptr = gc->objects[i];
-		if (ptr != NULL) {
+	for (YoyoObject* ptr = gc->objects; ptr!=NULL;) {
+			YoyoObject* prev = ptr->prev;
 			if ((!ptr->marked) && ptr->linkc == 0 && clock()-ptr->age >= MAX_AGE)
 					/*Project is garbage only if:
 					 * it's unmarked
@@ -70,42 +64,39 @@ void plain_gc_collect(GarbageCollector* _gc) {
 				ptr->free(ptr);
 			} else    // Object isn't garbage
 			{
-				newHeap[nextIndex++] = ptr;
+				ptr->prev = newPool;
 				ptr->marked = false;
+				newSize++;
+				newPool = ptr;
 			}
-		}
+			ptr = prev;
 	}
-	size_t freed = gc->size - nextIndex;
-	gc->size = nextIndex;
+	size_t freed = gc->size - newSize;
+	gc->size = newSize;
 
-	free(gc->objects);
-	gc->objects = newHeap;
+
+	gc->objects = newPool;
 	gc->collecting = false;
 	MUTEX_LOCK(&gc->mutex);
-	if (gc->capacity<=gc->size+gc->temporary_size) {
-		gc->capacity = gc->size+gc->temporary_size+100;
-		gc->objects = realloc(gc->objects, sizeof(YoyoObject*) * gc->capacity);
-	}
-	for (size_t i=0;i<gc->temporary_size;i++)
-		gc->objects[gc->size++] = gc->temporary[i];
-	if (gc->size * 1.5 < gc->capacity && gc->size > 1000) {
-		gc->capacity = gc->size * 1.5;
-		newHeap = realloc(newHeap, gc->capacity * sizeof(YoyoObject*));
+	for (YoyoObject* ptr=gc->temporary; ptr!=NULL;) {
+		YoyoObject* prev = ptr->prev;
+		ptr->prev = gc->objects;
+		gc->objects = ptr;
+		ptr = prev;
 	}
 	gc->gc.panic = false;
 	if (freed<gc->temporary_size)
 		gc->gc.panic = true;
-	free(gc->temporary);
 	MUTEX_UNLOCK(&gc->mutex);
 }
 
 void plain_gc_free(GarbageCollector* _gc) {
 	PlainGC* gc = (PlainGC*) _gc;
-	for (size_t i = 0; i < gc->capacity; i++) {
-		if (gc->objects[i] != NULL)
-			gc->objects[i]->free(gc->objects[i]);
+	for (YoyoObject* ptr = gc->objects; ptr!=NULL;) {
+		YoyoObject* prev = ptr->prev;
+		ptr->free(ptr);
+		ptr = prev;
 	}
-	free(gc->objects);
 	DESTROY_MUTEX(&gc->mutex);
 	free(gc);
 }
@@ -114,20 +105,16 @@ void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 	PlainGC* gc = (PlainGC*) _gc;
 	MUTEX_LOCK(&gc->mutex);
 	if (!gc->collecting) {
-		if (gc->size+2>=gc->capacity) {
-			gc->capacity = gc->capacity*1.1+100;
-			gc->objects = realloc(gc->objects, sizeof(YoyoObject*) * gc->capacity);
-		}
-		gc->objects[gc->size++] = o;
+		o->prev = gc->objects;
+		gc->objects = o;
 		o->marked = true;
+		gc->size++;
 	}
 	else {
-		if (gc->temporary_size+2>=gc->temporary_capacity) {
-			gc->temporary_capacity = gc->temporary_capacity*1.1 + 10;
-			gc->temporary = realloc(gc->temporary, sizeof(YoyoObject*) * gc->temporary_capacity);
-		}
-		gc->temporary[gc->temporary_size++] = o;
+		o->prev = gc->temporary;
+		gc->temporary = o;
 		o->marked = true;
+		gc->temporary_size++;
 	}
 	MUTEX_UNLOCK(&gc->mutex);
 }
@@ -135,9 +122,7 @@ GarbageCollector* newPlainGC(size_t icapacity) {
 	PlainGC* gc = malloc(sizeof(PlainGC));
 
 	gc->collecting = false;
-	gc->capacity = icapacity;
 	gc->size = 0;
-	gc->objects = calloc(1, sizeof(YoyoObject*) * icapacity);
 	gc->gc.block = false;
 	NEW_MUTEX(&gc->mutex);
 	gc->gc.collect = plain_gc_collect;
