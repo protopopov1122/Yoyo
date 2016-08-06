@@ -28,9 +28,9 @@ void freeRuntime(YRuntime* runtime) {
 	free(runtime->symbols.map);
 	DESTROY_MUTEX(&runtime->symbols.mutex);
 	runtime->env->free(runtime->env, runtime);
-	for (uint32_t i = 0; i < runtime->threads_capacity; i++)
-		if (runtime->threads[i] != NULL)
-			runtime->threads[i]->free(runtime->threads[i]);
+	while (runtime->threads!=NULL) {
+			runtime->threads->free(runtime->threads);
+	}
 	free(runtime->Constants.IntCache);
 	free(runtime->Constants.IntPool);
 	free(runtime->threads);
@@ -41,8 +41,13 @@ void freeThread(YThread* th) {
 	YRuntime* runtime = th->runtime;
 	MUTEX_LOCK(&runtime->runtime_mutex);
 
-	runtime->threads[th->id] = NULL;
-	runtime->threads_size--;
+	if (th->prev != NULL)
+		th->prev->next = th->next;
+	if (th->next != NULL)
+		th->next->prev = th->prev;
+	if (runtime->threads == th)
+		runtime->threads = th->prev;
+	runtime->thread_count--;
 
 	MUTEX_UNLOCK(&runtime->runtime_mutex);
 	free(th);
@@ -80,9 +85,7 @@ void* GCThread(void* ptr) {
 			runtime->state = RuntimePaused;
 		// Mark all root objects
 		MARK(runtime->global_scope);
-		for (size_t i = 0; i < runtime->threads_capacity; i++) {
-			if (runtime->threads[i] != NULL) {
-				YThread* th = runtime->threads[i];
+		for (YThread* th = runtime->threads; th!=NULL; th=th->prev) {
 				MUTEX_LOCK(&th->mutex);
 				MARK(th->exception);
 				LocalFrame* frame = th->frame;
@@ -91,7 +94,6 @@ void* GCThread(void* ptr) {
 					frame = frame->prev;
 				}
 				MUTEX_UNLOCK(&th->mutex);
-			}
 		}
 //		MUTEX_UNLOCK(&runtime->runtime_mutex);
 		for (size_t i = 0; i < runtime->Constants.IntCacheSize; i++)
@@ -128,7 +130,7 @@ void* GCThread(void* ptr) {
 
 // Wait while there are working threads
 void Runtime_wait(YRuntime* runtime) {
-	while (runtime->threads_size>0)
+	while (runtime->threads!=NULL)
 		YIELD();
 }
 /*Procedure used to invoke lambdas.
@@ -209,9 +211,8 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->state = RuntimeRunning;
 	NEW_MUTEX(&runtime->runtime_mutex);
 
-	runtime->threads_capacity = 1;
-	runtime->threads = calloc(runtime->threads_capacity, sizeof(YThread*));
-	runtime->threads_size = 0;
+	runtime->threads = NULL;
+	runtime->thread_count = 0;
 
 	runtime->gc = newPlainGC(1000);
 	runtime->free = freeRuntime;
@@ -259,11 +260,11 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 
 YThread* yoyo_thread(YRuntime* runtime) {
 	THREAD current_th = THREAD_SELF();
-	for (size_t i = 0; i < runtime->threads_size; i++)
-		if (runtime->threads[i]!=NULL&&
-			THREAD_EQUAL(current_th, runtime->threads[i]->self))
-			return runtime->threads[i];
-	YThread* th = malloc(sizeof(YThread));
+	YThread* th;
+	for (th=runtime->threads; th!=NULL; th=th->prev)
+		if (THREAD_EQUAL(current_th, th->self))
+			return th;
+	th = malloc(sizeof(YThread));
 	th->runtime = runtime;
 	th->state = Working;
 	th->free = freeThread;
@@ -272,17 +273,12 @@ YThread* yoyo_thread(YRuntime* runtime) {
 	th->self = THREAD_SELF();
 	NEW_MUTEX(&th->mutex);
 	MUTEX_LOCK(&runtime->runtime_mutex);
-
-	if (runtime->threads_size + 1 >= runtime->threads_capacity) {
-		size_t newSz = 10 + runtime->threads_capacity;
-		runtime->threads = realloc(runtime->threads, sizeof(YThread*) * newSz);
-		runtime->threads_capacity = newSz;
-		memset(&runtime->threads[runtime->threads_size], 0, sizeof(YThread*) *
-			(runtime->threads_capacity - runtime->threads_size));
-	}
-	th->id = runtime->threads_size++;
-	runtime->threads[th->id] = th;
-
+	th->prev = runtime->threads;
+	if (th->prev!=NULL)
+		th->prev->next = th;
+	th->next = NULL;
+	runtime->threads = th;
+	runtime->thread_count++;
 	MUTEX_UNLOCK(&runtime->runtime_mutex);
 	return th;
 }

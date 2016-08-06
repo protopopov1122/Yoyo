@@ -98,6 +98,9 @@ typedef struct YThread {
 
 	YRuntime* runtime;
 	void (*free)(YThread*);
+
+	struct YThread* prev;
+	struct YThread* next;
 } YThread;
 
 typedef struct Environment {
@@ -157,9 +160,8 @@ typedef struct YRuntime {
 	YType DeclarationType;
 	YType NullType;
 
-	YThread** threads;
-	size_t threads_capacity;
-	size_t threads_size;
+	YThread* threads;
+	size_t thread_count;
 
 	MUTEX runtime_mutex;
 	COND suspend_cond;

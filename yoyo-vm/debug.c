@@ -391,11 +391,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 								"Integer cache size: "SIZE_T"\n",
 								th->runtime->Constants.IntPoolSize,
 								th->runtime->Constants.IntCacheSize);
-					printf("Thread count: "SIZE_T"\n", th->runtime->threads_size);
-					for (size_t i=0;i<th->runtime->threads_capacity;i++) {
-						YThread* t = th->runtime->threads[i];
-						if (t==NULL)
-							continue;
+					printf("Thread count: "SIZE_T"\n", th->runtime->thread_count);
+					for (YThread* t = th->runtime->threads; t!=NULL; t = t->prev) {
 						printf("\tThread #%"PRIu32, t->id);
 						if (t->frame != NULL) {
 							SourceIdentifier sid = t->frame->get_source_id(t->frame);
@@ -469,11 +466,9 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 		} else CMD(argv[0], L"trace") {
 			YThread* t = th;
 			if (argc > 1) {
-				t = NULL;
 				uint32_t tid = (uint32_t) wcstoul(argv[1], NULL, 0);
-				for (size_t i=0;i<th->runtime->threads_capacity;i++)
-					if (th->runtime->threads[i]->id == tid) {
-						t = th->runtime->threads[i];
+				for (t = th->runtime->threads; t != NULL; t = t->prev)
+					if (t->id == tid) {
 						break;
 					}
 				if (t==NULL) {
