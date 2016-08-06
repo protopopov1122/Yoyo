@@ -78,7 +78,6 @@ typedef struct CodeTableEntry {
 	uint32_t charPos;
 	uint32_t offset;
 	uint32_t end;
-//	uint32_t length;
 	int32_t file;
 } CodeTableEntry;
 

@@ -18,8 +18,6 @@
 
 YoyoObject* initYoyoObject(YoyoObject* o, void (*mark)(YoyoObject*),
 		void (*hfree)(YoyoObject*)) {
-	if (o == NULL)
-		o = malloc(sizeof(YoyoObject));
 	o->marked = false;
 	o->linkc = 0;
 	o->free = hfree;

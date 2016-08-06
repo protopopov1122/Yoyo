@@ -50,9 +50,6 @@
 		<xsl:text>typedef struct Mnemonic{&#xa;&#x9;uint8_t opcode;&#xa;&#x9;wchar_t* mnemonic;&#xa;} Mnemonic;&#xa;</xsl:text>
 		<xsl:text>extern struct Mnemonic Mnemonics[];&#xa;</xsl:text>
 		<xsl:text>extern const size_t OPCODE_COUNT;&#xa;</xsl:text>
-		<xsl:text>typedef YValue* (*OpcodeHandler)(int32_t, int32_t, int32_t, YThread*);&#xa;</xsl:text>
-		<xsl:text>extern OpcodeHandler* Handlers;&#xa;</xsl:text>
-		<xsl:text>void init_handlers(); &#xa;</xsl:text>
 		<xsl:text>#endif&#xa;</xsl:text>
 	</xsl:template>
 

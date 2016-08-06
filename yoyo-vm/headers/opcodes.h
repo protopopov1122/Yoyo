@@ -94,7 +94,4 @@ typedef struct Mnemonic{
 } Mnemonic;
 extern struct Mnemonic Mnemonics[];
 extern const size_t OPCODE_COUNT;
-typedef YValue* (*OpcodeHandler)(int32_t, int32_t, int32_t, YThread*);
-extern OpcodeHandler* Handlers;
-void init_handlers(); 
 #endif
