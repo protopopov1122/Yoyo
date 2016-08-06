@@ -32,7 +32,12 @@
 *.dSYM/
 *.su
 
+#ctags files
+.ctags
+tags
+
 # Project related
+.vimrc
 build/*
 !build/mnemonics_gen.xsl
 !build/opcodes_gen.xsl
@@ -43,3 +48,6 @@ build/*
 .project
 .settings
 .syntastic_c_config
+.ycm_extra_conf.py
+__pycache__
+\\
