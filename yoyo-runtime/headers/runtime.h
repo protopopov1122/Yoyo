@@ -172,6 +172,7 @@ typedef struct YRuntime {
 	void (*wait)(YRuntime*);
 } YRuntime;
 
+YObject* new_yoyo_thread(YRuntime*, YLambda*);
 YValue* invokeLambda(YLambda*, YObject*, YValue**, size_t, YThread*);
 YThread* yoyo_thread(YRuntime*);
 YRuntime* newRuntime(Environment*, YDebug*);

@@ -1764,36 +1764,4 @@ YNode* parse(ParseHandle* handle) {
 	initGrammar(&handle->grammar);
 	return handle->grammar.root.reduce(handle);
 }
-/*
- int main(int argc, char** argv) {
- argc--; argv++;
- if (argc==0) {
- printf("Specify input file!");
- exit(-1);
- }
- FILE* fd = fopen(argv[0], "r");
- ParseHandle handle;
- handle.input = fd;
- handle.error_stream = stderr;
- handle.fileName = L"test";
- handle.constants = NULL;
- handle.constants_size = 0;
- handle.symbols = NULL;
- handle.symbols_size = 0;
- handle.charPos = 0;
- handle.line = 1;
- handle.error_flag = false;
 
- shift(&handle);
- shift(&handle);
- shift(&handle);
- shift(&handle);
- YNode* node = parse(&handle);
-
- fclose(fd);
-
- pseudocode(node, stdout);
- node->free(node);
- return 0;
- }
- */

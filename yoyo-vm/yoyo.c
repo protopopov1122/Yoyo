@@ -45,7 +45,7 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 				if (OBJECT_HAS(obj, L"trace", th)) {
 					YValue* trace = OBJECT_GET(obj, L"trace", th);
 					wchar_t* wcs = toString(trace, th);
-					printf("%ls\n", wcs);
+					fprintf(runtime->env->out_stream, "%ls\n", wcs);
 					free(wcs);
 				}
 			}
@@ -165,10 +165,10 @@ void Yoyo_main(char** argv, int argc) {
 				jit = getter();
 			}
 			else
-				printf("%s\n", dlerror());
+				fprintf(env->err_stream, "%s\n", dlerror());
 		}
 		else
-			printf("%s\n", dlerror());
+			fprintf(env->err_stream, "%s\n", dlerror());
 		free(mbs);
 	}
 

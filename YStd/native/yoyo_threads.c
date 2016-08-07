@@ -16,53 +16,10 @@
 
 #include  "yoyo-runtime.h"
 
-typedef struct NewThread {
-	YLambda* lambda;
-	YRuntime* runtime;
-	bool mark;
-} NewThread;
-
-void* launch_new_thread(void* ptr) {
-	NewThread* nth = (NewThread*) ptr;
-	YThread* th = yoyo_thread(nth->runtime);
-	nth->mark = false;
-	invokeLambda(nth->lambda, NULL, NULL, 0, th);
-	nth->lambda->parent.o.linkc--;
-	if (th->exception!=NULL) {
-		YValue* e = th->exception;
-			th->exception = NULL;
-			wchar_t* wstr = toString(e, th);
-			fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
-			if (e->type->type==ObjectT) {
-				YObject* obj = (YObject*) e;
-				if (OBJECT_HAS(obj, L"trace", th)) {
-					YValue* trace = OBJECT_GET(obj, L"trace", th);
-					wchar_t* wcs = toString(trace, th);
-					printf("%ls\n", wcs);
-					free(wcs);
-				}
-			}
-			free(wstr);
-
-	}
-	th->free(th);
-	free(nth);
-	THREAD_EXIT(NULL);
-	return NULL;
-}
-
 YOYO_FUNCTION(YSTD_THREADS_NEW_THREAD) {
 	if (args[0]->type->type == LambdaT) {
 		YLambda* lambda = (YLambda*) args[0];
-		args[0]->o.linkc++;
-		NewThread* nth = malloc(sizeof(NewThread));
-		nth->lambda = lambda;
-		nth->runtime = th->runtime;
-		nth->mark = true;
-		THREAD pthr;
-		NEW_THREAD(&pthr, launch_new_thread, nth);
-		while (nth->mark)
-			YIELD();
+		return (YValue*) new_yoyo_thread(th->runtime, lambda);	
 	}
 	return getNull(th);
 }

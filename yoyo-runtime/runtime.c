@@ -201,6 +201,47 @@ YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc,
 	return out;
 }
 
+typedef struct NewThread {
+	YLambda* lambda;
+	YRuntime* runtime;
+	YObject* task;
+	bool mark;
+} NewThread;
+
+void* launch_new_thread(void* ptr) {
+	NewThread* nth = (NewThread*) ptr;
+	YThread* th = yoyo_thread(nth->runtime);
+	nth->mark = false;
+	YValue* result = invokeLambda(nth->lambda, NULL, (YValue**) &nth->task, 1, th);
+	if (th->exception!=NULL) {
+		OBJECT_PUT(nth->task, L"exception", th->exception, th);
+	} else {
+		OBJECT_PUT(nth->task, L"result", result, th);
+	}
+	OBJECT_PUT(nth->task, L"finished", newBoolean(true, th), th);
+	th->free(th);
+	free(nth);
+	THREAD_EXIT(NULL);
+	return NULL;
+}
+	
+YObject* new_yoyo_thread(YRuntime* runtime, YLambda* lambda) {
+	NewThread* nth = malloc(sizeof(NewThread));
+	YObject* task = runtime->newObject(NULL, yoyo_thread(runtime));
+	OBJECT_NEW(task, L"result", getNull(yoyo_thread(runtime)), yoyo_thread(runtime));
+	OBJECT_NEW(task, L"exception", getNull(yoyo_thread(runtime)), yoyo_thread(runtime));
+	OBJECT_NEW(task, L"finished", newBoolean(false, yoyo_thread(runtime)), yoyo_thread(runtime));
+	nth->lambda = lambda;
+	nth->runtime = runtime;
+	nth->task = task;
+	nth->mark = true;
+	THREAD pthr;
+	NEW_THREAD(&pthr, launch_new_thread, nth);
+	while (nth->mark)
+		YIELD();	
+	return task;
+}
+
 // Create new runtime
 YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	YRuntime* runtime = malloc(sizeof(YRuntime));

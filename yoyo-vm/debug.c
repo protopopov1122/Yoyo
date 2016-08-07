@@ -384,29 +384,29 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					}
 				} else CMD(req, L"runtime") {
 					if (th->runtime->newObject == newTreeObject)
-						printf("Object: AVL tree\n");
+						fprintf(th->runtime->env->out_stream, "Object: AVL tree\n");
 					else
-						printf("Object: hash table\n");
-					printf("Integer pool size: "SIZE_T"\n"
+						fprintf(th->runtime->env->out_stream, "Object: hash table\n");
+					fprintf(th->runtime->env->out_stream, "Integer pool size: "SIZE_T"\n"
 								"Integer cache size: "SIZE_T"\n",
 								th->runtime->Constants.IntPoolSize,
 								th->runtime->Constants.IntCacheSize);
-					printf("Thread count: "SIZE_T"\n", th->runtime->thread_count);
+					fprintf(th->runtime->env->out_stream, "Thread count: "SIZE_T"\n", th->runtime->thread_count);
 					for (YThread* t = th->runtime->threads; t!=NULL; t = t->prev) {
-						printf("\tThread #%"PRIu32, t->id);
+						fprintf(th->runtime->env->out_stream, "\tThread #%"PRIu32, t->id);
 						if (t->frame != NULL) {
 							SourceIdentifier sid = t->frame->get_source_id(t->frame);
 							if (sid.file!=-1)
-								printf(" at %ls(%"PRIu32":%"PRIu32")", getSymbolById(&th->runtime->symbols, sid.file),
+								fprintf(th->runtime->env->out_stream, " at %ls(%"PRIu32":%"PRIu32")", getSymbolById(&th->runtime->symbols, sid.file),
 									sid.line, sid.charPosition);
 						}
-						printf("\n");
+						fprintf(th->runtime->env->out_stream, "\n");
 					}
 				} else
 					fprintf(th->runtime->env->out_stream,
 							"Unknown argument '%ls'. Use 'help' command.\n",
 							req);
-			} else printf("Command prints runtime information. Available arguments:\n"
+			} else fprintf(th->runtime->env->out_stream, "Command prints runtime information. Available arguments:\n"
 										"\tfiles - list loaded files\n"
 										"\tfile - list file. Format: ls file [name]\n"
 										"\tline - list current line/lines before and after it. Format: ls line [before] [after]\n"
@@ -472,7 +472,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						break;
 					}
 				if (t==NULL) {
-					printf("Thread #%"PRIu32" not found\n", tid);
+					fprintf(th->runtime->env->out_stream, "Thread #%"PRIu32" not found\n", tid);
 					continue;
 				}
 			}
@@ -492,7 +492,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 			debug->mode = NoDebug;
 			work = false;
 		} else CMD(argv[0], L"help")
-			printf("Yoyo debugger.\n"
+			fprintf(th->runtime->env->out_stream, "Yoyo debugger.\n"
 						"Available commands:\n"
 						"\tbreak - add breakpoint. Format: break [filename] line\n"
 						"\tbreak? - add condition to existing breakpoint. Format: break? id condition\n"
@@ -539,7 +539,7 @@ void DefaultDebugger_interpret_end(YDebug* debug, void* ptr, YThread* th) {
 				if (OBJECT_HAS(obj, L"trace", th)) {
 					YValue* trace = OBJECT_GET(obj, L"trace", th);
 					wchar_t* wcs = toString(trace, th);
-					printf("%ls\n", wcs);
+					fprintf(th->runtime->env->out_stream, "%ls\n", wcs);
 					free(wcs);
 				}
 			}
