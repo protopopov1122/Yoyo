@@ -31,28 +31,35 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 		return false;
 	} else {
 		YThread* th = yoyo_thread(runtime);
-		runtime->env->eval(runtime->env, runtime,
-				file_input_stream(runtime->env->getFile(runtime->env, wpath)),
-				wpath,
-				NULL);
-		if (th->exception != NULL) {
-			YValue* e = th->exception;
-			th->exception = NULL;
-			wchar_t* wstr = toString(e, th);
-			fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
-			if (e->type->type==ObjectT) {
-				YObject* obj = (YObject*) e;
-				if (OBJECT_HAS(obj, L"trace", th)) {
-					YValue* trace = OBJECT_GET(obj, L"trace", th);
-					wchar_t* wcs = toString(trace, th);
-					fprintf(runtime->env->out_stream, "%ls\n", wcs);
-					free(wcs);
+		CompilationResult res = yoyoc((YoyoCEnvironment*) env,
+			file_input_stream(env->getFile(env, wpath)), wpath);
+		if (res.pid != -1) {
+			invoke(res.pid, bc, runtime->global_scope, NULL, th);
+			ILProcedure* proc = bc->procedures[res.pid];
+			proc->free(proc, bc);
+			if (th->exception != NULL) {
+				YValue* e = th->exception;
+				th->exception = NULL;
+				wchar_t* wstr = toString(e, th);
+				fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
+				if (e->type->type==ObjectT) {
+					YObject* obj = (YObject*) e;
+					if (OBJECT_HAS(obj, L"trace", th)) {
+						YValue* trace = OBJECT_GET(obj, L"trace", th);
+						wchar_t* wcs = toString(trace, th);
+						fprintf(runtime->env->out_stream, "%ls\n", wcs);
+						free(wcs);
+					}
 				}
+				free(wstr);
+				return false;
 			}
-			free(wstr);
+			return true;
 		}
+		fprintf(runtime->env->out_stream, "%ls\n", res.log);
+		free(res.log);
 	}
-	return true;
+	return false;
 }
 
 /*

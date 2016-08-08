@@ -55,3 +55,23 @@ YOYO_FUNCTION(YSTD_TYPES_HASH_OBJECT) {
 	YObject* super = args[0]->type->type==ObjectT ? (YObject*) args[0] : NULL;
 	return (YValue*) newHashObject(super, th);
 }
+
+YOYO_FUNCTION(YSTD_TYPES_INTEGER_PARSE_INT) {
+	wchar_t* wcs = toString(args[0], th);
+	int64_t i = 0;
+	if (parse_int(wcs, &i)) {
+		free(wcs);
+		return newInteger(i, th);	
+	}
+	throwException(L"NotInteger", &wcs, 1, th);
+	free(wcs);
+	return getNull(th);
+}
+
+YOYO_FUNCTION(YSTD_TYPES_INTEGER_MIN) {
+	return newInteger(INT64_MIN, th);
+}
+
+YOYO_FUNCTION(YSTD_TYPES_INTEGER_MAX) {
+	return newInteger(INT64_MAX, th);
+}

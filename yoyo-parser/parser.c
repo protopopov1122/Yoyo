@@ -215,8 +215,9 @@ NewReduce(Object_reduce) {
 			} else {
 				/*It must be field definition.
 				 * Get field name.*/
-				ExpectToken(handle->tokens[0], TokenIdentifier,
-						L"Expected identifier or '}'", freestmt, handle);
+				if (!handle->tokens[0].type==TokenIdentifier) {
+					ParseError(L"Expected identifier or '}'", freestmt, handle);
+				}
 				wchar_t* id = handle->tokens[0].value.id;
 				shift(handle);
 				YNode* type = NULL;

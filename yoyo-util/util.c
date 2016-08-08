@@ -71,3 +71,59 @@ InputStream* string_input_stream(wchar_t* wcs) {
 	sis->is.close = SIS_close;
 	return (InputStream*) sis;
 }
+
+bool parse_int(wchar_t* wcs, int64_t* ptr) {
+	int64_t number = 0;
+	int8_t sign = 1;
+	if (wcslen(wcs)==0)
+		return false;
+	if (wcs[0] == L'-') {
+		sign = -1;
+		wcs++;
+	}
+	if (wcslen(wcs) > 2 && wcsncmp(wcs, L"0x", 2) == 0) {
+		for (size_t i = 2; i < wcslen(wcs); i++) {
+			if (wcs[i] == L'_')
+				continue;
+			number *= 16;
+			if (wcs[i] >= L'0' && wcs[i] <= '9')
+				number += wcs[i] - L'0';
+			else if (wcs[i] >= L'a' && wcs[i] <= 'f')
+				number += wcs[i] - L'a' + 10;
+			else if (wcs[i] >= L'A' && wcs[i] <= 'F')
+				number += wcs[i] - L'A' + 10;
+			else {
+				number = -1;
+				break;
+			}
+		}
+	} else if (wcslen(wcs) > 2 && wcsncmp(wcs, L"0b", 2) == 0) {
+		for (size_t i = 2; i < wcslen(wcs); i++) {
+			if (wcs[i] == L'_')
+				continue;
+			number *= 2;
+			if (wcs[i] == L'1')
+				number++;
+			else if (wcs[i] == L'0') {
+			} else {
+				number = -1;
+				break;
+			}
+		}
+	} else
+		for (size_t i = 0; i < wcslen(wcs); i++) {
+			if (wcs[i] == L'_')
+				continue;
+			if (!iswdigit(wcs[i])) {
+				number = -1;
+				break;
+			} else {
+				number *= 10;
+				number += wcs[i] - L'0';
+			}
+		}
+	if (number == -1)
+		return false;
+	*ptr = number * sign;
+	return true;
+}

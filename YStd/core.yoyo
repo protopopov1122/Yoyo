@@ -7,6 +7,15 @@ sys.types.hashObject=overload(sys.native("YSTD_TYPES_HASH_OBJECT",
 	sys.types.signature(sys.types.struct, sys.types.struct), null)
 	$() sys.types.treeObject(null));
 
+Int = object {
+	parse: sys.native("YSTD_TYPES_INTEGER_PARSE_INT",
+		sys.types.signature(sys.types.int, sys.types.string), null)
+	MAX: sys.native("YSTD_TYPES_INTEGER_MAX",
+		sys.types.signature(sys.types.int), null)()
+	MIN: sys.native("YSTD_TYPES_INTEGER_MIN",
+		sys.types.signature(sys.types.int), null)()
+}
+
 threads = object {
 	newThread: sys.native("YSTD_THREADS_NEW_THREAD",
 		null, null)
@@ -68,5 +77,5 @@ input = $(str) {
 }
 eval=sys.eval;
 import = sys.import;
-// `exit = sys.exit;
+// exit = sys.exit;
 

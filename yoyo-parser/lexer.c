@@ -199,9 +199,9 @@ ytoken lex(ParseHandle* handle) {
 			if (wstr[i] >= L'0' && wstr[i] <= '9')
 				number += wstr[i] - L'0';
 			else if (wstr[i] >= L'a' && wstr[i] <= 'f')
-				number += wstr[i] - L'a';
+				number += wstr[i] - L'a' + 10;
 			else if (wstr[i] >= L'A' && wstr[i] <= 'F')
-				number += wstr[i] - L'A';
+				number += wstr[i] - L'A' + 10;
 			else {
 				number = -1;
 				break;

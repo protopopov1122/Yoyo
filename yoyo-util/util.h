@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <wchar.h>
+#include <wctype.h>
+#include <stdbool.h>
+#include <inttypes.h>
 
 typedef struct InputStream {
 	wint_t (*read)(struct InputStream*);
@@ -14,5 +17,6 @@ typedef struct InputStream {
 
 InputStream* file_input_stream(FILE*);
 InputStream* string_input_stream(wchar_t*);
+bool parse_int(wchar_t*, int64_t*);
 
 #endif

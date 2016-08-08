@@ -62,9 +62,11 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime, InputStream* is,
 			obj->put(obj, getSymbolId(&th->runtime->symbols, L"log"),
 					newString(res.log, th), true, th);
 		}
+		free(res.log);
 		return getNull(th);
 	} else {
 		fprintf(runtime->env->err_stream, "%ls\n", res.log);
+		free(res.log);
 		return getNull(th);
 	}
 }
@@ -180,9 +182,6 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input,
 		free(buffer);
 		if (errfile != NULL)
 			fclose(errfile);
-		for (size_t i = 0; i < handle.constants_size; i++)
-			if (handle.constants[i].type == WcsConstant)
-				free(handle.constants[i].value.wcs);
 		free(handle.constants);
 		for (size_t i = 0; i < handle.symbols_size; i++)
 			free(handle.symbols[i]);
