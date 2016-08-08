@@ -165,15 +165,15 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 										e->file));
 						uint32_t first = e->line;
 						uint32_t last = e->line;
+						uint32_t currentLine = e->line;
 						wint_t wch;
 						uint32_t line = 1;
 						if (argc > 2)
 							first -= wcstoul(argv[2], NULL, 0);
 						if (argc > 3)
 							last += wcstoul(argv[3], NULL, 0);
-						if (first == 1)
-							fprintf(th->runtime->env->out_stream,
-									"%"PRIu32":\t", first);
+						fprintf(th->runtime->env->out_stream,
+							"%"PRIu32":\t", first == 0 ? first + 1 : first);
 						while ((wch = fgetwc(file)) != WEOF) {
 							if (line >= first
 									&& !(line == last && wch == L'\n'))
@@ -183,9 +183,15 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 								line++;
 								if (line > last)
 									break;
-								if (line >= first)
-									fprintf(th->runtime->env->out_stream,
-											"%"PRIu32":\t", line);
+								if (line >= first) {
+									if (line != first)
+										fprintf(th->runtime->env->out_stream,
+											"%"PRIu32":", line);
+									if (line == currentLine)
+										fprintf(th->runtime->env->out_stream,
+											">>");
+									fprintf(th->runtime->env->out_stream, "\t");
+								}
 							}
 						}
 						fclose(file);
@@ -195,18 +201,18 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 								"Information not available\n");
 				} else CMD(req, L"file") {
 					FILE* file = NULL;
+					uint32_t currentLine = -1;
 					if (argc > 2)
 						file = th->runtime->env->getFile(th->runtime->env,
 								argv[2]);
 					if (file == NULL && ((ExecutionFrame*) th->frame) != NULL) {
-						ExecutionFrame* frame = ((ExecutionFrame*) th->frame);
-						CodeTableEntry* e = proc->getCodeTableEntry(proc,
-								frame->pc);
-						if (e != NULL) {
+						SourceIdentifier sid = th->frame->get_source_id(th->frame);	
+						if (sid.file != -1) {
 							wchar_t* wname = dbg->bytecode->getSymbolById(
-									dbg->bytecode, e->file);
+									dbg->bytecode, sid.file);
 							file = th->runtime->env->getFile(th->runtime->env,
 									wname);
+							currentLine = sid.line;
 							fprintf(th->runtime->env->out_stream,
 									"Listing file '%ls':\n", wname);
 						}
@@ -232,9 +238,13 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 								line++;
 								if (line > last)
 									break;
-								if (line >= first)
+								if (line >= first) {
 									fprintf(th->runtime->env->out_stream,
-											"%"PRIu32":\t", line);
+											"%"PRIu32":", line);
+									if (line == currentLine)
+										fprintf(th->runtime->env->out_stream, ">>");
+									fprintf(th->runtime->env->out_stream, "\t");
+								}
 							}
 						}
 						fclose(file);
@@ -283,6 +293,9 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 							((ExecutionFrame*) th->frame) != NULL ?
 									((ExecutionFrame*) th->frame)->proc->id :
 									-1;
+					ssize_t pc = ((ExecutionFrame*) th->frame) != NULL ?
+									((ExecutionFrame*) th->frame)->pc :
+									-1;
 					if (argc == 3)
 						pid = wcstoul(argv[2], NULL, 0);
 					ILBytecode* bc = dbg->bytecode;
@@ -312,6 +325,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 									fprintf(th->runtime->env->out_stream,
 											"%"PRId32":",
 											proc->labels.table[j].id);
+							if (i==pc)
+								fprintf(th->runtime->env->out_stream, ">>");
 							wchar_t* mnem = L"Unknown";
 							for (size_t j = 0; j < OPCODE_COUNT; j++)
 								if (Mnemonics[j].opcode == proc->code[i]) {

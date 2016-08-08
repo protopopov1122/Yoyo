@@ -168,11 +168,11 @@ YNode* optimize_node(YNode*);
 #define PrintError(mess, handle) {\
                                             fprintf(handle->error_stream, "%ls", mess);\
                                             if (handle->tokens[0].type!=TokenEOF)\
-                                                fprintf(handle->error_stream, " at %ls(%" PRIu32 ":%" PRIu32 ")",\
+                                                fprintf(handle->error_stream, " at '%ls'(%" PRIu32 ":%" PRIu32 ")",\
                                                 	handle->fileName,\
                                                 	handle->tokens[0].line,\
                                                     handle->tokens[0].charPos);\
-                                            else fprintf(handle->error_stream," at %ls(%" PRId32 ":%" PRId32 ")",\
+                                            else fprintf(handle->error_stream," at '%ls'(%" PRId32 ":%" PRId32 ")",\
                                             		handle->fileName,\
                                             		handle->line,\
                                                     handle->charPos);\
@@ -187,9 +187,9 @@ YNode* optimize_node(YNode*);
 #define ExtractCoords(file, line, charPos, parser) uint32_t line = parser->tokens[0].line;\
 											 uint32_t charPos = parser->tokens[0].charPos;\
 											 wchar_t* file = parser->fileName;
-#define SetCoords(node, f, l, cp) if (node!=NULL) {node->fileName = f;\
-									node->line = l;\
-									node->charPos = cp;}
+#define SetCoords(node, f, l, cp) if (node!=NULL) { if (node->fileName == NULL) node->fileName = f;\
+									if (node->line == -1) node->line = l;\
+									if (node->charPos == -1) node->charPos = cp;}
 #define Expect(cond, mess, stmt, parser) if (!(cond)) ParseError(mess, stmt, parser);
 #define ExpectToken(token, tp, mess, stmt, parser) Expect(token.type==tp,\
                                                           mess, stmt, parser);
