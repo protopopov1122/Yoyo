@@ -14,7 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "types/types.h"
+#include "types.h"
 
 int8_t compare_numbers(YValue* v1, YValue* v2, YThread* th) {
 	if (!CHECK_TYPES(IntegerT, FloatT, v1, v2))

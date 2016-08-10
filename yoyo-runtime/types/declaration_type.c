@@ -14,7 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include "types/types.h"
+#include "types.h"
 
 wchar_t* Decl_toString(YValue* val, YThread* th) {
 	wchar_t* wcs = ((YoyoType*) val)->string;

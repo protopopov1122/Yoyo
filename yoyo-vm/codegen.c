@@ -1175,6 +1175,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			loop = proc->getLoop(proc, id);
 		if (loop != NULL) {
 			proc->append(proc, VM_Goto, loop->end, -1, -1);
+		} else {
+			CompilationError(builder->err_stream, L"Loop not found", node, bc);
 		}
 	}
 		break;
@@ -1186,6 +1188,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			loop = proc->getLoop(proc, id);
 		if (loop != NULL) {
 			proc->append(proc, VM_Goto, loop->start, -1, -1);
+		} else {
+			CompilationError(builder->err_stream, L"Loop not found", node, bc);
 		}
 	}
 		break;

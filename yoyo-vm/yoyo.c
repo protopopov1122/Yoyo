@@ -16,8 +16,6 @@
 
 #include "yoyo.h"
 
-static YRuntime* RUNTIME = NULL;
-
 /*
  * Search file in current runtime path, translate it and
  * execute bytecode by current runtime. Return boolean
@@ -68,7 +66,6 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
  * to set up minimal runtime environment and file specified in arguments.
  * */
 void Yoyo_main(char** argv, int argc) {
-	setlocale(LC_ALL, "");
 	YoyoCEnvironment* ycenv = newYoyoCEnvironment(NULL);
 	Environment* env = (Environment*) ycenv;
 	YDebug* debug = NULL;
@@ -183,7 +180,6 @@ void Yoyo_main(char** argv, int argc) {
 	ycenv->bytecode = newBytecode(&runtime->symbols);
 	if (dbg)
 		debug = newDefaultDebugger(ycenv->bytecode);
-	RUNTIME = runtime;
 
 	OBJECT_NEW(runtime->global_scope, L"sys",
 			Yoyo_SystemObject(ycenv->bytecode, yoyo_thread(runtime)),

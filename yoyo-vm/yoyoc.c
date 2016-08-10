@@ -221,6 +221,7 @@ CompilationResult yoyoc(YoyoCEnvironment* env, InputStream* input,
 			log[strlen(log) - 1] = '\0';
 		wlog = calloc(1, sizeof(wchar_t) * (strlen(log) + 1));
 		mbstowcs(wlog, log, strlen(log));
+		pid = -1;
 	}
 	if (errfile != NULL)
 		fclose(errfile);
