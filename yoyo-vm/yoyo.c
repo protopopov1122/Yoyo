@@ -16,6 +16,21 @@
 
 #include "yoyo.h"
 
+#define STR_VALUE(arg)      #arg
+#define TOWCS(name) L""STR_VALUE(name)
+// Configuration in compile-time
+#ifdef YSTD 
+#define YSTD_PATH TOWCS(YSTD)
+#else
+#define YSTD_PATH L"."
+#endif
+
+#ifdef OBJECTS
+#define OBJ_TYPE TOWCS(OBJECTS)
+#else
+#define OBJ_TYPE L"hash"
+#endif
+
 /*
  * Search file in current runtime path, translate it and
  * execute bytecode by current runtime. Return boolean
@@ -84,6 +99,31 @@ void Yoyo_main(char** argv, int argc) {
 				arg++;
 				if (strcmp(arg, "debug") == 0)
 					dbg = true;
+				else if (strcmp(arg, "help") == 0) {
+					printf("Yoyo v"VERSION" - tiny dynamic language.\n"
+								"View code examples in repository\n"
+								"Use:\n\tyoyo [OPTIONS] FILE arg1 arg2 ...\n"
+								"Options:\n"
+								"\t--debug - execute in debug mode\n"
+								"\t--help - view this help\n"
+								"\t--version - view project version\n"
+								"\t-Ppath - add path to file search path\n"
+								"\t-Dkey=value - define key\n"
+								"Most useful keys:\n"
+								"\tystd - specify standart library location\n"
+								"\tobjects = hash/tree - specify used object implementation\n"
+								"\tIntPool - specify integer pool size(Strongly affects on memory use and performance)\n"
+								"\tIntCache - specify integer cache size(Strongly affects on memory use and performance)\n"
+								"\tworkdir - specify working directory\n"
+								"\nAuthor: Eugene Protopopov <protopopov1122@yandex.ru>\n"
+								"License: Program, standart library and examples are distributed under the terms of GNU GPLv3 or any later version.\n"
+								"Program repo: https://github.com/protopopov1122/Yoyo");
+					exit(0);
+				}
+				else if (strcmp(arg, "version") == 0) {
+					printf("v"VERSION"\n");
+					exit(0);
+				}
 			} else if (arg[0] == 'D') {
 				/* Environment variable definitions.
 				 * Format: -Dkey=value */
@@ -153,7 +193,8 @@ void Yoyo_main(char** argv, int argc) {
 	chdir(mbs_wd);
 	free(mbs_wd);
 	env->addPath(env, workdir);
-	env->addPath(env, libdir == NULL ? workdir : libdir);
+	env->addPath(env, libdir == NULL ? YSTD_PATH : libdir);
+	env->define(env, L"objects", OBJ_TYPE);
 
 	JitCompiler* jit = NULL;
 	if (env->getDefined(env, L"yjit")!=NULL) {

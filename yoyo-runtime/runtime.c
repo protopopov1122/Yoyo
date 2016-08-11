@@ -257,8 +257,8 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 
 	runtime->gc = newPlainGC(1000);
 	runtime->free = freeRuntime;
-	if (env->getDefined(env, L"object")!=NULL&&
-		wcscmp(env->getDefined(env, L"object"), L"tree")==0)
+	if (env->getDefined(env, L"objects")!=NULL&&
+		wcscmp(env->getDefined(env, L"objects"), L"tree")==0)
 		runtime->newObject = newTreeObject;
 	else
 		runtime->newObject = newHashObject;

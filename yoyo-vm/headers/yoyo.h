@@ -16,6 +16,8 @@
 #ifndef YOYO_H
 #define YOYO_H
 
+#define VERSION "0.01-pre"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
