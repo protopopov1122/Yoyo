@@ -52,8 +52,10 @@ YOYO_FUNCTION(Array_add) {
 }
 YOYO_FUNCTION(Array_pop) {
 	ARR_INIT
-	if (array->size(array, th) == 0)
+	if (array->size(array, th) == 0) {
+		throwException(L"EmptyArray", NULL, 0, th);
 		return getNull(th);
+	}
 	size_t index = array->size(array, th) - 1;
 	YValue* val = array->get(array, index, th);
 	array->remove(array, index, th);
@@ -64,6 +66,10 @@ YOYO_FUNCTION(_Array_addAll) {
 	YValue* val = args[0];
 	if (val->type->type == ArrayT) {
 		Array_addAll(array, (YArray*) val, th);
+	} else {
+		wchar_t* wcs = toString(val, th);
+		throwException(L"NotAnArray", &wcs, 1, th);
+		free(wcs);
 	}
 	return (YValue*) array;
 }
@@ -72,6 +78,10 @@ YOYO_FUNCTION(Array_insert) {
 	if (args[0]->type->type == IntegerT) {
 		uint32_t index = ((YInteger*) args[0])->value;
 		array->insert(array, index, args[1], th);
+	} else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotAnInteger", &wcs, 1, th);
+		free(wcs);
 	}
 	return (YValue*) array;
 }
@@ -81,6 +91,17 @@ YOYO_FUNCTION(_Array_insertAll) {
 		uint32_t index = ((YInteger*) args[0])->value;
 		YArray* src = (YArray*) args[1];
 		Array_insertAll(array, src, index, th);
+	} else {
+		if (args[0]->type->type != IntegerT) {
+			wchar_t* wcs = toString(args[0], th);
+			throwException(L"NotAnInteger", &wcs, 1, th);
+			free(wcs);
+		}
+		if (args[1]->type->type != ArrayT) {
+			wchar_t* wcs = toString(args[1], th);
+			throwException(L"NotAnArray", &wcs, 1, th);
+			free(wcs);
+		}
 	}
 	return (YValue*) array;
 }
@@ -89,6 +110,10 @@ YOYO_FUNCTION(Array_remove) {
 	if (args[0]->type->type == IntegerT) {
 		uint32_t index = ((YInteger*) args[0])->value;
 		array->remove(array, index, th);
+	} else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotAnInteger", &wcs, 1, th);
+		free(wcs);
 	}
 	return (YValue*) array;
 }
@@ -108,6 +133,17 @@ YOYO_FUNCTION(_Array_slice) {
 		YArray* slice = newSlice(array, ((YInteger*) args[0])->value,
 				((YInteger*) args[1])->value, th);
 		return (YValue*) slice;
+	} else {
+		if (args[0]->type->type != IntegerT) {
+			wchar_t* wcs = toString(args[0], th);
+			throwException(L"NotAnInteger", &wcs, 1, th);
+			free(wcs);
+		}
+		if (args[1]->type->type != IntegerT) {
+			wchar_t* wcs = toString(args[1], th);
+			throwException(L"NotAnInteger", &wcs, 1, th);
+			free(wcs);
+		}
 	}
 	return getNull(th);
 }
@@ -119,6 +155,10 @@ YOYO_FUNCTION(_Array_each) {
 	ARR_INIT
 	if (args[0]->type->type == LambdaT) {
 		Array_each(array, (YLambda*) args[0], th);
+	} else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotALambda", &wcs, 1, th);
+		free(wcs);
 	}
 	return (YValue*) array;
 }
@@ -126,6 +166,10 @@ YOYO_FUNCTION(_Array_map) {
 	ARR_INIT
 	if (args[0]->type->type == LambdaT) {
 		return (YValue*) Array_map(array, (YLambda*) args[0], th);
+	} else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotALambda", &wcs, 1, th);
+		free(wcs);
 	}
 	return getNull(th);
 }
@@ -133,6 +177,10 @@ YOYO_FUNCTION(_Array_reduce) {
 	ARR_INIT
 	if (args[1]->type->type == LambdaT) {
 		return Array_reduce(array, (YLambda*) args[1], args[0], th);
+	} else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotALambda", &wcs, 1, th);
+		free(wcs);
 	}
 	return getNull(th);
 }
@@ -144,6 +192,11 @@ YOYO_FUNCTION(_Array_filter) {
 	ARR_INIT
 	if (args[0]->type->type == LambdaT)
 		return (YValue*) Array_filter(array, (YLambda*) args[0], th);
+	else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotALambda", &wcs, 1, th);
+		free(wcs);
+	}
 	return getNull(th);
 }
 YOYO_FUNCTION(_Array_compact) {
@@ -171,6 +224,11 @@ YOYO_FUNCTION(_Array_removeAll) {
 			}
 		}
 	}
+	else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotAnArray", &wcs, 1, th);
+		free(wcs);
+	}
 	return (YValue*) array;
 }
 YOYO_FUNCTION(_Array_clone) {
@@ -189,6 +247,10 @@ YOYO_FUNCTION(_Array_sort) {
 	if (args[0]->type->type == LambdaT) {
 		YLambda* lmbd = (YLambda*) args[0];
 		return (YValue*) Array_sort(array, lmbd, th);
+	} else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotALambda", &wcs, 1, th);
+		free(wcs);
 	}
 	return getNull(th);
 }

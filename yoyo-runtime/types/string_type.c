@@ -67,6 +67,10 @@ YValue* CharSequence_get(YArray* a, size_t index, YThread* th) {
 	if (index < wcslen(wstr)) {
 		wchar_t out[] = { wstr[index], L'\0' };
 		return newString(out, th);
+	} else {
+		wchar_t* wcs = toString(newInteger(index, th), th);
+		throwException(L"WrongArrayIndex", &wcs, 1, th);
+		free(wcs);
 	}
 	return getNull(th);
 }
@@ -74,8 +78,12 @@ void CharSequence_set(YArray* a, size_t index, YValue* v, YThread* th) {
 	wchar_t* wstr = ((CharSequence*) a)->str->value;
 	wchar_t* vwstr = toString(v, th);
 	for (uint32_t i = 0; i < wcslen(vwstr); i++) {
-		if (index + i >= wcslen(wstr))
-			return;
+		if (index + i >= wcslen(wstr)) {
+		wchar_t* wcs = toString(newInteger(index + i, th), th);
+		throwException(L"WrongArrayIndex", &wcs, 1, th);
+		free(wcs);
+		return;
+	}
 		wstr[i + index] = vwstr[i];
 	}
 	free(vwstr);
@@ -135,11 +143,19 @@ YOYO_FUNCTION(_String_charAt) {
 	STR_INIT
 	wchar_t* wstr = str->value;
 	if (args[0]->type->type == IntegerT) {
-		int64_t index = ((YInteger*) args[0])->value;
+		size_t index = ((YInteger*) args[0])->value;
 		if (index > -1 && index < wcslen(wstr)) {
 			wchar_t out[] = { wstr[index], L'\0' };
 			return newString(out, th);
+		} else {
+			wchar_t* wcs = toString(args[0], th);
+			throwException(L"WrongCharIndex", &wcs, 1, th);
+			free(wcs);
 		}
+	} else {
+		wchar_t* wcs = toString(args[0], th);
+		throwException(L"NotAnInteger", &wcs, 1, th);
+		free(wcs);
 	}
 	return getNull(th);
 }
@@ -151,14 +167,37 @@ YOYO_FUNCTION(_String_substring) {
 	STR_INIT
 	wchar_t* wstr = str->value;
 	if (args[0]->type->type == IntegerT && args[1]->type->type == IntegerT) {
-		uint32_t start = ((YInteger*) args[0])->value;
-		uint32_t end = ((YInteger*) args[1])->value;
+		size_t start = ((YInteger*) args[0])->value;
+		size_t end = ((YInteger*) args[1])->value;
+		if (start >= wcslen(wstr)) {
+			wchar_t* wcs = toString(args[0], th);
+			throwException(L"WrongCharIndex", &wcs, 1, th);
+			free(wcs);
+			return getNull(th);
+		}
+		if (end > wcslen(wstr)) {
+			wchar_t* wcs = toString(args[1], th);
+			throwException(L"WrongCharIndex", &wcs, 1, th);
+			free(wcs);
+			return getNull(th);
+		}
 		wchar_t* out = malloc(sizeof(wchar_t) * (end - start + 1));
 		memcpy(out, &wstr[start], sizeof(wchar_t) * (end - start));
 		out[end - start] = L'\0';
 		YValue* value = newString(out, th);
 		free(out);
 		return value;
+	} else {	
+		if (args[0]->type->type != IntegerT) {
+			wchar_t* wcs = toString(args[0], th);
+			throwException(L"NotAnInteger", &wcs, 1, th);
+			free(wcs);
+		}
+		if (args[1]->type->type != IntegerT) {
+			wchar_t* wcs = toString(args[1], th);
+			throwException(L"NotAnInteger", &wcs, 1, th);
+			free(wcs);
+		}
 	}
 	return getNull(th);
 }
@@ -166,7 +205,7 @@ YOYO_FUNCTION(_String_toLowerCase) {
 	STR_INIT
 	wchar_t* wstr = str->value;
 	wchar_t* lstr = malloc(sizeof(wchar_t) * (wcslen(wstr) + 1));
-	for (uint32_t i = 0; i < wcslen(wstr); i++)
+	for (size_t i = 0; i < wcslen(wstr); i++)
 		lstr[i] = towlower(wstr[i]);
 	lstr[wcslen(wstr)] = L'\0';
 	YValue* out = newString(lstr, th);
@@ -206,30 +245,24 @@ YOYO_FUNCTION(_String_trim) {
 YOYO_FUNCTION(_String_startsWith) {
 	STR_INIT
 	wchar_t* wstr = str->value;
-	if (args[0]->type->type == StringT) {
-		wchar_t* str2 = ((YString*) args[0])->value;
-		if (wcslen(str2) > wcslen(wstr))
+	wchar_t* str2 = toString(args[0], th);
+	if (wcslen(str2) > wcslen(wstr))
+		return newBoolean(false, th);
+	for (size_t i = 0; i < wcslen(str2); i++)
+		if (wstr[i] != str2[i])
 			return newBoolean(false, th);
-		for (uint32_t i = 0; i < wcslen(str2); i++)
-			if (wstr[i] != str2[i])
-				return newBoolean(false, th);
-		return newBoolean(true, th);
-	}
-	return newBoolean(false, th);
+	return newBoolean(true, th);
 }
 YOYO_FUNCTION(_String_endsWith) {
 	STR_INIT
 	wchar_t* wstr = str->value;
-	if (args[0]->type->type == StringT) {
-		wchar_t* str2 = ((YString*) args[0])->value;
-		if (wcslen(str2) > wcslen(wstr))
+	wchar_t* str2 = toString(args[0], th);
+	if (wcslen(str2) > wcslen(wstr))
+		return newBoolean(false, th);
+	for (size_t i = 1; i <= wcslen(str2); i++)
+		if (wstr[wcslen(wstr) - i] != str2[wcslen(str2) - i])
 			return newBoolean(false, th);
-		for (uint32_t i = 1; i <= wcslen(str2); i++)
-			if (wstr[wcslen(wstr) - i] != str2[wcslen(str2) - i])
-				return newBoolean(false, th);
-		return newBoolean(true, th);
-	}
-	return newBoolean(false, th);
+	return newBoolean(true, th);
 }
 
 #undef STR_INIT
@@ -262,13 +295,35 @@ YValue* String_readIndex(YValue* v, YValue* i, YThread* th) {
 		if (index < wcslen(wstr)) {
 			wchar_t wstr2[] = { wstr[index], L'\0' };
 			return newString(wstr2, th);
+		} else  {
+			wchar_t* wcs = toString(i, th);
+			throwException(L"WrongCharIndex", &wcs, 1, th);
+			free(wcs);
+			return getNull(th);
 		}
+	} else {
+		wchar_t* wcs = toString(i, th);
+		throwException(L"NotAnInteger", &wcs, 1, th);
+		free(wcs);
+		return getNull(th);
 	}
 	return getNull(th);
 }
 
 YValue* String_subseq(YValue* v, size_t start, size_t end, YThread* th) {
 	wchar_t* wstr = ((YString*) v)->value;
+	if (start >= wcslen(wstr)) {
+			wchar_t* wcs = toString(newInteger(start, th), th);
+			throwException(L"WrongCharIndex", &wcs, 1, th);
+			free(wcs);
+			return getNull(th);
+	}
+	if (end > wcslen(wstr)) {
+			wchar_t* wcs = toString(newInteger(end, th), th);
+			throwException(L"WrongCharIndex", &wcs, 1, th);
+			free(wcs);
+			return getNull(th);
+	}
 	wchar_t* out = malloc(sizeof(wchar_t) * (end - start + 1));
 	memcpy(out, &wstr[start], sizeof(wchar_t) * (end - start));
 	out[end - start] = L'\0';
