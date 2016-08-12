@@ -82,6 +82,7 @@ void Lambda_type_init(YRuntime* runtime) {
 	runtime->LambdaType.oper.hashCode = Common_hashCode;
 	runtime->LambdaType.oper.readIndex = NULL;
 	runtime->LambdaType.oper.writeIndex = NULL;
+	runtime->LambdaType.oper.removeIndex = NULL;
 	runtime->LambdaType.oper.subseq = NULL;
 	runtime->LambdaType.oper.iterator = NULL;
 }

@@ -69,6 +69,19 @@ YValue* Object_writeIndex(YValue* o, YValue* index, YValue* value, YThread* th) 
 	}
 	return getNull(th);
 }
+YValue* Object_removeIndex(YValue* o, YValue* index, YThread* th) {
+	YObject* obj = (YObject*) o;
+	if (obj->contains(obj, getSymbolId(&th->runtime->symbols,
+	REMOVE_INDEX), th)) {
+		YValue* val = obj->get(obj, getSymbolId(&th->runtime->symbols,
+		REMOVE_INDEX), th);
+		if (val->type->type == LambdaT) {
+			YLambda* lambda = (YLambda*) val;
+			return invokeLambda(lambda, NULL, &index, 1, th);
+		}
+	}
+	return getNull(th);
+}
 YoyoIterator* Object_iterator(YValue* v, YThread* th) {
 	YObject* obj = (YObject*) v;
 	if (obj->iterator)
@@ -123,6 +136,7 @@ void Object_type_init(YRuntime* runtime) {
 	runtime->ObjectType.oper.hashCode = Object_hashCode;
 	runtime->ObjectType.oper.readIndex = Object_readIndex;
 	runtime->ObjectType.oper.writeIndex = Object_writeIndex;
+	runtime->ObjectType.oper.removeIndex = Object_removeIndex;
 	runtime->ObjectType.oper.subseq = NULL;
 	runtime->ObjectType.oper.iterator = Object_iterator;
 }

@@ -15,6 +15,7 @@ var hashMap, hashSet, list, range, xrange;
 		}
 		def #readIndex(i) get(i);
 		def #writeIndex(i, v) put(i, v);
+		def #removeIndex(i) remove(i);
 		def toString() {
 			out = "[";
 			iter = keys().iter();

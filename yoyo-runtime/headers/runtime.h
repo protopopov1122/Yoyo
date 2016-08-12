@@ -26,6 +26,7 @@
 #define HASHCODE L"hashCode"
 #define READ_INDEX L"#readIndex"
 #define WRITE_INDEX L"#writeIndex"
+#define REMOVE_INDEX L"#removeIndex"
 #define EQUALS L"equals"
 
 #define COMPARE_EQUALS 1
@@ -63,6 +64,7 @@ typedef struct Operations {
 	uint64_t (*hashCode)(YValue*, YThread*);
 	YValue* (*readIndex)(YValue*, YValue*, YThread*);
 	YValue* (*writeIndex)(YValue*, YValue*, YValue*, YThread*);
+	YValue* (*removeIndex)(YValue*, YValue*, YThread*);
 	YValue* (*subseq)(YValue*, size_t, size_t, YThread*);
 	YoyoIterator* (*iterator)(YValue*, YThread*);
 } Operations;

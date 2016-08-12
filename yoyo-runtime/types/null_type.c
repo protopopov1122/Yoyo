@@ -54,6 +54,7 @@ void Null_type_init(YRuntime* runtime) {
 	runtime->NullType.oper.hashCode = Common_hashCode;
 	runtime->NullType.oper.readIndex = NULL;
 	runtime->NullType.oper.writeIndex = NULL;
+	runtime->NullType.oper.removeIndex = NULL;
 	runtime->NullType.oper.subseq = NULL;
 	runtime->NullType.oper.iterator = NULL;
 }

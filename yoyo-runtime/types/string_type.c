@@ -355,6 +355,7 @@ void String_type_init(YRuntime* runtime) {
 	runtime->StringType.oper.hashCode = String_hashCode;
 	runtime->StringType.oper.readIndex = String_readIndex;
 	runtime->StringType.oper.writeIndex = NULL;
+	runtime->StringType.oper.removeIndex = NULL;
 	runtime->StringType.oper.subseq = String_subseq;
 	runtime->StringType.oper.iterator = NULL;
 }

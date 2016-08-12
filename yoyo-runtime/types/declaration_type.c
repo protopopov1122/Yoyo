@@ -102,6 +102,7 @@ void Declaration_type_init(YRuntime* runtime) {
 	runtime->DeclarationType.oper.hashCode = Common_hashCode;
 	runtime->DeclarationType.oper.readIndex = NULL;
 	runtime->DeclarationType.oper.writeIndex = NULL;
+	runtime->DeclarationType.oper.removeIndex = NULL;
 	runtime->DeclarationType.oper.subseq = NULL;
 	runtime->DeclarationType.oper.iterator = NULL;
 }

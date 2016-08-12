@@ -619,6 +619,8 @@ YValue* execute(YThread* th) {
 				YArray* arr = (YArray*) val;
 				size_t index = (size_t) ((YInteger*) val2)->value;
 				arr->remove(arr, index, th);
+			} else if (val->type->oper.removeIndex !=NULL) {
+				val->type->oper.removeIndex(val, val2, th);
 			} else {
 				throwException(L"ModifyingNotAnArray", NULL, 0, th);
 			}

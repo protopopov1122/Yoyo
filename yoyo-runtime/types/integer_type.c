@@ -493,6 +493,7 @@ void Int_type_init(YRuntime* runtime) {
 	runtime->IntType.oper.hashCode = Int_hashCode;
 	runtime->IntType.oper.readIndex = NULL;
 	runtime->IntType.oper.writeIndex = NULL;
+	runtime->IntType.oper.removeIndex = NULL;
 	runtime->IntType.oper.subseq = NULL;
 	runtime->IntType.oper.iterator = NULL;
 }
@@ -520,6 +521,7 @@ void Float_type_init(YRuntime* runtime) {
 	runtime->FloatType.oper.hashCode = Float_hashCode;
 	runtime->FloatType.oper.readIndex = NULL;
 	runtime->FloatType.oper.writeIndex = NULL;
+	runtime->FloatType.oper.removeIndex = NULL;
 	runtime->FloatType.oper.subseq = NULL;
 	runtime->FloatType.oper.iterator = NULL;
 }

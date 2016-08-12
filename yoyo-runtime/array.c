@@ -134,6 +134,16 @@ void DefaultArray_remove(YArray* a, size_t index, YThread* th) {
 	MUTEX_UNLOCK(&arr->access_mutex);
 }
 
+void DefaultArray_clear(YArray* a, YThread* th) {
+	DefaultArray* arr = (DefaultArray*) a;
+	MUTEX_LOCK(&arr->access_mutex);
+	free(arr->array);
+	arr->size = 0;
+	arr->capacity = 1;
+	arr->array = malloc(sizeof(YValue*) * arr->capacity);
+	MUTEX_UNLOCK(&arr->access_mutex);
+}
+
 typedef struct ArrayIterator {
 	YoyoIterator iter;
 
@@ -194,6 +204,7 @@ YArray* newArray(YThread* th) {
 	arr->parent.get = DefaultArray_get;
 	arr->parent.set = DefaultArray_set;
 	arr->parent.remove = DefaultArray_remove;
+	arr->parent.clear = DefaultArray_clear;
 
 	return (YArray*) arr;
 }

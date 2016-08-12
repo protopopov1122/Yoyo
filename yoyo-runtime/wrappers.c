@@ -144,6 +144,10 @@ void ArrayTuple_remove(YArray* a, size_t index, YThread* th) {
 	throwException(L"TupleModification", NULL, 0, th);
 	return;
 }
+void ArrayTuple_clear(YArray* a, YThread* th) {
+	throwException(L"TupleModification", NULL, 0, th);
+	return;
+}
 YArray* newTuple(YArray* arr, YThread* th) {
 	ArrayTuple* tuple = malloc(sizeof(ArrayTuple));
 	initYoyoObject((YoyoObject*) tuple, ArrayTuple_mark, ArrayTuple_free);
@@ -157,6 +161,7 @@ YArray* newTuple(YArray* arr, YThread* th) {
 	tuple->array.set = ArrayTuple_set;
 	tuple->array.add = ArrayTuple_add;
 	tuple->array.insert = ArrayTuple_insert;
+	tuple->array.clear = ArrayTuple_clear;
 	tuple->array.toString = NULL;
 	return (YArray*) tuple;
 }
@@ -217,97 +222,6 @@ YObject* newReadonlyObject(YObject* o, YThread* th) {
 	obj->object.setType = ROObject_setType;
 
 	return (YObject*) obj;
-}
-
-#define NEW_METHOD(name, proc, argc, obj, ptr, th) obj->put(obj, getSymbolId(\
-                                                    &th->runtime->symbols, name), (YValue*) newNativeLambda(argc, proc,\
-                                                                                    (YoyoObject*) ptr, th),\
-                                                            true, th);
-#define INIT_HASHMAP YoyoMap* map = (YoyoMap*) ((NativeLambda*) lambda)->object;
-YOYO_FUNCTION(Map_size) {
-	INIT_HASHMAP
-	;
-	return newInteger(map->size(map, th), th);
-}
-YOYO_FUNCTION(Map_get) {
-	INIT_HASHMAP
-	;
-	return map->get(map, args[0], th);
-}
-YOYO_FUNCTION(Map_put) {
-	INIT_HASHMAP
-	;
-	map->put(map, args[0], args[1], th);
-	return getNull(th);
-}
-YOYO_FUNCTION(Map_has) {
-	INIT_HASHMAP
-	;
-	return newBoolean(map->contains(map, args[0], th), th);
-}
-YOYO_FUNCTION(Map_remove) {
-	INIT_HASHMAP
-	;
-	map->remove(map, args[0], th);
-	return getNull(th);
-}
-YOYO_FUNCTION(Map_clear) {
-	INIT_HASHMAP
-	;
-	map->clear(map, th);
-	return getNull(th);
-}
-YOYO_FUNCTION(Map_keys) {
-	INIT_HASHMAP
-	;
-	return (YValue*) newYoyoSet(map->keySet(map, th), th);
-}
-#undef INIT_HASHMAP
-#define INIT_SET YoyoSet* set = (YoyoSet*) ((NativeLambda*) lambda)->object;
-
-YOYO_FUNCTION(Set_size) {
-	INIT_SET
-	;
-	return newInteger(set->size(set, th), th);
-}
-YOYO_FUNCTION(Set_add) {
-	INIT_SET
-	;
-	set->add(set, args[0], th);
-	return getNull(th);
-}
-YOYO_FUNCTION(Set_has) {
-	INIT_SET
-	;
-	return newBoolean(set->contains(set, args[0], th), th);
-}
-YOYO_FUNCTION(Set_iter) {
-	INIT_SET
-	;
-	return (YValue*) set->iter(set, th);
-}
-
-#undef INIT_SET
-
-YObject* newYoyoMap(YoyoMap* map, YThread* th) {
-	YObject* out = th->runtime->newObject(NULL, th);
-	NEW_METHOD(L"size", Map_size, 0, out, map, th);
-	NEW_METHOD(L"get", Map_get, 1, out, map, th);
-	NEW_METHOD(L"put", Map_put, 2, out, map, th);
-	NEW_METHOD(L"has", Map_has, 1, out, map, th);
-	NEW_METHOD(L"remove", Map_remove, 1, out, map, th);
-	NEW_METHOD(L"clear", Map_clear, 0, out, map, th);
-	NEW_METHOD(L"keys", Map_keys, 0, out, map, th);
-	return out;
-}
-
-YObject* newYoyoSet(YoyoSet* set, YThread* th) {
-	YObject* out = th->runtime->newObject(NULL, th);
-	NEW_METHOD(L"size", Set_size, 0, out, set, th);
-	NEW_METHOD(L"add", Set_add, 1, out, set, th);
-	NEW_METHOD(L"has", Set_has, 1, out, set, th);
-	NEW_METHOD(L"iter", Set_iter, 0, out, set, th);
-	return out;
 }
 
 typedef struct IteratorWrapper {

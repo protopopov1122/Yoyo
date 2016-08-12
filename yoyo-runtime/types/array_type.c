@@ -40,17 +40,16 @@ wchar_t* Array_toString(YValue* v, YThread* th) {
 #define ARR_INIT  NativeLambda* nlam = (NativeLambda*) lambda;\
   YArray* array = (YArray*) nlam->object;
 
-YOYO_FUNCTION(Array_size) {
+YOYO_FUNCTION(Array_type_size) {
 	ARR_INIT
-	;
 	return newInteger(array->size(array, th), th);
 }
-YOYO_FUNCTION(Array_add) {
+YOYO_FUNCTION(Array_type_add) {
 	ARR_INIT
 	array->add(array, args[0], th);
 	return (YValue*) array;
 }
-YOYO_FUNCTION(Array_pop) {
+YOYO_FUNCTION(Array_type_pop) {
 	ARR_INIT
 	if (array->size(array, th) == 0) {
 		throwException(L"EmptyArray", NULL, 0, th);
@@ -61,7 +60,7 @@ YOYO_FUNCTION(Array_pop) {
 	array->remove(array, index, th);
 	return val;
 }
-YOYO_FUNCTION(_Array_addAll) {
+YOYO_FUNCTION(Array_type_addAll) {
 	ARR_INIT
 	YValue* val = args[0];
 	if (val->type->type == ArrayT) {
@@ -73,7 +72,7 @@ YOYO_FUNCTION(_Array_addAll) {
 	}
 	return (YValue*) array;
 }
-YOYO_FUNCTION(Array_insert) {
+YOYO_FUNCTION(Array_type_insert) {
 	ARR_INIT
 	if (args[0]->type->type == IntegerT) {
 		uint32_t index = ((YInteger*) args[0])->value;
@@ -85,7 +84,7 @@ YOYO_FUNCTION(Array_insert) {
 	}
 	return (YValue*) array;
 }
-YOYO_FUNCTION(_Array_insertAll) {
+YOYO_FUNCTION(Array_type_insertAll) {
 	ARR_INIT
 	if (args[0]->type->type == IntegerT && args[1]->type->type == ArrayT) {
 		uint32_t index = ((YInteger*) args[0])->value;
@@ -105,7 +104,7 @@ YOYO_FUNCTION(_Array_insertAll) {
 	}
 	return (YValue*) array;
 }
-YOYO_FUNCTION(Array_remove) {
+YOYO_FUNCTION(Array_type_remove) {
 	ARR_INIT
 	if (args[0]->type->type == IntegerT) {
 		uint32_t index = ((YInteger*) args[0])->value;
@@ -117,17 +116,16 @@ YOYO_FUNCTION(Array_remove) {
 	}
 	return (YValue*) array;
 }
-YOYO_FUNCTION(Array_clear) {
+YOYO_FUNCTION(Array_type_clear) {
 	ARR_INIT
-	while (array->size(array, th) > 0)
-		array->remove(array, 0, th);
+	array->clear(array, th);
 	return (YValue*) array;
 }
-YOYO_FUNCTION(Array_isEmpty) {
+YOYO_FUNCTION(Array_type_isEmpty) {
 	ARR_INIT
 	return newBoolean(array->size(array, th) == 0, th);
 }
-YOYO_FUNCTION(_Array_slice) {
+YOYO_FUNCTION(Array_type_slice) {
 	ARR_INIT
 	if (args[0]->type->type == IntegerT && args[1]->type->type == IntegerT) {
 		YArray* slice = newSlice(array, ((YInteger*) args[0])->value,
@@ -147,11 +145,11 @@ YOYO_FUNCTION(_Array_slice) {
 	}
 	return getNull(th);
 }
-YOYO_FUNCTION (_Array_flat) {
+YOYO_FUNCTION (Array_type_flat) {
 	ARR_INIT
 	return (YValue*) Array_flat(array, th);
 }
-YOYO_FUNCTION(_Array_each) {
+YOYO_FUNCTION(Array_type_each) {
 	ARR_INIT
 	if (args[0]->type->type == LambdaT) {
 		Array_each(array, (YLambda*) args[0], th);
@@ -162,7 +160,7 @@ YOYO_FUNCTION(_Array_each) {
 	}
 	return (YValue*) array;
 }
-YOYO_FUNCTION(_Array_map) {
+YOYO_FUNCTION(Array_type_map) {
 	ARR_INIT
 	if (args[0]->type->type == LambdaT) {
 		return (YValue*) Array_map(array, (YLambda*) args[0], th);
@@ -173,7 +171,7 @@ YOYO_FUNCTION(_Array_map) {
 	}
 	return getNull(th);
 }
-YOYO_FUNCTION(_Array_reduce) {
+YOYO_FUNCTION(Array_type_reduce) {
 	ARR_INIT
 	if (args[1]->type->type == LambdaT) {
 		return Array_reduce(array, (YLambda*) args[1], args[0], th);
@@ -184,11 +182,11 @@ YOYO_FUNCTION(_Array_reduce) {
 	}
 	return getNull(th);
 }
-YOYO_FUNCTION(_Array_reverse) {
+YOYO_FUNCTION(Array_type_reverse) {
 	ARR_INIT
 	return (YValue*) Array_reverse(array, th);
 }
-YOYO_FUNCTION(_Array_filter) {
+YOYO_FUNCTION(Array_type_filter) {
 	ARR_INIT
 	if (args[0]->type->type == LambdaT)
 		return (YValue*) Array_filter(array, (YLambda*) args[0], th);
@@ -199,17 +197,17 @@ YOYO_FUNCTION(_Array_filter) {
 	}
 	return getNull(th);
 }
-YOYO_FUNCTION(_Array_compact) {
+YOYO_FUNCTION(Array_type_compact) {
 	ARR_INIT
 	return (YValue*) Array_compact(array, th);
 }
-YOYO_FUNCTION(_Array_poll) {
+YOYO_FUNCTION(Array_type_poll) {
 	ARR_INIT
 	YValue* out = array->get(array, 0, th);
 	array->remove(array, 0, th);
 	return out;
 }
-YOYO_FUNCTION(_Array_removeAll) {
+YOYO_FUNCTION(Array_type_removeAll) {
 	ARR_INIT
 	if (args[0]->type->type == ArrayT) {
 		YArray* arr = (YArray*) args[0];
@@ -231,18 +229,18 @@ YOYO_FUNCTION(_Array_removeAll) {
 	}
 	return (YValue*) array;
 }
-YOYO_FUNCTION(_Array_clone) {
+YOYO_FUNCTION(Array_type_clone) {
 	ARR_INIT
 	YArray* arr = newArray(th);
 	for (uint32_t i = 0; i < array->size(array, th); i++)
 		arr->add(arr, array->get(array, i, th), th);
 	return (YValue*) arr;
 }
-YOYO_FUNCTION(_Array_unique) {
+YOYO_FUNCTION(Array_type_unique) {
 	ARR_INIT
 	return (YValue*) Array_unique(array, th);
 }
-YOYO_FUNCTION(_Array_sort) {
+YOYO_FUNCTION(Array_type_sort) {
 	ARR_INIT
 	if (args[0]->type->type == LambdaT) {
 		YLambda* lmbd = (YLambda*) args[0];
@@ -254,20 +252,20 @@ YOYO_FUNCTION(_Array_sort) {
 	}
 	return getNull(th);
 }
-YOYO_FUNCTION(_Array_find) {
+YOYO_FUNCTION(Array_type_find) {
 	ARR_INIT
 	return (YValue*) Array_find(array, args[0], th);
 }
-YOYO_FUNCTION(_Array_tuple) {
+YOYO_FUNCTION(Array_type_tuple) {
 	ARR_INIT
 	return (YValue*) newTuple(array, th);
 }
-YOYO_FUNCTION(_Array_iter) {
+YOYO_FUNCTION(Array_type_iter) {
 	ARR_INIT
 	;
 	return (YValue*) Array_iter(array, th);
 }
-YOYO_FUNCTION(_Array_types) {
+YOYO_FUNCTION(Array_types) {
 	ARR_INIT
 	;
 	YoyoType** types = malloc(sizeof(YoyoType*) * array->size(array, th));
@@ -286,34 +284,33 @@ YOYO_FUNCTION(_Array_types) {
 
 YValue* Array_readProperty(int32_t key, YValue* v, YThread* th) {
 	YArray* arr = (YArray*) v;
-	//NEW_PROPERTY(L"length", newInteger((int64_t) arr->size(arr), th))
-	NEW_METHOD(L"size", Array_size, 0, arr);
-	NEW_METHOD(L"add", Array_add, 1, arr)
-	NEW_METHOD(L"push", Array_add, 1, arr)
-	NEW_METHOD(L"pop", Array_pop, 0, arr)
-	NEW_METHOD(L"addAll", _Array_addAll, 1, arr);
-	NEW_METHOD(L"insert", Array_insert, 2, arr);
-	NEW_METHOD(L"insertAll", _Array_insertAll, 2, arr);
-	NEW_METHOD(L"remove", Array_remove, 1, arr);
-	NEW_METHOD(L"clear", Array_clear, 0, arr);
-	NEW_METHOD(L"isEmpty", Array_isEmpty, 0, arr);
-	NEW_METHOD(L"slice", _Array_slice, 2, arr);
-	NEW_METHOD(L"each", _Array_each, 1, arr);
-	NEW_METHOD(L"flat", _Array_flat, 0, arr);
-	NEW_METHOD(L"map", _Array_map, 1, arr);
-	NEW_METHOD(L"reduce", _Array_reduce, 2, arr);
-	NEW_METHOD(L"reverse", _Array_reverse, 0, arr);
-	NEW_METHOD(L"compact", _Array_compact, 0, arr);
-	NEW_METHOD(L"filter", _Array_filter, 1, arr);
-	NEW_METHOD(L"poll", _Array_poll, 0, arr);
-	NEW_METHOD(L"removeAll", _Array_removeAll, 1, arr);
-	NEW_METHOD(L"clone", _Array_clone, 0, arr);
-	NEW_METHOD(L"unique", _Array_unique, 0, arr);
-	NEW_METHOD(L"find", _Array_find, 1, arr);
-	NEW_METHOD(L"sort", _Array_sort, 1, arr);
-	NEW_METHOD(L"tuple", _Array_tuple, 0, arr);
-	NEW_METHOD(L"iter", _Array_iter, 0, arr);
-	NEW_METHOD(L"types", _Array_types, 0, arr);
+	NEW_METHOD(L"size", Array_type_size, 0, arr);
+	NEW_METHOD(L"add", Array_type_add, 1, arr)
+	NEW_METHOD(L"push", Array_type_add, 1, arr)
+	NEW_METHOD(L"pop", Array_type_pop, 0, arr)
+	NEW_METHOD(L"addAll", Array_type_addAll, 1, arr);
+	NEW_METHOD(L"insert", Array_type_insert, 2, arr);
+	NEW_METHOD(L"insertAll", Array_type_insertAll, 2, arr);
+	NEW_METHOD(L"remove", Array_type_remove, 1, arr);
+	NEW_METHOD(L"clear", Array_type_clear, 0, arr);
+	NEW_METHOD(L"isEmpty", Array_type_isEmpty, 0, arr);
+	NEW_METHOD(L"slice", Array_type_slice, 2, arr);
+	NEW_METHOD(L"each", Array_type_each, 1, arr);
+	NEW_METHOD(L"flat", Array_type_flat, 0, arr);
+	NEW_METHOD(L"map", Array_type_map, 1, arr);
+	NEW_METHOD(L"reduce", Array_type_reduce, 2, arr);
+	NEW_METHOD(L"reverse", Array_type_reverse, 0, arr);
+	NEW_METHOD(L"compact", Array_type_compact, 0, arr);
+	NEW_METHOD(L"filter", Array_type_filter, 1, arr);
+	NEW_METHOD(L"poll", Array_type_poll, 0, arr);
+	NEW_METHOD(L"removeAll", Array_type_removeAll, 1, arr);
+	NEW_METHOD(L"clone", Array_type_clone, 0, arr);
+	NEW_METHOD(L"unique", Array_type_unique, 0, arr);
+	NEW_METHOD(L"find", Array_type_find, 1, arr);
+	NEW_METHOD(L"sort", Array_type_sort, 1, arr);
+	NEW_METHOD(L"tuple", Array_type_tuple, 0, arr);
+	NEW_METHOD(L"iter", Array_type_iter, 0, arr);
+	NEW_METHOD(L"types", Array_types, 0, arr);
 	return Common_readProperty(key, v, th);
 }
 
@@ -349,6 +346,7 @@ void Array_type_init(YRuntime* runtime) {
 	runtime->ArrayType.oper.hashCode = Common_hashCode;
 	runtime->ArrayType.oper.readIndex = NULL;
 	runtime->ArrayType.oper.writeIndex = NULL;
+	runtime->ArrayType.oper.removeIndex = NULL;
 	runtime->ArrayType.oper.subseq = Array_subseq;
 	runtime->ArrayType.oper.iterator = Array_iterator;
 }

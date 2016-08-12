@@ -68,6 +68,7 @@ typedef struct YArray {
 	void (*add)(struct YArray*, YValue*, YThread*);
 	void (*insert)(struct YArray*, size_t, YValue*, YThread*);
 	size_t (*size)(struct YArray*, YThread*);
+	void (*clear)(struct YArray*, YThread*);
 
 	wchar_t* (*toString)(struct YArray*, YThread*);
 } YArray;

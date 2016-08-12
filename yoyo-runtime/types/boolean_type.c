@@ -79,6 +79,7 @@ void Boolean_type_init(YRuntime* runtime) {
 	runtime->BooleanType.oper.hashCode = Common_hashCode;
 	runtime->BooleanType.oper.readIndex = NULL;
 	runtime->BooleanType.oper.writeIndex = NULL;
+	runtime->BooleanType.oper.removeIndex = NULL;
 	runtime->BooleanType.oper.subseq = NULL;
 	runtime->BooleanType.oper.iterator = NULL;
 }

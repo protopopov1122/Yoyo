@@ -74,7 +74,6 @@ size_t YoyoHashMap_size(YoyoMap* m, YThread* th) {
 }
 YoyoHashMapEntry* YoyoHashMap_getEntry(YoyoHashMap* map, YValue* key,
 		YThread* th) {
-	MUTEX_LOCK(&map->map_mutex);
 	uint64_t hash = key->type->oper.hashCode(key, th);
 	size_t index = hash % map->size;
 	YoyoHashMapEntry* e = map->entries[index];
@@ -85,7 +84,6 @@ YoyoHashMapEntry* YoyoHashMap_getEntry(YoyoHashMap* map, YValue* key,
 		}
 		e = e->next;
 	}
-	MUTEX_UNLOCK(&map->map_mutex);
 	return NULL;
 }
 void YoyoHashMap_remap(YoyoHashMap* map, YThread* th) {
@@ -123,13 +121,15 @@ void YoyoHashMap_remap(YoyoHashMap* map, YThread* th) {
 }
 YValue* YoyoHashMap_get(YoyoMap* m, YValue* key, YThread* th) {
 	YoyoHashMap* map = (YoyoHashMap*) m;
+	MUTEX_LOCK(&map->map_mutex);
 	YoyoHashMapEntry* e = YoyoHashMap_getEntry(map, key, th);
-	return e != NULL ? e->value : getNull(th);
+	YValue* out = e != NULL ? e->value : getNull(th);
+	MUTEX_UNLOCK(&map->map_mutex);
+	return out;
 }
 bool YoyoHashMap_contains(YoyoMap* m, YValue* key, YThread* th) {
 	YoyoHashMap* map = (YoyoHashMap*) m;
-	YoyoHashMapEntry* e = YoyoHashMap_getEntry(map, key, th);
-	return e != NULL;
+	return YoyoHashMap_getEntry(map, key, th) != NULL;
 }
 void YoyoHashMap_put(YoyoMap* m, YValue* key, YValue* value, YThread* th) {
 	YoyoHashMap* map = (YoyoHashMap*) m;
@@ -163,8 +163,8 @@ void YoyoHashMap_put(YoyoMap* m, YValue* key, YValue* value, YThread* th) {
 }
 void YoyoHashMap_remove(YoyoMap* m, YValue* key, YThread* th) {
 	YoyoHashMap* map = (YoyoHashMap*) m;
+	MUTEX_LOCK(&map->map_mutex);	
 	YoyoHashMapEntry* e = YoyoHashMap_getEntry(map, key, th);
-	MUTEX_LOCK(&map->map_mutex);
 	if (e != NULL) {
 		if (e->prev != NULL)
 			e->prev->next = e->next;
@@ -516,6 +516,20 @@ void List_remove(YArray* a, size_t index, YThread* th) {
 	MUTEX_UNLOCK(&list->mutex);
 }
 
+void List_clear(YArray* a, YThread* th) {
+	YList* list = (YList*) a;
+	MUTEX_LOCK(&list->mutex);
+	list->length = 0;
+
+	for (ListEntry* e = list->list; e != NULL;) {
+		ListEntry* ne = e->next;
+		free(e);
+		e = ne;
+	}
+
+	MUTEX_UNLOCK(&list->mutex);
+}
+
 YArray* newList(YThread* th) {
 	YList* list = malloc(sizeof(YList));
 	initYoyoObject((YoyoObject*) list, List_mark, List_free);
@@ -532,6 +546,7 @@ YArray* newList(YThread* th) {
 	list->array.set = List_set;
 	list->array.insert = List_insert;
 	list->array.remove = List_remove;
+	list->array.clear = List_clear;
 	list->array.toString = NULL;
 
 	return (YArray*) list;
