@@ -141,8 +141,15 @@ ytoken lex(ParseHandle* handle) {
 				case L'r':
 					ch = L'\r';
 					break;
-				case '\\':
+				case L'\\':
 					ch = L'\\';
+				break;
+				case L'\"':
+					ch = L'\"';
+				break;
+				case L'\'':
+					ch = L'\'';
+				break;
 				}
 			wstr = realloc(wstr, sizeof(wchar_t) * (++wlen));
 			wstr[wlen - 1] = ch;

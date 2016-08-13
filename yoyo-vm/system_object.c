@@ -41,36 +41,20 @@ YValue* YArgs_get(YArray* arr, size_t index, YThread* th) {
 	else
 		return getNull(th);
 }
-void YArgs_set(YArray* arr, size_t index, YValue* v, YThread* th) {
-	return;
-}
-void YArgs_insert(YArray* arr, size_t index, YValue* v, YThread* th) {
-	return;
-}
-void YArgs_add(YArray* arr, YValue* v, YThread* th) {
-	return;
-}
-void YArgs_remove(YArray* arr, size_t index, YThread* th) {
-	return;
-}
 
 YOYO_FUNCTION(YSTD_SYSTEM_ARGS) {
-	YArgs* yargs = malloc(sizeof(YArgs));
+	YArgs* yargs = calloc(1, sizeof(YArgs));
 	initAtomicYoyoObject((YoyoObject*) yargs, (void (*)(YoyoObject*)) free);
 	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) yargs);
 	yargs->array.parent.type = &th->runtime->ArrayType;
 
 	yargs->array.size = YArgs_size;
 	yargs->array.get = YArgs_get;
-	yargs->array.set = YArgs_set;
-	yargs->array.add = YArgs_add;
-	yargs->array.insert = YArgs_insert;
-	yargs->array.remove = YArgs_remove;
 	yargs->array.toString = NULL;
 	yargs->argc = th->runtime->env->argc;
 	yargs->argv = th->runtime->env->argv;
 
-	return (YValue*) yargs;
+	return (YValue*) newTuple((YArray*) yargs, th);
 }
 typedef YValue* (*Yoyo_initYJI)(YRuntime*);
 YOYO_FUNCTION(YSTD_SYSTEM_YJI) {

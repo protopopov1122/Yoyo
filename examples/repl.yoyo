@@ -1,0 +1,22 @@
+print("Yoyo REPL");
+print("Use '\\' at the and of line to write multiline code. Type 'exit' to stop.");
+in = "\\";
+scope = object;
+do {
+	console.print(">>>");
+	while in.endsWith("\\") {
+		console.print("\t");
+		in = in[0:in.length-1];
+		in += read();
+	}
+	if in.equals("exit")
+		break;
+	print(with scope {
+		out = eval(in);
+		if out != null
+			out
+		else
+			""
+	});
+	in = "\\"
+}

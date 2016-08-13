@@ -33,6 +33,16 @@ Project contains simple Makefile. It has several options to build Yoyo:
 cd build
 make yoyo target="release"
 ```
+You can execute interactive guide
+```bash
+cd build
+./yoyo -Dystd=../YStd ../examples/guide.yoyo
+```
+Or REPL
+```bash
+cd build
+./yoyo -Dystd=../YStd ../examples/repl.yoyo
+```
 In build directory will appear executable.
 Project uses dlfcn-win32 to compile on MinGW.
 ## Contributors
