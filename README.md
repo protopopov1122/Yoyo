@@ -1,6 +1,6 @@
 Yoyo
 ==============
-## What is Yoyo?
+# What is Yoyo?
 --------------
 Yoyo - simple small dynamic programming language designed to consistent and flexible
 using traditional syntax concepts(C-style syntax). The main part of the project is written on C. However it
@@ -12,18 +12,18 @@ but these issues origins in project concept of simplicity.
 The main inspiration was Python and Javascript.
 ** Yoyo is only project to educate myself, gain expirence and some fun, so
 I don't guarantee that project may be useful in any purposes. **
-## Examples
+# Examples
 --------------
 See 'examples' directory. It contains several examples of different aspects of
 language.
-## Goals
+# Goals
 * Make project usable, remove bugs and refractor code.
 * Add build and installation system.
 * Write standart language library
 * Add code examples and tests
 Main goal is to make project useful and stable.
-## Instalation
---------------
+# Instalation
+----------------
 Project contains simple Makefile. It has several options to build Yoyo:
 * arch: x86, x64(default)
 * platform win, linux(default)
@@ -43,6 +43,7 @@ Or REPL
 cd build
 ./yoyo -Dystd=../YStd ../examples/repl.yoyo
 ```
+Project contains 'yoyo.vim' file that provides Yoyo syntax highlighting in Vim.
 In build directory will appear executable.
 Project uses dlfcn-win32 to compile on MinGW.
 ## Contributors
