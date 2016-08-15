@@ -57,7 +57,7 @@ YValue* YoyoC_eval(Environment* _env, YRuntime* runtime, InputStream* is,
 		return out;
 	} else if (scope != NULL) {
 		throwException(L"Eval", &wname, 1, th);
-		if (th->exception->type->type == ObjectT && res.log != NULL) {
+		if (th->exception->type == &th->runtime->ObjectType && res.log != NULL) {
 			YObject* obj = (YObject*) th->exception;
 			obj->put(obj, getSymbolId(&th->runtime->symbols, L"log"),
 					newString(res.log, th), true, th);

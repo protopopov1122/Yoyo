@@ -28,13 +28,14 @@ YValue* Null_readProperty(int32_t id, YValue* v, YThread* th) {
 }
 
 int Null_compare(YValue* v1, YValue* v2, YThread* th) {
-	return v1->type->type == AnyT && v2->type->type == AnyT ?
+	return v1->type == &th->runtime->NullType && v2->type == &th->runtime->NullType ?
 			COMPARE_EQUALS : COMPARE_NOT_EQUALS;
 }
 
 void Null_type_init(YRuntime* runtime) {
-	runtime->NullType.type = AnyT;
-	runtime->NullType.TypeConstant = newAtomicType(AnyT, yoyo_thread(runtime));
+	YThread* th = yoyo_thread(runtime);
+	runtime->NullType.wstring = L"any";
+	runtime->NullType.TypeConstant = newAtomicType(&th->runtime->NullType, th);
 	runtime->NullType.oper.add_operation = concat_operation;
 	runtime->NullType.oper.subtract_operation = undefined_binary_operation;
 	runtime->NullType.oper.multiply_operation = undefined_binary_operation;

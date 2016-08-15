@@ -471,7 +471,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					free(wstr);
 					th->exception = NULL;
 				}
-				if (val->type->type != AnyT) {
+				if (val->type != &th->runtime->NullType) {
 					wchar_t* wstr = toString(val, th);
 					fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
 					free(wstr);
@@ -549,7 +549,7 @@ void DefaultDebugger_interpret_end(YDebug* debug, void* ptr, YThread* th) {
 		fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
 		free(wstr);
 		YValue* e = th->exception;
-		if (e->type->type==ObjectT) {
+		if (e->type == &th->runtime->ObjectType) {
 				YObject* obj = (YObject*) e;
 				if (OBJECT_HAS(obj, L"trace", th)) {
 					YValue* trace = OBJECT_GET(obj, L"trace", th);
@@ -596,7 +596,7 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 										L"<eval>",
 										(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 						th->exception = NULL;
-						if (val->type->type == BooleanT) {
+						if (val->type == &th->runtime->BooleanType) {
 							exec = ((YBoolean*) val)->value;
 						}
 						th->runtime->state = RuntimePaused;

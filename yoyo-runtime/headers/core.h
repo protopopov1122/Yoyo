@@ -51,17 +51,7 @@ typedef struct YLambda YLambda;
 typedef struct YoyoIterator YoyoIterator;
 typedef struct YoyoMap YoyoMap;
 typedef struct YoyoSet YoyoSet;
-typedef enum {
-	IntegerT = 1,
-	FloatT = 2,
-	BooleanT = 3,
-	StringT = 4,
-	ArrayT = 5,
-	LambdaT = 6,
-	ObjectT = 7,
-	DeclarationT = 8,
-	AnyT = 0
-} ValueType;
+
 
 typedef struct SymbolMapEntry {
 	int32_t id;
@@ -90,7 +80,7 @@ FILE* search_file(wchar_t*, wchar_t**, size_t);
 #define YOYOID(wstr, th) getSymbolId(&th->runtime->symbols, wstr)
 #define YOYOSYM(id, th) getSymbolById(&th->runtime->symbols, id)
 
-#define TYPE(value, t) value->type->type==t
+#define TYPE(value, t) value->type==t
 #define OBJECT_GET(obj, id, th) obj->get(obj, YOYOID(id, th), th)
 #define OBJECT_PUT(obj, id, value, th) obj->put(obj, YOYOID(id, th),\
 										(YValue*) value, false, th)

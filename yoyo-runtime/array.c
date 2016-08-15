@@ -232,7 +232,7 @@ YArray* Array_flat(YArray* arr, YThread* th) {
 
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* val = arr->get(arr, i, th);
-		if (val->type->type == ArrayT) {
+		if (val->type == &th->runtime->ArrayType) {
 			Array_addAll(out, Array_flat((YArray*) val, th), th);
 		} else {
 			out->add(out, val, th);
@@ -298,7 +298,7 @@ YArray* Array_filter(YArray* arr, YLambda* lmbd, YThread* th) {
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* val = arr->get(arr, i, th);
 		YValue* res = invokeLambda(lmbd, NULL, &val, 1, th);
-		if (res->type->type == BooleanT && ((YBoolean*) res)->value)
+		if (res->type == &th->runtime->BooleanType && ((YBoolean*) res)->value)
 			out->add(out, val, th);
 	}
 	out->parent.o.linkc--;
@@ -310,7 +310,7 @@ YArray* Array_compact(YArray* arr, YThread* th) {
 	YArray* out = newArray(th);
 	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* val = arr->get(arr, i, th);
-		if (val->type->type != AnyT)
+		if (val->type != &th->runtime->NullType)
 			out->add(out, val, th);
 	}
 	return out;
@@ -358,7 +358,7 @@ YArray* Array_sort(YArray* arr, YLambda* lmbd, YThread* th) {
 		YValue* v = arr->get(arr, i, th);
 		YValue* args[] = { val, v };
 		YValue* res = invokeLambda(lmbd, NULL, args, 2, th);
-		if (res->type->type != IntegerT)
+		if (res->type != &th->runtime->IntType)
 			break;
 		int64_t ires = ((YInteger*) res)->value;
 		if (ires == 0)

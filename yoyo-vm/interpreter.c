@@ -53,7 +53,7 @@ YValue* pop(YThread* th) {
 /*Pop value from stack. If it's integer return it, else return 0*/
 int64_t popInt(YThread* th) {
 	YValue* v = pop(th);
-	if (v->type->type == IntegerT)
+	if (v->type == &th->runtime->IntType)
 		return ((YInteger*) v)->value;
 	else
 		return 0;
@@ -316,7 +316,7 @@ YValue* execute(YThread* th) {
 			/*Take an integer from register and
 			 * check if certain bit is 1 or 0*/
 			YValue* arg = getRegister(iarg1, th);
-			if (arg->type->type == IntegerT) {
+			if (arg->type == &th->runtime->IntType) {
 				int64_t i = ((YInteger*) arg)->value;
 				YValue* res = newBoolean((i & iarg2) != 0, th);
 				setRegister(res, iarg0, th);
@@ -345,12 +345,12 @@ YValue* execute(YThread* th) {
 			break;
 		case VM_Increment: {
 			YValue* v1 = getRegister(iarg1, th);
-			if (v1->type->type==IntegerT) {
-				int64_t i = getInteger(v1);
+			if (v1->type == &th->runtime->IntType) {
+				int64_t i = getInteger(v1, th);
 				i++;
 				setRegister(newInteger(i, th), iarg0, th);
-			} else if (v1->type->type==FloatT) {
-				double i = getFloat(v1);
+			} else if (v1->type==&th->runtime->FloatType) {
+				double i = getFloat(v1, th);
 				i++;
 				setRegister(newFloat(i, th), iarg0, th);
 			} else {
@@ -361,12 +361,12 @@ YValue* execute(YThread* th) {
 		break;
 		case VM_Decrement: {
 			YValue* v1 = getRegister(iarg1, th);
-			if (v1->type->type==IntegerT) {
-				int64_t i = getInteger(v1);
+			if (v1->type == &th->runtime->IntType) {
+				int64_t i = getInteger(v1, th);
 				i--;
 				setRegister(newInteger(i, th), iarg0, th);
-			} else if (v1->type->type==FloatT) {
-				double i = getFloat(v1);
+			} else if (v1->type==&th->runtime->FloatType) {
+				double i = getFloat(v1, th);
 				i--;
 				setRegister(newFloat(i, th), iarg0, th);
 			} else {
@@ -388,10 +388,10 @@ YValue* execute(YThread* th) {
 			YObject* scope = NULL;
 			if (iarg2 != -1) {
 				YValue* scl = getRegister(iarg2, th);
-				if (scl->type->type == ObjectT)
+				if (scl->type == &th->runtime->ObjectType)
 					scope = (YObject*) scl;
 			}
-			if (val->type->type == LambdaT) {
+			if (val->type == &th->runtime->LambdaType) {
 
 				YLambda* l = (YLambda*) val;
 				setRegister(invokeLambda(l, scope, args, argc, th), iarg0, th);
@@ -419,7 +419,7 @@ YValue* execute(YThread* th) {
 		case VM_NewObject: {
 			/*Create object with parent(if defined)*/
 			YValue* p = getRegister(iarg1, th);
-			if (iarg1 != -1 && p->type->type == ObjectT) {
+			if (iarg1 != -1 && p->type == &th->runtime->ObjectType) {
 				YObject* obj = th->runtime->newObject((YObject*) p, th);
 				setRegister((YValue*) obj, iarg0, th);
 			} else
@@ -438,11 +438,11 @@ YValue* execute(YThread* th) {
 			// Check if lambda is vararg
 			YValue* vmeth = pop(th);
 			bool meth =
-					(vmeth->type->type == BooleanT) ?
+					(vmeth->type == &th->runtime->BooleanType) ?
 							((YBoolean*) vmeth)->value : false;
 			YValue* vvararg = pop(th);
 			bool vararg =
-					(vvararg->type->type == BooleanT) ?
+					(vvararg->type == &th->runtime->BooleanType) ?
 							((YBoolean*) vvararg)->value : false;
 			// Get argument count and types
 			size_t argc = (size_t) popInt(th);
@@ -451,7 +451,7 @@ YValue* execute(YThread* th) {
 			for (size_t i = argc - 1; i < argc; i--) {
 				argids[i] = (int32_t) popInt(th);
 				YValue* val = pop(th);
-				if (val->type->type == DeclarationT)
+				if (val->type == &th->runtime->DeclarationType)
 					argTypes[i] = (YoyoType*) val;
 				else
 					argTypes[i] = val->type->TypeConstant;
@@ -459,14 +459,14 @@ YValue* execute(YThread* th) {
 			// Get lambda return type
 			YValue* retV = pop(th);
 			YoyoType* retType = NULL;
-			if (retV->type->type == DeclarationT)
+			if (retV->type == &th->runtime->DeclarationType)
 				retType = (YoyoType*) retV;
 			else
 				retType = retV->type->TypeConstant;
 			// Get lambda scope from argument and create
 			// lambda signature and lambda
 			YValue* sp = getRegister(iarg2, th);
-			if (sp->type->type == ObjectT) {
+			if (sp->type == &th->runtime->ObjectType) {
 				YObject* scope = (YObject*) sp;
 				YLambda* lmbd = newProcedureLambda(iarg1, bc, scope, argids,
 						newLambdaSignature(meth, argc, vararg, argTypes,
@@ -487,7 +487,7 @@ YValue* execute(YThread* th) {
 			YLambda** lambdas = malloc(sizeof(YLambda*) * count);
 			for (size_t i = 0; i < count; i++) {
 				YValue* val = pop(th);
-				if (val->type->type == LambdaT)
+				if (val->type == &th->runtime->LambdaType)
 					lambdas[i] = (YLambda*) val;
 				else
 					lambdas[i] = NULL;
@@ -496,7 +496,7 @@ YValue* execute(YThread* th) {
 			YLambda* defLmbd = NULL;
 			if (iarg2 != -1) {
 				YValue* val = getRegister(iarg2, th);
-				if (val->type->type == LambdaT)
+				if (val->type == &th->runtime->LambdaType)
 					defLmbd = (YLambda*) val;
 			}
 			// Create overloaded lambda
@@ -515,7 +515,7 @@ YValue* execute(YThread* th) {
 			YObject** mixins = malloc(sizeof(YObject*) * count);
 			for (size_t i = 0; i < count; i++) {
 				YValue* val = pop(th);
-				if (val->type->type == ObjectT)
+				if (val->type == &th->runtime->ObjectType)
 					mixins[i] = (YObject*) val;
 				else
 					mixins[i] = NULL;
@@ -523,7 +523,7 @@ YValue* execute(YThread* th) {
 			// Get base object
 			YValue* basev = getRegister(iarg1, th);
 			YObject* base = NULL;
-			if (basev->type->type == ObjectT)
+			if (basev->type == &th->runtime->ObjectType)
 				base = (YObject*) basev;
 			else
 				base = th->runtime->newObject(NULL, th);
@@ -547,7 +547,7 @@ YValue* execute(YThread* th) {
 		case VM_SetField: {
 			/*Set objects field*/
 			YValue* val = getRegister(iarg0, th);
-			if (val->type->type == ObjectT) {
+			if (val->type == &th->runtime->ObjectType) {
 				YObject* obj = (YObject*) val;
 				obj->put(obj, iarg1, getRegister(iarg2, th), false, th);
 			}
@@ -556,7 +556,7 @@ YValue* execute(YThread* th) {
 		case VM_NewField: {
 			/*Create new field in object*/
 			YValue* val = getRegister(iarg0, th);
-			if (val->type->type == ObjectT) {
+			if (val->type == &th->runtime->ObjectType) {
 				YObject* obj = (YObject*) val;
 				obj->put(obj, iarg1, getRegister(iarg2, th), true, th);
 			}
@@ -565,7 +565,7 @@ YValue* execute(YThread* th) {
 		case VM_DeleteField: {
 			/*Delete field from object*/
 			YValue* val = getRegister(iarg0, th);
-			if (val->type->type == ObjectT) {
+			if (val->type == &th->runtime->ObjectType) {
 				YObject* obj = (YObject*) val;
 				obj->remove(obj, iarg1, th);
 			}
@@ -577,7 +577,7 @@ YValue* execute(YThread* th) {
 			YValue* val2 = getRegister(iarg2, th);
 			// If value is array, but index is integer then
 			// reads array element at index
-			if (val->type->type == ArrayT && val2->type->type == IntegerT) {
+			if (val->type == &th->runtime->ArrayType && val2->type == &th->runtime->IntType) {
 				YArray* arr = (YArray*) val;
 				size_t index = (size_t) ((YInteger*) val2)->value;
 				setRegister(arr->get(arr, index, th), iarg0, th);
@@ -597,7 +597,7 @@ YValue* execute(YThread* th) {
 			YValue* val2 = getRegister(iarg1, th);
 			// If value if array, but index is integer
 			// then assigns value to an array
-			if (val->type->type == ArrayT && val2->type->type == IntegerT) {
+			if (val->type == &th->runtime->ArrayType && val2->type == &th->runtime->IntType) {
 				YArray* arr = (YArray*) val;
 				size_t index = (size_t) ((YInteger*) val2)->value;
 				arr->set(arr, index, getRegister(iarg2, th), th);
@@ -615,7 +615,7 @@ YValue* execute(YThread* th) {
 			 * else throw an exception*/
 			YValue* val = getRegister(iarg0, th);
 			YValue* val2 = getRegister(iarg1, th);
-			if (val->type->type == ArrayT && val2->type->type == IntegerT) {
+			if (val->type == &th->runtime->ArrayType && val2->type == &th->runtime->IntType) {
 				YArray* arr = (YArray*) val;
 				size_t index = (size_t) ((YInteger*) val2)->value;
 				arr->remove(arr, index, th);
@@ -639,7 +639,7 @@ YValue* execute(YThread* th) {
 			/*Get label id from argument, get label address and jump
 			 * if condition is true*/
 			YValue* bln = getRegister(iarg1, th);
-			if (bln->type->type == BooleanT && ((YBoolean*) bln)->value) {
+			if (bln->type == &th->runtime->BooleanType && ((YBoolean*) bln)->value) {
 				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
 				frame->pc = addr;
 				continue;
@@ -650,7 +650,7 @@ YValue* execute(YThread* th) {
 			/*Get label id from argument, get label address and jump
 			 * if condition is false*/
 			YValue* bln = getRegister(iarg1, th);
-			if (bln->type->type == BooleanT && !((YBoolean*) bln)->value) {
+			if (bln->type == &th->runtime->BooleanType && !((YBoolean*) bln)->value) {
 				uint32_t addr = frame->proc->getLabel(frame->proc, iarg0)->value;
 				frame->pc = addr;
 				continue;
@@ -666,7 +666,7 @@ YValue* execute(YThread* th) {
 		case VM_JumpIfTrue: {
 			/*Goto to an address if condition is true*/
 			YValue* bln = getRegister(iarg1, th);
-			if (bln->type->type == BooleanT && ((YBoolean*) bln)->value) {
+			if (bln->type == &th->runtime->BooleanType && ((YBoolean*) bln)->value) {
 				frame->pc = iarg0;
 				continue;
 			}
@@ -675,7 +675,7 @@ YValue* execute(YThread* th) {
 		case VM_JumpIfFalse: {
 			/*Goto to an address if condition is false*/
 			YValue* bln = getRegister(iarg1, th);
-			if (bln->type->type == BooleanT && !((YBoolean*) bln)->value) {
+			if (bln->type == &th->runtime->BooleanType && !((YBoolean*) bln)->value) {
 				frame->pc = iarg0;
 				continue;
 			}
@@ -732,9 +732,9 @@ YValue* execute(YThread* th) {
 			YValue* reg = getRegister(iarg0, th);
 			YValue* tfrom = getRegister(iarg1, th);
 			YValue* tto = getRegister(iarg2, th);
-			if (tfrom->type->type == IntegerT&&
-			tto->type->type==IntegerT&&
-			reg->type->oper.subseq!=NULL) {
+			if (tfrom->type == &th->runtime->IntType&&
+				tto->type == &th->runtime->IntType&&
+				reg->type->oper.subseq!=NULL) {
 				size_t from = (size_t) ((YInteger*) tfrom)->value;
 				size_t to = (size_t) ((YInteger*) tto)->value;
 				setRegister(reg->type->oper.subseq(reg, from, to, th), iarg0,
@@ -758,7 +758,7 @@ YValue* execute(YThread* th) {
 			 * then jump to a label*/
 			YValue* v = getRegister(iarg1, th);
 			YValue* value = NULL;
-			if (v->type->type == ObjectT && ((YObject*) v)->iterator) {
+			if (v->type == &th->runtime->ObjectType && ((YObject*) v)->iterator) {
 				YoyoIterator* iter = (YoyoIterator*) v;
 				if (iter->hasNext(iter, th))
 					value = iter->next(iter, th);
@@ -778,7 +778,7 @@ YValue* execute(YThread* th) {
 			for (int32_t i = 0; i < iarg1; i++) {
 				YValue* val = pop(th);
 				YoyoType* type = NULL;
-				if (val->type->type == DeclarationT)
+				if (val->type == &th->runtime->DeclarationType)
 					type = (YoyoType*) val;
 				else
 					type = val->type->TypeConstant;
@@ -791,7 +791,7 @@ YValue* execute(YThread* th) {
 				attrs[i].id = popInt(th);
 				YValue* val = pop(th);
 				YoyoType* type = NULL;
-				if (val->type->type == DeclarationT)
+				if (val->type == &th->runtime->DeclarationType)
 					type = (YoyoType*) val;
 				else
 					type = val->type->TypeConstant;
@@ -809,12 +809,12 @@ YValue* execute(YThread* th) {
 			/*Change field type*/
 			YValue* val = getRegister(iarg2, th);
 			YoyoType* type = NULL;
-			if (val->type->type == DeclarationT)
+			if (val->type == &th->runtime->DeclarationType)
 				type = (YoyoType*) val;
 			else
 				type = val->type->TypeConstant;
 			YValue* o = getRegister(iarg0, th);
-			if (o->type->type == ObjectT) {
+			if (o->type == &th->runtime->ObjectType) {
 				YObject* obj = (YObject*) o;
 				obj->setType(obj, iarg1, type, th);
 			}

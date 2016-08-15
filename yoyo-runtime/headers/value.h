@@ -93,8 +93,8 @@ typedef struct YLambda {
 } YLambda;
 
 YValue* getNull(YThread*);
-double getFloat(YValue* v);
-int64_t getInteger(YValue* v);
+double getFloat(YValue*, YThread*);
+int64_t getInteger(YValue*, YThread*);
 
 YValue* newIntegerValue(int64_t, YThread*);
 YValue* newBooleanValue(bool, YThread*);
@@ -151,7 +151,7 @@ typedef struct YoyoInterface {
 	size_t attr_count;
 } YoyoInterface;
 
-YoyoType* newAtomicType(ValueType, YThread*);
+YoyoType* newAtomicType(YType*, YThread*);
 YoyoType* newArrayType(YoyoType**, size_t, YThread*);
 YoyoType* newInterface(YoyoInterface**, size_t, YoyoAttribute*, size_t,
 		YThread*);

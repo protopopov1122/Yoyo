@@ -65,11 +65,11 @@ YValue* Decl_readProperty(int32_t key, YValue* val, YThread* th) {
 YValue* Decl_or(YValue* v1, YValue* v2, YThread* th) {
 	YoyoType* t1 = NULL;
 	YoyoType* t2 = NULL;
-	if (v1->type->type == DeclarationT)
+	if (v1->type == &th->runtime->DeclarationType)
 		t1 = (YoyoType*) v1;
 	else
 		t1 = v1->type->TypeConstant;
-	if (v2->type->type == DeclarationT)
+	if (v2->type == &th->runtime->DeclarationType)
 		t2 = (YoyoType*) v2;
 	else
 		t2 = v2->type->TypeConstant;
@@ -78,9 +78,10 @@ YValue* Decl_or(YValue* v1, YValue* v2, YThread* th) {
 }
 
 void Declaration_type_init(YRuntime* runtime) {
-	runtime->DeclarationType.type = DeclarationT;
-	runtime->DeclarationType.TypeConstant = newAtomicType(DeclarationT,
-			yoyo_thread(runtime));
+	YThread* th = yoyo_thread(runtime);
+	runtime->DeclarationType.wstring = L"declaration";
+	runtime->DeclarationType.TypeConstant = newAtomicType(&th->runtime->DeclarationType,
+			th);
 	runtime->DeclarationType.oper.add_operation = concat_operation;
 	runtime->DeclarationType.oper.subtract_operation =
 			undefined_binary_operation;

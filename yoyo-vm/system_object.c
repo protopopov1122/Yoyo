@@ -156,7 +156,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
 	free(wstr);
 	YoyoLambdaSignature* sig = newLambdaSignature(false, -1, false, NULL, NULL,
 			th);
-	if (args[1]->type->type == DeclarationT) {
+	if (args[1]->type == &th->runtime->DeclarationType) {
 		YoyoType* type = (YoyoType*) args[1];
 		if (type->type == LambdaSignatureDT) {
 			sig = (YoyoLambdaSignature*) type;

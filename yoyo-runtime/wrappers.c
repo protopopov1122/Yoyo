@@ -240,7 +240,7 @@ YValue* IteratorWrapper_next(YoyoIterator* i, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"next");
 	if (iter->object->contains(iter->object, id, th)) {
 		YValue* v = iter->object->get(iter->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			return invokeLambda(exec, iter->object, NULL, 0, th);
 		}
@@ -252,10 +252,10 @@ bool IteratorWrapper_hasNext(YoyoIterator* i, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"hasNext");
 	if (iter->object->contains(iter->object, id, th)) {
 		YValue* v = iter->object->get(iter->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			YValue* ret = invokeLambda(exec, iter->object, NULL, 0, th);
-			if (ret->type->type == BooleanT)
+			if (ret->type == &th->runtime->BooleanType)
 				return ((YBoolean*) ret)->value;
 		}
 	}
@@ -266,7 +266,7 @@ void IteratorWrapper_reset(YoyoIterator* i, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"reset");
 	if (iter->object->contains(iter->object, id, th)) {
 		YValue* v = iter->object->get(iter->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			invokeLambda(exec, iter->object, NULL, 0, th);
 		}
@@ -370,10 +370,10 @@ size_t ArrayObject_size(YArray* a, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"size");
 	if (array->object->contains(array->object, id, th)) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			YValue* out = invokeLambda(exec, array->object, NULL, 0, th);
-			if (out->type->type == IntegerT)
+			if (out->type == &th->runtime->IntType)
 				return (size_t) ((YInteger*) out)->value;
 		}
 	}
@@ -384,7 +384,7 @@ YValue* ArrayObject_get(YArray* a, size_t index, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"get");
 	if (array->object->contains(array->object, id, th)) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			YValue* arg = newInteger(index, th);
 			return invokeLambda(exec, array->object, &arg, 1, th);
@@ -397,7 +397,7 @@ void ArrayObject_set(YArray* a, size_t index, YValue* value, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"set");
 	if (array->object->contains(array->object, id, th)) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			YValue* args[] = { newInteger(index, th), value };
 			invokeLambda(exec, array->object, args, 2, th);
@@ -409,7 +409,7 @@ void ArrayObject_add(YArray* a, YValue* value, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"add");
 	if (array->object->contains(array->object, id, th)) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			invokeLambda(exec, array->object, &value, 1, th);
 		}
@@ -420,7 +420,7 @@ void ArrayObject_insert(YArray* a, size_t index, YValue* value, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"insert");
 	if (array->object->contains(array->object, id, th)) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			YValue* args[] = { newInteger(index, th), value };
 			invokeLambda(exec, array->object, args, 2, th);
@@ -432,7 +432,7 @@ void ArrayObject_remove(YArray* a, size_t index, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols, L"remove");
 	if (array->object->contains(array->object, id, th)) {
 		YValue* v = (YValue*) array->object->get(array->object, id, th);
-		if (v->type->type == LambdaT) {
+		if (v->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) v;
 			YValue* args[] = { newInteger(index, th) };
 			invokeLambda(exec, array->object, args, 1, th);

@@ -40,7 +40,7 @@ YOYO_FUNCTION(Lambda_call) {
 
 YOYO_FUNCTION(Lambda_callArray) {
 	YLambda* lmbd = (YLambda*) ((NativeLambda*) lambda)->object;
-	if (args[0]->type->type != ArrayT)
+	if (args[0]->type != &th->runtime->ArrayType)
 		return getNull(th);
 	YArray* array = (YArray*) args[0];
 	YValue** arr_args = malloc(sizeof(YValue*) * array->size(array, th));
@@ -60,9 +60,10 @@ YValue* Lambda_readProperty(int32_t key, YValue* v, YThread* th) {
 }
 
 void Lambda_type_init(YRuntime* runtime) {
-	runtime->LambdaType.type = LambdaT;
-	runtime->LambdaType.TypeConstant = newAtomicType(LambdaT,
-			yoyo_thread(runtime));
+	YThread* th = yoyo_thread(runtime);
+	runtime->LambdaType.wstring = L"lambda";
+	runtime->LambdaType.TypeConstant = newAtomicType(&th->runtime->LambdaType,
+			th);
 	runtime->LambdaType.oper.add_operation = concat_operation;
 	runtime->LambdaType.oper.subtract_operation = undefined_binary_operation;
 	runtime->LambdaType.oper.multiply_operation = undefined_binary_operation;

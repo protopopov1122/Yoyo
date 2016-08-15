@@ -143,7 +143,7 @@ YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc,
 	YValue** args = NULL;
 
 	if (scope == NULL && l->sig->method) {
-		if (argc == 0 || targs[0]->type->type != ObjectT) {
+		if (argc == 0 || targs[0]->type != &th->runtime->ObjectType) {
 			throwException(L"LambdaArgumentMismatch", NULL, 0, th);
 			((YoyoObject*) l)->linkc--;
 			return getNull(th);
@@ -164,7 +164,7 @@ YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc,
 	}
 	/*If lambda is vararg, create array of last arguments*/
 	if (l->sig->vararg) {
-		if (!(l->sig->argc == argc && targs[argc - 1]->type->type == ArrayT)) {
+		if (!(l->sig->argc == argc && targs[argc - 1]->type == &th->runtime->ArrayType)) {
 			args = malloc(sizeof(YValue*) * l->sig->argc);
 			for (size_t i = 0; i < l->sig->argc - 1; i++)
 				args[i] = targs[i];
@@ -327,11 +327,11 @@ YThread* yoyo_thread(YRuntime* runtime) {
 wchar_t* toString(YValue* v, YThread* th) {
 	int32_t id = getSymbolId(&th->runtime->symbols,
 	TO_STRING);
-	if (v->type->type == ObjectT) {
+	if (v->type == &th->runtime->ObjectType) {
 		YObject* obj = (YObject*) v;
 		if (obj->contains(obj, id, th)) {
 			YValue* val = obj->get(obj, id, th);
-			if (val->type->type == LambdaT) {
+			if (val->type == &th->runtime->LambdaType) {
 				YLambda* exec = (YLambda*) val;
 				YValue* ret = invokeLambda(exec, NULL, NULL, 0, th);
 				wchar_t* out = toString(ret, th);

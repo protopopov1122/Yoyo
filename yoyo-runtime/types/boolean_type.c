@@ -28,7 +28,7 @@ wchar_t* Boolean_toString(YValue* v, YThread* th) {
 }
 
 int Boolean_compare(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type != BooleanT || v2->type->type != BooleanT)
+	if (v1->type != &th->runtime->BooleanType || v2->type != &th->runtime->BooleanType)
 		return false;
 	return ((YBoolean*) v1)->value == ((YBoolean*) v2)->value ?
 			COMPARE_EQUALS : COMPARE_NOT_EQUALS;
@@ -39,14 +39,14 @@ YValue* Boolean_not(YValue* v1, YThread* th) {
 }
 
 YValue* Boolean_and(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == BooleanT && v2->type->type == BooleanT)
+	if (v1->type == &th->runtime->BooleanType && v2->type == &th->runtime->BooleanType)
 		return newBoolean(((YBoolean*) v1)->value && ((YBoolean*) v2)->value,
 				th);
 	return getNull(th);
 }
 
 YValue* Boolean_or(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == BooleanT && v2->type->type == BooleanT)
+	if (v1->type == &th->runtime->BooleanType && v2->type == &th->runtime->BooleanType)
 		return newBoolean(((YBoolean*) v1)->value || ((YBoolean*) v2)->value,
 				th);
 	return getNull(th);
@@ -57,8 +57,9 @@ YValue* Boolean_readProperty(int32_t key, YValue* v, YThread* th) {
 }
 
 void Boolean_type_init(YRuntime* runtime) {
-	runtime->BooleanType.type = BooleanT;
-	runtime->BooleanType.TypeConstant = newAtomicType(BooleanT,
+	YThread* th = yoyo_thread(runtime);
+	runtime->BooleanType.wstring = L"boolean";
+	runtime->BooleanType.TypeConstant = newAtomicType(&th->runtime->BooleanType,
 			yoyo_thread(runtime));
 	runtime->BooleanType.oper.add_operation = concat_operation;
 	runtime->BooleanType.oper.subtract_operation = undefined_binary_operation;

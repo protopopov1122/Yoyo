@@ -15,7 +15,7 @@ YOYO_FUNCTION(YSTD_TIME_TIME) {
 }
 
 YOYO_FUNCTION(YSTD_TIME_DATE) {
-	time_t t = (time_t) getInteger(args[0]);
+	time_t t = (time_t) getInteger(args[0], th);
 	struct tm* ctm = localtime(&t);
 	YObject* ytm = th->runtime->newObject(NULL, th);
 	((YoyoObject*) ytm)->linkc++;
@@ -33,7 +33,7 @@ YOYO_FUNCTION(YSTD_TIME_DATE) {
 }
 
 YOYO_FUNCTION(YSTD_TIME_GMDATE) {
-	time_t t = (time_t) getInteger(args[0]);
+	time_t t = (time_t) getInteger(args[0], th);
 	struct tm* ctm = gmtime(&t);
 	YObject* ytm = th->runtime->newObject(NULL, th);
 	((YoyoObject*) ytm)->linkc++;

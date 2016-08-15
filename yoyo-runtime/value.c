@@ -53,18 +53,18 @@ YValue* getNull(YThread* th) {
 /*Procedures check value type and return certain C type
  * based on value. If value type is not valid
  * return default value(0)*/
-double getFloat(YValue* v) {
-	if (v->type->type == FloatT)
+double getFloat(YValue* v, YThread* th) {
+	if (v->type == &th->runtime->FloatType)
 		return ((YFloat*) v)->value;
-	else if (v->type->type == IntegerT)
+	else if (v->type == &th->runtime->IntType)
 		return (double) ((YInteger*) v)->value;
 	return 0;
 }
 
-inline int64_t getInteger(YValue* v) {
-	if (v->type->type == IntegerT)
+inline int64_t getInteger(YValue* v, YThread* th) {
+	if (v->type == &th->runtime->IntType)
 		return ((YInteger*) v)->value;
-	else if (v->type->type == FloatT)
+	else if (v->type == &th->runtime->FloatType)
 		return (int64_t) ((YFloat*) v)->value;
 	return 0;
 }

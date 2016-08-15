@@ -17,7 +17,7 @@
 #include  "yoyo-runtime.h"
 
 YOYO_FUNCTION(YSTD_THREADS_NEW_THREAD) {
-	if (args[0]->type->type == LambdaT) {
+	if (args[0]->type == &th->runtime->LambdaType) {
 		YLambda* lambda = (YLambda*) args[0];
 		return (YValue*) new_yoyo_thread(th->runtime, lambda);	
 	}

@@ -63,7 +63,7 @@ YOYO_FUNCTION(Array_type_pop) {
 YOYO_FUNCTION(Array_type_addAll) {
 	ARR_INIT
 	YValue* val = args[0];
-	if (val->type->type == ArrayT) {
+	if (val->type == &th->runtime->ArrayType) {
 		Array_addAll(array, (YArray*) val, th);
 	} else {
 		wchar_t* wcs = toString(val, th);
@@ -74,7 +74,7 @@ YOYO_FUNCTION(Array_type_addAll) {
 }
 YOYO_FUNCTION(Array_type_insert) {
 	ARR_INIT
-	if (args[0]->type->type == IntegerT) {
+	if (args[0]->type == &th->runtime->IntType) {
 		uint32_t index = ((YInteger*) args[0])->value;
 		array->insert(array, index, args[1], th);
 	} else {
@@ -86,17 +86,17 @@ YOYO_FUNCTION(Array_type_insert) {
 }
 YOYO_FUNCTION(Array_type_insertAll) {
 	ARR_INIT
-	if (args[0]->type->type == IntegerT && args[1]->type->type == ArrayT) {
+	if (args[0]->type == &th->runtime->IntType && args[1]->type == &th->runtime->ArrayType) {
 		uint32_t index = ((YInteger*) args[0])->value;
 		YArray* src = (YArray*) args[1];
 		Array_insertAll(array, src, index, th);
 	} else {
-		if (args[0]->type->type != IntegerT) {
+		if (args[0]->type != &th->runtime->IntType) {
 			wchar_t* wcs = toString(args[0], th);
 			throwException(L"NotAnInteger", &wcs, 1, th);
 			free(wcs);
 		}
-		if (args[1]->type->type != ArrayT) {
+		if (args[1]->type != &th->runtime->ArrayType) {
 			wchar_t* wcs = toString(args[1], th);
 			throwException(L"NotAnArray", &wcs, 1, th);
 			free(wcs);
@@ -106,7 +106,7 @@ YOYO_FUNCTION(Array_type_insertAll) {
 }
 YOYO_FUNCTION(Array_type_remove) {
 	ARR_INIT
-	if (args[0]->type->type == IntegerT) {
+	if (args[0]->type == &th->runtime->IntType) {
 		uint32_t index = ((YInteger*) args[0])->value;
 		array->remove(array, index, th);
 	} else {
@@ -127,17 +127,17 @@ YOYO_FUNCTION(Array_type_isEmpty) {
 }
 YOYO_FUNCTION(Array_type_slice) {
 	ARR_INIT
-	if (args[0]->type->type == IntegerT && args[1]->type->type == IntegerT) {
+	if (args[0]->type == &th->runtime->IntType && args[1]->type == &th->runtime->IntType) {
 		YArray* slice = newSlice(array, ((YInteger*) args[0])->value,
 				((YInteger*) args[1])->value, th);
 		return (YValue*) slice;
 	} else {
-		if (args[0]->type->type != IntegerT) {
+		if (args[0]->type != &th->runtime->IntType) {
 			wchar_t* wcs = toString(args[0], th);
 			throwException(L"NotAnInteger", &wcs, 1, th);
 			free(wcs);
 		}
-		if (args[1]->type->type != IntegerT) {
+		if (args[1]->type != &th->runtime->IntType) {
 			wchar_t* wcs = toString(args[1], th);
 			throwException(L"NotAnInteger", &wcs, 1, th);
 			free(wcs);
@@ -151,7 +151,7 @@ YOYO_FUNCTION (Array_type_flat) {
 }
 YOYO_FUNCTION(Array_type_each) {
 	ARR_INIT
-	if (args[0]->type->type == LambdaT) {
+	if (args[0]->type == &th->runtime->LambdaType) {
 		Array_each(array, (YLambda*) args[0], th);
 	} else {
 		wchar_t* wcs = toString(args[0], th);
@@ -162,7 +162,7 @@ YOYO_FUNCTION(Array_type_each) {
 }
 YOYO_FUNCTION(Array_type_map) {
 	ARR_INIT
-	if (args[0]->type->type == LambdaT) {
+	if (args[0]->type == &th->runtime->LambdaType) {
 		return (YValue*) Array_map(array, (YLambda*) args[0], th);
 	} else {
 		wchar_t* wcs = toString(args[0], th);
@@ -173,7 +173,7 @@ YOYO_FUNCTION(Array_type_map) {
 }
 YOYO_FUNCTION(Array_type_reduce) {
 	ARR_INIT
-	if (args[1]->type->type == LambdaT) {
+	if (args[1]->type == &th->runtime->LambdaType) {
 		return Array_reduce(array, (YLambda*) args[1], args[0], th);
 	} else {
 		wchar_t* wcs = toString(args[0], th);
@@ -188,7 +188,7 @@ YOYO_FUNCTION(Array_type_reverse) {
 }
 YOYO_FUNCTION(Array_type_filter) {
 	ARR_INIT
-	if (args[0]->type->type == LambdaT)
+	if (args[0]->type == &th->runtime->LambdaType)
 		return (YValue*) Array_filter(array, (YLambda*) args[0], th);
 	else {
 		wchar_t* wcs = toString(args[0], th);
@@ -209,7 +209,7 @@ YOYO_FUNCTION(Array_type_poll) {
 }
 YOYO_FUNCTION(Array_type_removeAll) {
 	ARR_INIT
-	if (args[0]->type->type == ArrayT) {
+	if (args[0]->type == &th->runtime->ArrayType) {
 		YArray* arr = (YArray*) args[0];
 		for (uint32_t i = 0; i < arr->size(arr, th); i++) {
 			YValue* val = arr->get(arr, i, th);
@@ -242,7 +242,7 @@ YOYO_FUNCTION(Array_type_unique) {
 }
 YOYO_FUNCTION(Array_type_sort) {
 	ARR_INIT
-	if (args[0]->type->type == LambdaT) {
+	if (args[0]->type == &th->runtime->LambdaType) {
 		YLambda* lmbd = (YLambda*) args[0];
 		return (YValue*) Array_sort(array, lmbd, th);
 	} else {
@@ -271,7 +271,7 @@ YOYO_FUNCTION(Array_types) {
 	YoyoType** types = malloc(sizeof(YoyoType*) * array->size(array, th));
 	for (size_t i = 0; i < array->size(array, th); i++) {
 		YValue* val = array->get(array, i, th);
-		if (val->type->type == DeclarationT)
+		if (val->type == &th->runtime->DeclarationType)
 			types[i] = (YoyoType*) val;
 		else
 			types[i] = val->type->TypeConstant;
@@ -324,9 +324,10 @@ YoyoIterator* Array_iterator(YValue* v, YThread* th) {
 }
 
 void Array_type_init(YRuntime* runtime) {
-	runtime->ArrayType.type = ArrayT;
-	runtime->ArrayType.TypeConstant = newAtomicType(ArrayT,
-			yoyo_thread(runtime));
+	YThread* th = yoyo_thread(runtime);
+	runtime->ArrayType.wstring = L"array";
+	runtime->ArrayType.TypeConstant = newAtomicType(&th->runtime->ArrayType,
+			th);
 	runtime->ArrayType.oper.add_operation = concat_operation;
 	runtime->ArrayType.oper.subtract_operation = undefined_binary_operation;
 	runtime->ArrayType.oper.multiply_operation = undefined_binary_operation;

@@ -17,77 +17,77 @@
 #include "yoyo-runtime.h"
 
 YOYO_FUNCTION(YSTD_MATH_ACOS) {
-	return newFloat(acos(getFloat(args[0])), th);
+	return newFloat(acos(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_ASIN) {
-	return newFloat(asin(getFloat(args[0])), th);
+	return newFloat(asin(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_ATAN) {
-	return newFloat(atan(getFloat(args[0])), th);
+	return newFloat(atan(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_ATAN2) {
-	return newFloat(atan2(getFloat(args[0]), getFloat(args[1])), th);
+	return newFloat(atan2(getFloat(args[0], th), getFloat(args[1], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_COS) {
-	return newFloat(cos(getFloat(args[0])), th);
+	return newFloat(cos(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_COSH) {
-	return newFloat(cosh(getFloat(args[0])), th);
+	return newFloat(cosh(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_SIN) {
-	return newFloat(sin(getFloat(args[0])), th);
+	return newFloat(sin(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_SINH) {
-	return newFloat(sinh(getFloat(args[0])), th);
+	return newFloat(sinh(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_TANH) {
-	return newFloat(tanh(getFloat(args[0])), th);
+	return newFloat(tanh(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_EXP) {
-	return newFloat(exp(getFloat(args[0])), th);
+	return newFloat(exp(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_LDEXP) {
-	return newFloat(ldexp(getFloat(args[0]), getInteger(args[1])), th);
+	return newFloat(ldexp(getFloat(args[0], th), getInteger(args[1], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_LOG) {
-	return newFloat(log(getFloat(args[0])), th);
+	return newFloat(log(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_LOG10) {
-	return newFloat(log10(getFloat(args[0])), th);
+	return newFloat(log10(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_POW) {
-	return newFloat(pow(getFloat(args[0]), getFloat(args[1])), th);
+	return newFloat(pow(getFloat(args[0], th), getFloat(args[1], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_SQRT) {
-	return newFloat(sqrt(getFloat(args[0])), th);
+	return newFloat(sqrt(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_CEIL) {
-	return newFloat(ceil(getFloat(args[0])), th);
+	return newFloat(ceil(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_FABS) {
-	return newFloat(fabs(getFloat(args[0])), th);
+	return newFloat(fabs(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_FLOOR) {
-	return newFloat(floor(getFloat(args[0])), th);
+	return newFloat(floor(getFloat(args[0], th)), th);
 }
 
 YOYO_FUNCTION(YSTD_MATH_FMOD) {
-	return newFloat(fmod(getFloat(args[0]), getFloat(args[1])), th);
+	return newFloat(fmod(getFloat(args[0], th), getFloat(args[1], th)), th);
 }

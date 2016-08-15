@@ -70,9 +70,9 @@ typedef struct Operations {
 } Operations;
 
 typedef struct YType {
-	ValueType type;
 	Operations oper;
 	YoyoType* TypeConstant;
+	wchar_t* wstring;
 } YType;
 
 typedef struct SourceIdentifier {

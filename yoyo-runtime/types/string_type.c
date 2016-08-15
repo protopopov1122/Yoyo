@@ -25,14 +25,14 @@ wchar_t* String_toString(YValue* v, YThread* th) {
 }
 
 int String_compare(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type != StringT || v2->type->type != StringT)
+	if (v1->type != &th->runtime->StringType || v2->type != &th->runtime->StringType)
 		return COMPARE_NOT_EQUALS;
 	return wcscmp(((YString*) v1)->value, ((YString*) v2)->value) == 0 ?
 			COMPARE_EQUALS : COMPARE_NOT_EQUALS;
 }
 
 YValue* String_mul(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == StringT && v2->type->type == IntegerT) {
+	if (v1->type == &th->runtime->StringType && v2->type == &th->runtime->IntType) {
 		wchar_t* wstr = ((YString*) v1)->value;
 		StringBuilder* sb = newStringBuilder(wstr);
 		uint32_t count = (uint32_t) ((YInteger*) v2)->value;
@@ -142,7 +142,7 @@ YArray* newCharSequence(YString* str, YThread* th) {
 YOYO_FUNCTION(_String_charAt) {
 	STR_INIT
 	wchar_t* wstr = str->value;
-	if (args[0]->type->type == IntegerT) {
+	if (args[0]->type == &th->runtime->IntType) {
 		size_t index = ((YInteger*) args[0])->value;
 		if (index > -1 && index < wcslen(wstr)) {
 			wchar_t out[] = { wstr[index], L'\0' };
@@ -166,7 +166,7 @@ YOYO_FUNCTION(_String_chars) {
 YOYO_FUNCTION(_String_substring) {
 	STR_INIT
 	wchar_t* wstr = str->value;
-	if (args[0]->type->type == IntegerT && args[1]->type->type == IntegerT) {
+	if (args[0]->type == &th->runtime->IntType && args[1]->type == &th->runtime->IntType) {
 		size_t start = ((YInteger*) args[0])->value;
 		size_t end = ((YInteger*) args[1])->value;
 		if (start >= wcslen(wstr)) {
@@ -188,12 +188,12 @@ YOYO_FUNCTION(_String_substring) {
 		free(out);
 		return value;
 	} else {	
-		if (args[0]->type->type != IntegerT) {
+		if (args[0]->type != &th->runtime->IntType) {
 			wchar_t* wcs = toString(args[0], th);
 			throwException(L"NotAnInteger", &wcs, 1, th);
 			free(wcs);
 		}
-		if (args[1]->type->type != IntegerT) {
+		if (args[1]->type != &th->runtime->IntType) {
 			wchar_t* wcs = toString(args[1], th);
 			throwException(L"NotAnInteger", &wcs, 1, th);
 			free(wcs);
@@ -290,7 +290,7 @@ uint64_t String_hashCode(YValue* v, YThread* th) {
 
 YValue* String_readIndex(YValue* v, YValue* i, YThread* th) {
 	wchar_t* wstr = ((YString*) v)->value;
-	if (i->type->type == IntegerT) {
+	if (i->type == &th->runtime->IntType) {
 		size_t index = (size_t) ((YInteger*) i)->value;
 		if (index < wcslen(wstr)) {
 			wchar_t wstr2[] = { wstr[index], L'\0' };
@@ -333,9 +333,10 @@ YValue* String_subseq(YValue* v, size_t start, size_t end, YThread* th) {
 }
 
 void String_type_init(YRuntime* runtime) {
-	runtime->StringType.type = StringT;
-	runtime->StringType.TypeConstant = newAtomicType(StringT,
-			yoyo_thread(runtime));
+	YThread* th = yoyo_thread(runtime);
+	runtime->StringType.wstring = L"string";
+	runtime->StringType.TypeConstant = newAtomicType(&th->runtime->StringType,
+			th);
 	runtime->StringType.oper.add_operation = concat_operation;
 	runtime->StringType.oper.subtract_operation = undefined_binary_operation;
 	runtime->StringType.oper.multiply_operation = String_mul;

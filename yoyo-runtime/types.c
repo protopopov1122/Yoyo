@@ -23,16 +23,16 @@
 typedef struct AtomicType {
 	struct YoyoType type;
 
-	ValueType atomic;
+	YType* atomic;
 } AtomicType;
 
 bool AtomicType_verify(YoyoType* t, YValue* value, YThread* th) {
 	AtomicType* at = (AtomicType*) t;
-	return at->atomic == value->type->type || at->atomic == AnyT
-			|| value->type->type == AnyT;
+	return at->atomic == value->type || at->atomic == &th->runtime->NullType
+			|| value->type == &th->runtime->NullType;
 }
 bool AtomicType_compatible(YoyoType* t1, YoyoType* t2, YThread* th) {
-	return ((AtomicType*) t1)->atomic == AnyT
+	return ((AtomicType*) t1)->atomic == &th->runtime->NullType
 			|| (t2->type == AtomicDT
 					&& ((AtomicType*) t2)->atomic == ((AtomicType*) t1)->atomic);
 }
@@ -44,7 +44,7 @@ void AtomicType_free(YoyoObject* ptr) {
 	free(ptr);
 }
 
-YoyoType* newAtomicType(ValueType a, YThread* th) {
+YoyoType* newAtomicType(YType* a, YThread* th) {
 	AtomicType* type = calloc(1, sizeof(AtomicType));
 	initYoyoObject((YoyoObject*) type, AtomicType_mark, AtomicType_free);
 	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) type);
@@ -54,43 +54,7 @@ YoyoType* newAtomicType(ValueType a, YThread* th) {
 	type->type.verify = AtomicType_verify;
 	type->type.compatible = AtomicType_compatible;
 	type->type.type = AtomicDT;
-	switch (a) {
-	case IntegerT:
-		type->type.string = L"int";
-		break;
-
-	case FloatT:
-		type->type.string = L"float";
-		break;
-
-	case BooleanT:
-		type->type.string = L"boolean";
-		break;
-
-	case StringT:
-		type->type.string = L"string";
-		break;
-
-	case LambdaT:
-		type->type.string = L"lambda";
-		break;
-
-	case ArrayT:
-		type->type.string = L"array";
-		break;
-
-	case ObjectT:
-		type->type.string = L"object";
-		break;
-
-	case AnyT:
-		type->type.string = L"any";
-		break;
-
-	case DeclarationT:
-		type->type.string = L"declaration";
-		break;
-	}
+	type->type.string = a->wstring;
 
 	return (YoyoType*) type;
 }
@@ -109,14 +73,14 @@ YoyoType* Interface_get(YoyoInterface* yi, int32_t id) {
 
 bool Interface_verify(YoyoType* t, YValue* v, YThread* th) {
 	YoyoInterface* i = (YoyoInterface*) t;
-	if (v->type->type == AnyT)
+	if (v->type == &th->runtime->NullType)
 		return true;
 	for (size_t j = 0; j < i->parent_count; j++)
 		if (!i->parents[j]->type.verify((YoyoType*) i->parents[j], v, th))
 			return false;
 	if (i->attr_count == 0)
 		return true;
-	if (v->type->type != ObjectT)
+	if (v->type != &th->runtime->ObjectType)
 		return false;
 	YObject* obj = (YObject*) v;
 	for (size_t j = 0; j < i->attr_count; j++) {
@@ -235,7 +199,7 @@ void TypeMix_free(YoyoObject* ptr) {
 	free(mix);
 }
 bool TypeMix_verify(YoyoType* t, YValue* val, YThread* th) {
-	if (val->type->type == AnyT)
+	if (val->type == &th->runtime->NullType)
 		return true;
 	YoyoTypeMix* mix = (YoyoTypeMix*) t;
 	for (size_t i = 0; i < mix->length; i++)
@@ -305,9 +269,9 @@ void ArrayType_free(YoyoObject* ptr) {
 }
 bool ArrayType_verify(YoyoType* t, YValue* val, YThread* th) {
 	ArrayType* arrt = (ArrayType*) t;
-	if (val->type->type == AnyT)
+	if (val->type == &th->runtime->NullType)
 		return true;
-	if (val->type->type != ArrayT)
+	if (val->type != &th->runtime->ArrayType)
 		return false;
 	YArray* arr = (YArray*) val;
 	size_t offset = 0;
@@ -378,7 +342,7 @@ void LambdaSignature_free(YoyoObject* ptr) {
 }
 
 bool LambdaSignature_verify(YoyoType* t, YValue* v, YThread* th) {
-	if (v->type->type != LambdaT)
+	if (v->type != &th->runtime->LambdaType)
 		return false;
 	YoyoType* type = ((YLambda*) v)->signature((YLambda*) v, th);
 	return type->compatible(t, type, th);
@@ -466,7 +430,7 @@ void NotNull_free(YoyoObject* ptr) {
 	free(ptr);
 }
 bool NotNull_verify(YoyoType* t, YValue* val, YThread* th) {
-	if (val->type->type == AnyT)
+	if (val->type == &th->runtime->NullType)
 		return false;
 	NotNullType* nnt = (NotNullType*) t;
 	return nnt->ytype->verify(nnt->ytype, val, th);

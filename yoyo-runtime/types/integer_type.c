@@ -17,15 +17,15 @@
 #include "types.h"
 
 int8_t compare_numbers(YValue* v1, YValue* v2, YThread* th) {
-	if (!CHECK_TYPES(IntegerT, FloatT, v1, v2))
+	if (!CHECK_TYPES(&th->runtime->IntType, &th->runtime->FloatType, v1, v2))
 		return -2;
-	if (CHECK_TYPE(FloatT, v1, v2)) {
-		double i1 = getFloat(v1);
-		double i2 = getFloat(v2);
+	if (CHECK_TYPE(&th->runtime->FloatType, v1, v2)) {
+		double i1 = getFloat(v1, th);
+		double i2 = getFloat(v2, th);
 		return (i1 < i2) ? -1 : (i1 > i2);
 	} else {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return (i1 < i2) ? -1 : (i1 > i2);
 	}
 }
@@ -53,57 +53,57 @@ int number_compare(YValue* v1, YValue* v2, YThread* th) {
 }
 
 YValue* number_add(YValue* v1, YValue* v2, YThread* th) {
-	if (!CHECK_TYPES(IntegerT, FloatT, v1, v2))
+	if (!CHECK_TYPES(&th->runtime->IntType, &th->runtime->FloatType, v1, v2))
 		return concat_operation(v1, v2, th);
-	else if (CHECK_TYPE(FloatT, v1, v2)) {
-		double d1 = getFloat(v1);
-		double d2 = getFloat(v2);
+	else if (CHECK_TYPE(&th->runtime->FloatType, v1, v2)) {
+		double d1 = getFloat(v1, th);
+		double d2 = getFloat(v2, th);
 		return newFloat(d1 + d2, th);
 	} else {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 + i2, th);
 	}
 }
 
 YValue* number_sub(YValue* v1, YValue* v2, YThread* th) {
-	if (!CHECK_TYPES(IntegerT, FloatT, v1, v2))
+	if (!CHECK_TYPES(&th->runtime->IntType, &th->runtime->FloatType, v1, v2))
 		return getNull(th);
-	if (CHECK_TYPE(FloatT, v1, v2)) {
-		double d1 = getFloat(v1);
-		double d2 = getFloat(v2);
+	if (CHECK_TYPE(&th->runtime->FloatType, v1, v2)) {
+		double d1 = getFloat(v1, th);
+		double d2 = getFloat(v2, th);
 		return newFloat(d1 - d2, th);
 	} else {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 - i2, th);
 	}
 }
 
 YValue* number_mul(YValue* v1, YValue* v2, YThread* th) {
-	if (!CHECK_TYPES(IntegerT, FloatT, v1, v2))
+	if (!CHECK_TYPES(&th->runtime->IntType, &th->runtime->FloatType, v1, v2))
 		return getNull(th);
-	if (CHECK_TYPE(FloatT, v1, v2)) {
-		double d1 = getFloat(v1);
-		double d2 = getFloat(v2);
+	if (CHECK_TYPE(&th->runtime->FloatType, v1, v2)) {
+		double d1 = getFloat(v1, th);
+		double d2 = getFloat(v2, th);
 		return newFloat(d1 * d2, th);
 	} else {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 * i2, th);
 	}
 }
 
 YValue* number_div(YValue* v1, YValue* v2, YThread* th) {
-	if (!CHECK_TYPES(IntegerT, FloatT, v1, v2))
+	if (!CHECK_TYPES(&th->runtime->IntType, &th->runtime->FloatType, v1, v2))
 		return getNull(th);
-	if (CHECK_TYPE(FloatT, v1, v2)) {
-		double d1 = getFloat(v1);
-		double d2 = getFloat(v2);
+	if (CHECK_TYPE(&th->runtime->FloatType, v1, v2)) {
+		double d1 = getFloat(v1, th);
+		double d2 = getFloat(v2, th);
 		return newFloat(d1 / d2, th);
 	} else {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		if (i2==0) {
 				throwException(L"DivisionByZero", NULL, 0, th);
 				return getNull(th);
@@ -113,9 +113,9 @@ YValue* number_div(YValue* v1, YValue* v2, YThread* th) {
 }
 
 YValue* number_mod(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == IntegerT && v2->type->type == IntegerT) {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+	if (v1->type == &th->runtime->IntType && v2->type == &th->runtime->IntType) {
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		if (i2==0) {
 				throwException(L"DivisionByZero", NULL, 0, th);
 				return getNull(th);
@@ -126,73 +126,73 @@ YValue* number_mod(YValue* v1, YValue* v2, YThread* th) {
 }
 
 YValue* number_pow(YValue* v1, YValue* v2, YThread* th) {
-	if (!CHECK_TYPES(IntegerT, FloatT, v1, v2))
+	if (!CHECK_TYPES(&th->runtime->IntType, &th->runtime->FloatType, v1, v2))
 		return getNull(th);
-	if (CHECK_TYPE(FloatT, v1, v2)) {
-		double d1 = getFloat(v1);
-		double d2 = getFloat(v2);
+	if (CHECK_TYPE(&th->runtime->FloatType, v1, v2)) {
+		double d1 = getFloat(v1, th);
+		double d2 = getFloat(v2, th);
 		return newFloat(pow(d1, d2), th);
 	} else {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(pow(i1, i2), th);
 	}
 }
 
 YValue* number_shr(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == IntegerT && v2->type->type == IntegerT) {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+	if (v1->type == &th->runtime->IntType && v2->type == &th->runtime->IntType) {
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 >> i2, th);
 	} else
 		return getNull(th);
 }
 
 YValue* number_shl(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == IntegerT && v2->type->type == IntegerT) {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+	if (v1->type == &th->runtime->IntType && v2->type == &th->runtime->IntType) {
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 << i2, th);
 	} else
 		return getNull(th);
 }
 
 YValue* number_and(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == IntegerT && v2->type->type == IntegerT) {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+	if (v1->type == &th->runtime->IntType && v2->type == &th->runtime->IntType) {
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 & i2, th);
 	} else
 		return getNull(th);
 }
 
 YValue* number_or(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == IntegerT && v2->type->type == IntegerT) {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+	if (v1->type == &th->runtime->IntType && v2->type == &th->runtime->IntType) {
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 | i2, th);
 	} else
 		return getNull(th);
 }
 
 YValue* number_xor(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type == IntegerT && v2->type->type == IntegerT) {
-		int64_t i1 = getInteger(v1);
-		int64_t i2 = getInteger(v2);
+	if (v1->type == &th->runtime->IntType && v2->type == &th->runtime->IntType) {
+		int64_t i1 = getInteger(v1, th);
+		int64_t i2 = getInteger(v2, th);
 		return newInteger(i1 ^ i2, th);
 	} else
 		return getNull(th);
 }
 YValue* number_neg(YValue* v, YThread* th) {
-	if (v->type->type == IntegerT)
+	if (v->type == &th->runtime->IntType)
 		return newInteger(-((YInteger*) v)->value, th);
-	else if (v->type->type == FloatT)
+	else if (v->type == &th->runtime->FloatType)
 		return newFloat(-((YFloat*) v)->value, th);
 
 	return getNull(th);
 }
 YValue* number_not(YValue* v, YThread* th) {
-	if (v->type->type == IntegerT)
+	if (v->type == &th->runtime->IntType)
 		return newInteger(~((YInteger*) v)->value, th);
 	else
 		return getNull(th);
@@ -220,12 +220,12 @@ wchar_t* Float_toString(YValue* data, YThread* th) {
 	return dst;
 }
 bool Int_equals(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type != IntegerT || v2->type->type != IntegerT)
+	if (v1->type != &th->runtime->IntType || v2->type != &th->runtime->IntType)
 		return false;
 	return ((YInteger*) v1)->value == ((YInteger*) v2)->value;
 }
 bool Float_equals(YValue* v1, YValue* v2, YThread* th) {
-	if (v1->type->type != FloatT || v2->type->type != FloatT)
+	if (v1->type != &th->runtime->FloatType || v2->type != &th->runtime->FloatType)
 		return false;
 	return ((YFloat*) v1)->value == ((YFloat*) v2)->value;
 }
@@ -285,7 +285,7 @@ YOYO_FUNCTION(_Int_toBinString) {
 YOYO_FUNCTION(_Int_rotate) {
 	INT_INIT
 	;
-	if (args[0]->type->type != IntegerT)
+	if (args[0]->type != &th->runtime->IntType)
 		return getNull(th);
 	int64_t rot = ((YInteger*) args[0])->value;
 	if (rot > 0) {
@@ -337,7 +337,7 @@ YOYO_FUNCTION(_Int_sign) {
 YOYO_FUNCTION(_Int_getBit) {
 	INT_INIT
 	;
-	if (args[0]->type->type != IntegerT)
+	if (args[0]->type != &th->runtime->IntType)
 		return getNull(th);
 	int64_t offset = ((YInteger*) args[0])->value;
 	if (offset < 0)
@@ -348,7 +348,7 @@ YOYO_FUNCTION(_Int_getBit) {
 YOYO_FUNCTION(_Int_setBit) {
 	INT_INIT
 	;
-	if (args[0]->type->type != IntegerT || args[1]->type->type != BooleanT)
+	if (args[0]->type != &th->runtime->IntType || args[1]->type != &th->runtime->BooleanType)
 		return getNull(th);
 	int64_t offset = ((YInteger*) args[0])->value;
 	int val = ((YBoolean*) args[1])->value ? 1 : 0;
@@ -360,7 +360,7 @@ YOYO_FUNCTION(_Int_setBit) {
 YOYO_FUNCTION(_Int_clearBit) {
 	INT_INIT
 	;
-	if (args[0]->type->type != IntegerT)
+	if (args[0]->type != &th->runtime->IntType)
 		return getNull(th);
 	int64_t offset = ((YInteger*) args[0])->value;
 	if (offset < 0)
@@ -471,9 +471,10 @@ uint64_t Float_hashCode(YValue* v, YThread* th) {
 	return un.u64;
 }
 void Int_type_init(YRuntime* runtime) {
-	runtime->IntType.type = IntegerT;
-	runtime->IntType.TypeConstant = newAtomicType(IntegerT,
-			yoyo_thread(runtime));
+	YThread* th = yoyo_thread(runtime);
+	runtime->IntType.wstring = L"int";
+	runtime->IntType.TypeConstant = newAtomicType(&th->runtime->IntType,
+			th);
 	runtime->IntType.oper.add_operation = number_add;
 	runtime->IntType.oper.subtract_operation = number_sub;
 	runtime->IntType.oper.multiply_operation = number_mul;
@@ -499,9 +500,10 @@ void Int_type_init(YRuntime* runtime) {
 }
 
 void Float_type_init(YRuntime* runtime) {
-	runtime->FloatType.type = FloatT;
-	runtime->FloatType.TypeConstant = newAtomicType(FloatT,
-			yoyo_thread(runtime));
+	YThread* th = yoyo_thread(runtime);
+	runtime->FloatType.wstring = L"float";
+	runtime->FloatType.TypeConstant = newAtomicType(&th->runtime->FloatType,
+			th);
 	runtime->FloatType.oper.add_operation = number_add;
 	runtime->FloatType.oper.subtract_operation = number_sub;
 	runtime->FloatType.oper.multiply_operation = number_mul;

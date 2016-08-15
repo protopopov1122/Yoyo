@@ -7,14 +7,14 @@ YOYO_FUNCTION(YSTD_TYPES_SIGNATURE) {
 	bool yvararg = false;
 
 	if (argc > 0) {
-		if (args[0]->type->type == DeclarationT)
+		if (args[0]->type == &th->runtime->DeclarationType)
 			yret = (YoyoType*) args[0];
 		else
 			yret = args[0]->type->TypeConstant;
 		yargc = argc - 1;
 		yargs = malloc(sizeof(YoyoType*) * yargc);
 		for (size_t i = 1; i < argc; i++) {
-			if (args[i]->type->type == DeclarationT)
+			if (args[i]->type == &th->runtime->DeclarationType)
 				yargs[i - 1] = (YoyoType*) args[i];
 			else
 				yargs[i - 1] = args[i]->type->TypeConstant;
@@ -33,7 +33,7 @@ YOYO_FUNCTION(YSTD_TYPES_TYPES) {
                                                  (YValue*) th->runtime->type.TypeConstant, true, th);
 
 	obj->put(obj, getSymbolId(&th->runtime->symbols, L"any"),
-			(YValue*) newAtomicType(AnyT, th), true, th);
+			(YValue*) newAtomicType(&th->runtime->NullType, th), true, th);
 	NEW_TYPE(obj, DeclarationType, L"declaration", th);
 	NEW_TYPE(obj, ArrayType, L"array", th);
 	NEW_TYPE(obj, BooleanType, L"boolean", th);
@@ -47,12 +47,12 @@ YOYO_FUNCTION(YSTD_TYPES_TYPES) {
 	return (YValue*) obj;
 }
 YOYO_FUNCTION(YSTD_TYPES_TREE_OBJECT) {
-	YObject* super = args[0]->type->type==ObjectT ? (YObject*) args[0] : NULL;
+	YObject* super = args[0]->type == &th->runtime->ObjectType ? (YObject*) args[0] : NULL;
 	return (YValue*) newTreeObject(super, th);
 }
 
 YOYO_FUNCTION(YSTD_TYPES_HASH_OBJECT) {
-	YObject* super = args[0]->type->type==ObjectT ? (YObject*) args[0] : NULL;
+	YObject* super = args[0]->type == &th->runtime->ObjectType ? (YObject*) args[0] : NULL;
 	return (YValue*) newHashObject(super, th);
 }
 

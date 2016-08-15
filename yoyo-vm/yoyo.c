@@ -55,7 +55,7 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 				th->exception = NULL;
 				wchar_t* wstr = toString(e, th);
 				fprintf(th->runtime->env->out_stream, "%ls\n", wstr);
-				if (e->type->type==ObjectT) {
+				if (e->type == &th->runtime->ObjectType) {
 					YObject* obj = (YObject*) e;
 					if (OBJECT_HAS(obj, L"trace", th)) {
 						YValue* trace = OBJECT_GET(obj, L"trace", th);
