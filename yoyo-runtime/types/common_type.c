@@ -90,3 +90,31 @@ uint64_t Common_hashCode(YValue* v, YThread* th) {
 	un.ptr = v;
 	return un.u64;
 }
+
+void Type_init(YType* type, YThread* th) {
+		type->wstring = NULL;
+		type->TypeConstant = NULL;
+		type->oper.add_operation = undefined_binary_operation;
+		type->oper.subtract_operation = undefined_binary_operation;
+		type->oper.multiply_operation = undefined_binary_operation;
+		type->oper.divide_operation = undefined_binary_operation;
+		type->oper.modulo_operation = undefined_binary_operation;
+		type->oper.power_operation = undefined_binary_operation;
+		type->oper.and_operation = undefined_binary_operation;
+		type->oper.or_operation = undefined_binary_operation;
+		type->oper.xor_operation = undefined_binary_operation;
+		type->oper.shl_operation = undefined_binary_operation;
+		type->oper.shr_operation = undefined_binary_operation;
+		type->oper.not_operation = undefined_unary_operation;
+		type->oper.negate_operation = undefined_unary_operation;
+		type->oper.readIndex = NULL;
+		type->oper.removeIndex = NULL;
+		type->oper.writeIndex = NULL; 
+		type->oper.subseq = NULL;
+		type->oper.hashCode = Common_hashCode;
+		type->oper.compare = compare_operation;
+		type->oper.toString = NULL;
+		type->oper.readProperty = NULL;
+		type->oper.iterator = NULL;
+
+}

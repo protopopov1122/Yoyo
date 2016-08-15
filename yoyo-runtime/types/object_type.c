@@ -84,8 +84,6 @@ YValue* Object_removeIndex(YValue* o, YValue* index, YThread* th) {
 }
 YoyoIterator* Object_iterator(YValue* v, YThread* th) {
 	YObject* obj = (YObject*) v;
-	if (obj->iterator)
-		return (YoyoIterator*) obj;
 	YoyoIterator* iter = NULL;
 	int32_t id = getSymbolId(&th->runtime->symbols, L"iter");
 	if (obj->contains(obj, id, th)) {
@@ -93,9 +91,7 @@ YoyoIterator* Object_iterator(YValue* v, YThread* th) {
 		if (val->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) val;
 			YValue* out = invokeLambda(exec, NULL, NULL, 0, th);
-			if (out->type == &th->runtime->ObjectType && ((YObject*) out)->iterator)
-				iter = (YoyoIterator*) out;
-			else if (out->type == &th->runtime->ObjectType)
+			if (out->type == &th->runtime->ObjectType)
 				iter = newYoyoIterator((YObject*) out, th);
 		}
 	} else

@@ -758,8 +758,8 @@ YValue* execute(YThread* th) {
 			 * then jump to a label*/
 			YValue* v = getRegister(iarg1, th);
 			YValue* value = NULL;
-			if (v->type == &th->runtime->ObjectType && ((YObject*) v)->iterator) {
-				YoyoIterator* iter = (YoyoIterator*) v;
+			if (v->type->oper.iterator != NULL) {
+				YoyoIterator* iter = v->type->oper.iterator(v, th);
 				if (iter->hasNext(iter, th))
 					value = iter->next(iter, th);
 			}

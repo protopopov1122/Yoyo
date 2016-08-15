@@ -55,8 +55,6 @@ typedef struct YObject {
 	void (*remove)(struct YObject*, int32_t, YThread*);
 	void (*setType)(struct YObject*, int32_t, struct YoyoType*, YThread*);
 	YoyoType* (*getType)(struct YObject*, int32_t, YThread*);
-
-	bool iterator;
 } YObject;
 
 typedef struct YArray {
@@ -73,14 +71,6 @@ typedef struct YArray {
 	wchar_t* (*toString)(struct YArray*, YThread*);
 } YArray;
 
-typedef struct YoyoIterator {
-	YObject o;
-
-	bool (*hasNext)(struct YoyoIterator*, YThread*);
-	YValue* (*next)(struct YoyoIterator*, YThread*);
-	void (*reset)(struct YoyoIterator*, YThread*);
-} YoyoIterator;
-
 typedef YValue* (*YCallable)(struct YLambda*, YObject*, YValue**, size_t,
 		YThread*);
 
@@ -91,6 +81,14 @@ typedef struct YLambda {
 	struct YoyoLambdaSignature* sig;
 	YCallable execute;
 } YLambda;
+
+typedef struct YoyoIterator {
+	YValue parent;
+
+	bool (*hasNext)(struct YoyoIterator*, YThread*);
+	YValue* (*next)(struct YoyoIterator*, YThread*);
+	void (*reset)(struct YoyoIterator*, YThread*);
+} YoyoIterator;
 
 YValue* getNull(YThread*);
 double getFloat(YValue*, YThread*);

@@ -205,7 +205,6 @@ YValue* newRawPointer(void* ptr, void (*freeptr)(void*), YThread* th) {
 
 	raw->ptr = ptr;
 	raw->free = freeptr;
-	raw->obj.iterator = false;
 	raw->obj.get = RawPointer_get;
 	raw->obj.contains = RawPointer_contains;
 	raw->obj.put = RawPointer_put;

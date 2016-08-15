@@ -332,8 +332,6 @@ YObject* newTreeObject(YObject* parent, YThread* th) {
 	obj->super = parent;
 	obj->root = NULL;
 
-	obj->parent.iterator = false;
-
 	obj->parent.get = TreeObject_get;
 	obj->parent.contains = TreeObject_contains;
 	obj->parent.put = TreeObject_put;
@@ -595,7 +593,6 @@ YObject* newHashObject(YObject* super, YThread* th) {
 	object->size = 10;
 	object->table = calloc(object->size, sizeof(HashTableEntry*));
 
-	object->object.iterator = false;
 	object->object.contains = HashObject_contains;
 	object->object.get = HashObject_get;
 	object->object.put = HashObject_put;

@@ -1120,13 +1120,10 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->endLoop(proc);
 	}
 		break;
-	case ForeachLoopN: {
+	case ForeachLoopN: { //TODO 
 		YForeachLoopNode* loop = (YForeachLoopNode*) node;
 		YModifier* mod = ymodifier(builder, env, loop->refnode);
 		int32_t reg = ytranslate(builder, env, loop->col);
-		int32_t temp = proc->nextRegister(proc);
-		proc->append(proc, VM_NewObject, temp, 0, -1);
-		proc->append(proc, VM_Swap, temp, 0, -1);
 		int32_t startL = proc->nextLabel(proc);
 		int32_t endL = proc->nextLabel(proc);
 		proc->startLoop(proc, builder->bc->getSymbolId(builder->bc, loop->id),
@@ -1143,10 +1140,9 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		proc->append(proc, VM_Goto, startL, -1, -1);
 		proc->bind(proc, endL);
 		proc->endLoop(proc);
-		proc->append(proc, VM_Swap, temp, 0, -1);
+		proc->append(proc, VM_Swap, 0, 0, -1);
 
 		proc->unuse(proc, reg);
-		proc->unuse(proc, temp);
 		mod->free(mod);
 	}
 		break;

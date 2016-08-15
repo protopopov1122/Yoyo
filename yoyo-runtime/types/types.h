@@ -42,5 +42,6 @@ YValue* undefined_unary_operation(YValue*, YThread*);
 YValue* concat_operation(YValue*, YValue*, YThread*);
 int8_t compare_numbers(YValue*, YValue*, YThread*);
 int compare_operation(YValue*, YValue*, YThread*);
+void Type_init(YType*, YThread*);
 
 #endif

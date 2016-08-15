@@ -180,7 +180,6 @@ YoyoIterator* Array_iter(YArray* array, YThread* th) {
 	iter->iter.reset = ArrayIterator_reset;
 	iter->iter.next = ArrayIterator_next;
 	iter->iter.hasNext = ArrayIterator_hasNext;
-
 	YoyoIterator_init((YoyoIterator*) iter, th);
 
 	return (YoyoIterator*) iter;

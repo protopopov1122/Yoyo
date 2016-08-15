@@ -103,8 +103,6 @@ YObject* newComplexObject(YObject* base, YObject** mixins, size_t mixinc,
 	for (size_t i = 0; i < mixinc; i++)
 		obj->mixins[i] = mixins[i];
 
-	obj->parent.iterator = false;
-
 	obj->parent.get = ComplexObject_get;
 	obj->parent.contains = ComplexObject_contains;
 	obj->parent.put = ComplexObject_put;

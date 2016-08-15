@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "wrappers.h"
+#include "types/types.h"
 
 typedef struct ArraySlice {
 	YArray array;
@@ -212,8 +213,6 @@ YObject* newReadonlyObject(YObject* o, YThread* th) {
 
 	obj->src = o;
 
-	obj->object.iterator = false;
-
 	obj->object.get = ROObject_get;
 	obj->object.contains = ROObject_contains;
 	obj->object.put = ROObject_put;
@@ -289,6 +288,9 @@ YoyoIterator* newYoyoIterator(YObject* obj, YThread* th) {
 	return (YoyoIterator*) iter;
 }
 
+YType* IteratorType = NULL;
+
+
 YOYO_FUNCTION(DefYoyoIterator_next) {
 	YoyoIterator* iter = (YoyoIterator*) ((NativeLambda*) lambda)->object;
 	return iter->next(iter, th);
@@ -302,7 +304,8 @@ YOYO_FUNCTION(DefYoyoIterator_reset) {
 	iter->reset(iter, th);
 	return getNull(th);
 }
-YValue* YoyoIterator_get(YObject* o, int32_t id, YThread* th) {
+
+YValue* Iterator_readProperty(int32_t id, YValue* o, YThread* th) {
 	YoyoIterator* iter = (YoyoIterator*) o;
 
 	int32_t next_id = getSymbolId(&th->runtime->symbols, L"next");
@@ -318,40 +321,24 @@ YValue* YoyoIterator_get(YObject* o, int32_t id, YThread* th) {
 	if (id == reset_id)
 		return (YValue*) newNativeLambda(0, DefYoyoIterator_reset,
 				(YoyoObject*) iter, th);
-	return getNull(th);
+	return Common_readProperty(id, o, th);
 }
-bool YoyoIterator_contains(YObject* o, int32_t id, YThread* th) {
-	int32_t next_id = getSymbolId(&th->runtime->symbols, L"next");
-	int32_t hasNext_id = getSymbolId(&th->runtime->symbols, L"hasNext");
-	int32_t reset_id = getSymbolId(&th->runtime->symbols, L"reset");
 
-	return id == next_id || id == hasNext_id || id == reset_id;
-}
-void YoyoIterator_set(YObject* o, int32_t id, YValue* v, bool newF, YThread* th) {
-	return;
-}
-void YoyoIterator_remove(YObject* o, int32_t id, YThread* th) {
-	return;
-}
-void YoyoIterator_setType(YObject* o, int32_t id, YoyoType* type, YThread* th) {
-	return;
-}
-YoyoType* YoyoIterator_getType(YObject* o, int32_t id, YThread* th) {
-	return th->runtime->NullType.TypeConstant;
+YoyoIterator* Iterator_iterator(YValue* v, YThread* th) {
+	return (YoyoIterator*) v; 
 }
 
 void YoyoIterator_init(YoyoIterator* iter, YThread* th) {
-	YObject* obj = (YObject*) iter;
-
-	obj->parent.type = &th->runtime->ObjectType;
-	obj->iterator = true;
-
-	obj->get = YoyoIterator_get;
-	obj->put = YoyoIterator_set;
-	obj->contains = YoyoIterator_contains;
-	obj->remove = YoyoIterator_remove;
-	obj->setType = YoyoIterator_setType;
-	obj->getType = YoyoIterator_getType;
+	if (IteratorType == NULL) {
+		IteratorType = calloc(1, sizeof(YType));
+		Type_init(IteratorType, th);
+		IteratorType->wstring = th->runtime->ObjectType.wstring;
+		IteratorType->TypeConstant = th->runtime->ObjectType.TypeConstant;
+		IteratorType->oper.toString = th->runtime->ObjectType.oper.toString;
+		IteratorType->oper.readProperty = Iterator_readProperty;
+		IteratorType->oper.iterator = Iterator_iterator;
+	}
+	iter->parent.type = IteratorType;
 }
 
 typedef struct ArrayObject {
