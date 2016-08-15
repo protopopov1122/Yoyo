@@ -54,6 +54,8 @@ YValue* ComplexObject_get(YObject* o, int32_t key, YThread* th) {
 	for (size_t i = 0; i < obj->mixin_count; i++)
 		if (obj->mixins[i]->contains(obj->mixins[i], key, th))
 			return obj->mixins[i]->get(obj->mixins[i], key, th);
+	wchar_t* sym = getSymbolById(&th->runtime->symbols, key);
+	throwException(L"UnknownField", &sym, 1, th);
 	return getNull(th);
 }
 

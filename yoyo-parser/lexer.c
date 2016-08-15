@@ -150,6 +150,21 @@ ytoken lex(ParseHandle* handle) {
 				case L'\'':
 					ch = L'\'';
 				break;
+				case L'x': {
+					wchar_t wcs[] = {readwc(handle), readwc(handle), readwc(handle), readwc(handle)};
+					wchar_t wch = 0;
+					for (size_t i=0;i<4;i++) {
+						wch *= 16;
+						if (wcs[i]>=L'0'&&wcs[i]<=L'9')
+							wch += wcs[i] - L'0';
+						if (wcs[i]>=L'a'&&wcs[i]<=L'f')
+							wch += wcs[i] - L'a';
+						if (wcs[i]>=L'A'&&wcs[i]<=L'F')
+							wch += wcs[i] - L'A';
+					}
+					ch = wch;
+				}
+				break;
 				}
 			wstr = realloc(wstr, sizeof(wchar_t) * (++wlen));
 			wstr[wlen - 1] = ch;

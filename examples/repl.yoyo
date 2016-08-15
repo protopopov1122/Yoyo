@@ -1,5 +1,5 @@
 print("Yoyo REPL");
-print("Use '\\' at the and of line to write multiline code. Type 'exit' to stop.");
+print("Use '\\' at the and of line to write multiline code. Type 'exit()' to stop.");
 in = "\\";
 scope = object;
 do {
@@ -9,13 +9,13 @@ do {
 		in = in[0:in.length-1];
 		in += read();
 	}
-	if in.equals("exit")
-		break;
-	print(with scope {
-		out = eval(in);
-		if out != null
+	print({
+		var out;
+		try out = with scope eval(in);
+		catch e e.toString()+(if e.log.length>0 "\n"+e.log else "")+"\n"+e.trace
+		else if out != null
 			out
-		else
+		    else
 			""
 	});
 	in = "\\"

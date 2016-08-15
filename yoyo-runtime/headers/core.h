@@ -29,6 +29,7 @@
 #include <math.h>
 #include <locale.h>
 #include <limits.h>
+#include <signal.h>
 #include "util.h"
 #include "external.h"
 

@@ -147,6 +147,7 @@ YValue* newException(YValue* base, YThread* th) {
 		((YoyoObject*) trace)->linkc++;
 		obj->put(obj, getSymbolId(&th->runtime->symbols, L"trace"),
 				(YValue*) trace, true, th);
+		OBJECT_NEW(obj, L"log", newString(L"", th), th);
 		LocalFrame* frame = th->frame;
 		while (frame != NULL) {
 			SourceIdentifier sid = frame->get_source_id(frame);

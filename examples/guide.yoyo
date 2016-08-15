@@ -65,8 +65,8 @@ def repl(word) {
 		}
 		if in.equals(word)
 			break;
-		print(with scope {
-			out = eval(in);
+		print({
+			out = with scope eval(in);
 			if out != null
 				out
 			else
