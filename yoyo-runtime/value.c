@@ -179,11 +179,9 @@ void RawPointer_free(YoyoObject* ptr) {
 
 YValue* newRawPointer(void* ptr, void (*freeptr)(void*), YThread* th) {
 	if (RawPointerType == NULL) {
-		RawPointerType = malloc(sizeof(YType));
-		Type_init(RawPointerType, th);
+		RawPointerType = yoyo_type(th->runtime);
 		RawPointerType->wstring = L"Pointer";
 		RawPointerType->TypeConstant = newAtomicType(RawPointerType, th);
-		((YoyoObject*) RawPointerType->TypeConstant)->linkc++;
 	}
 	YRawPointer* raw = malloc(sizeof(YRawPointer));
 	initAtomicYoyoObject((YoyoObject*) raw, RawPointer_free);

@@ -122,8 +122,6 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 			file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
 			lib);
 	free(wstr);
-	return (YValue*) lib;
-	free(wstr);
 	loaded->put(loaded, id, (YValue*) lib, true, th);
 	return (YValue*) lib;
 }

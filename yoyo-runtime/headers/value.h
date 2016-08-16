@@ -90,28 +90,6 @@ typedef struct YoyoIterator {
 	void (*reset)(struct YoyoIterator*, YThread*);
 } YoyoIterator;
 
-YValue* getNull(YThread*);
-double getFloat(YValue*, YThread*);
-int64_t getInteger(YValue*, YThread*);
-
-YValue* newIntegerValue(int64_t, YThread*);
-YValue* newBooleanValue(bool, YThread*);
-
-YValue* newInteger(int64_t, YThread*);
-YValue* newFloat(double, YThread*);
-YValue* newBoolean(bool, YThread*);
-YValue* newString(wchar_t*, YThread*);
-
-YObject* newTreeObject(YObject*, YThread*);
-YObject* newHashObject(YObject*, YThread*);
-YObject* newComplexObject(YObject*, YObject**, size_t, YThread*);
-
-YArray* newArray(YThread* th);
-
-YLambda* newNativeLambda(size_t,
-		YValue* (*)(YLambda*, YObject*, YValue**, size_t, YThread*),
-		YoyoObject*, YThread*);
-YLambda* newOverloadedLambda(YLambda**, size_t, YLambda*, YThread*);
 typedef struct YoyoType {
 	struct YValue parent;
 
@@ -149,15 +127,6 @@ typedef struct YoyoInterface {
 	size_t attr_count;
 } YoyoInterface;
 
-YoyoType* newAtomicType(YType*, YThread*);
-YoyoType* newArrayType(YoyoType**, size_t, YThread*);
-YoyoType* newInterface(YoyoInterface**, size_t, YoyoAttribute*, size_t,
-		YThread*);
-YoyoType* newTypeMix(YoyoType**, size_t, YThread*);
-YoyoLambdaSignature* newLambdaSignature(bool, int32_t, bool, YoyoType**,
-		YoyoType*, YThread*);
-YoyoType* newNotNullType(YoyoType*, YThread*);
-
 typedef struct NativeLambda {
 	YLambda lambda;
 
@@ -170,6 +139,39 @@ typedef struct YRawPointer {
 	void* ptr;
 	void (*free)(void*);
 } YRawPointer;
+
+YValue* getNull(YThread*);
+double getFloat(YValue*, YThread*);
+int64_t getInteger(YValue*, YThread*);
+
+YValue* newIntegerValue(int64_t, YThread*);
+YValue* newBooleanValue(bool, YThread*);
+
+YValue* newInteger(int64_t, YThread*);
+YValue* newFloat(double, YThread*);
+YValue* newBoolean(bool, YThread*);
+YValue* newString(wchar_t*, YThread*);
+
+YObject* newTreeObject(YObject*, YThread*);
+YObject* newHashObject(YObject*, YThread*);
+YObject* newComplexObject(YObject*, YObject**, size_t, YThread*);
+
+YArray* newArray(YThread* th);
+
+YLambda* newNativeLambda(size_t,
+		YValue* (*)(YLambda*, YObject*, YValue**, size_t, YThread*),
+		YoyoObject*, YThread*);
+YLambda* newOverloadedLambda(YLambda**, size_t, YLambda*, YThread*);
+
+
+YoyoType* newAtomicType(YType*, YThread*);
+YoyoType* newArrayType(YoyoType**, size_t, YThread*);
+YoyoType* newInterface(YoyoInterface**, size_t, YoyoAttribute*, size_t,
+		YThread*);
+YoyoType* newTypeMix(YoyoType**, size_t, YThread*);
+YoyoLambdaSignature* newLambdaSignature(bool, int32_t, bool, YoyoType**,
+		YoyoType*, YThread*);
+YoyoType* newNotNullType(YoyoType*, YThread*);
 
 YValue* newRawPointer(void*, void (*)(void*), YThread*);
 

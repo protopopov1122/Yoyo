@@ -161,6 +161,9 @@ typedef struct YRuntime {
 	YType LambdaType;
 	YType DeclarationType;
 	YType NullType;
+	YType** Type_pool;
+	size_t Type_pool_size;
+	size_t Type_pool_capacity;
 
 	YThread* threads;
 	size_t thread_count;
@@ -174,6 +177,7 @@ typedef struct YRuntime {
 	void (*wait)(YRuntime*);
 } YRuntime;
 
+YType* yoyo_type(YRuntime*);
 YObject* new_yoyo_thread(YRuntime*, YLambda*);
 YValue* invokeLambda(YLambda*, YObject*, YValue**, size_t, YThread*);
 YThread* yoyo_thread(YRuntime*);

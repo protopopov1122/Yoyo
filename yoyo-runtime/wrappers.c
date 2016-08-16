@@ -330,11 +330,9 @@ YoyoIterator* Iterator_iterator(YValue* v, YThread* th) {
 
 void YoyoIterator_init(YoyoIterator* iter, YThread* th) {
 	if (IteratorType == NULL) {
-		IteratorType = calloc(1, sizeof(YType));
-		Type_init(IteratorType, th);
+		IteratorType = yoyo_type(th->runtime);
 		IteratorType->wstring = th->runtime->ObjectType.wstring;
 		IteratorType->TypeConstant = th->runtime->ObjectType.TypeConstant;
-		((YoyoObject*) IteratorType->TypeConstant)->linkc++;
 		IteratorType->oper.readProperty = Iterator_readProperty;
 		IteratorType->oper.iterator = Iterator_iterator;
 	}

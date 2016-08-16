@@ -31,6 +31,9 @@ void freeRuntime(YRuntime* runtime) {
 	while (runtime->threads!=NULL) {
 			runtime->threads->free(runtime->threads);
 	}
+	for (size_t i=0;i<runtime->Type_pool_size;i++)
+		free(runtime->Type_pool[i]);
+	free(runtime->Type_pool);
 	free(runtime->Constants.IntCache);
 	free(runtime->Constants.IntPool);
 	free(runtime->threads);
@@ -116,6 +119,8 @@ void* GCThread(void* ptr) {
 		MARKTYPE(ObjectType);
 		MARKTYPE(StringType);
 #undef MARKTYPE
+		for (size_t i=0;i<runtime->Type_pool_size;i++)
+			MARK(runtime->Type_pool[i]->TypeConstant);
 
 		// Collect garbage
 		gc->collect(gc);
@@ -285,6 +290,10 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->Constants.FalseValue = (YBoolean*) newBooleanValue(false, th);
 	runtime->Constants.NullPtr = NULL;
 
+	runtime->Type_pool_size = 0;
+	runtime->Type_pool_capacity = 5;
+	runtime->Type_pool = malloc(sizeof(YType*) * runtime->Type_pool_capacity);
+
 	runtime->symbols.map = NULL;
 	runtime->symbols.size = 0;
 	NEW_MUTEX(&runtime->symbols.mutex);
@@ -322,6 +331,17 @@ YThread* yoyo_thread(YRuntime* runtime) {
 	runtime->thread_count++;
 	MUTEX_UNLOCK(&runtime->runtime_mutex);
 	return th;
+}
+
+YType* yoyo_type(YRuntime* runtime) {
+	if (runtime->Type_pool_size+1>=runtime->Type_pool_capacity) {
+		runtime->Type_pool_capacity += 5;
+		runtime->Type_pool = realloc(runtime->Type_pool, sizeof(YType*) * runtime->Type_pool_capacity);
+	}
+	YType* type = calloc(1, sizeof(YType));
+	runtime->Type_pool[runtime->Type_pool_size++] = type;
+	Type_init(type, yoyo_thread(runtime));
+	return type;
 }
 
 wchar_t* toString(YValue* v, YThread* th) {
