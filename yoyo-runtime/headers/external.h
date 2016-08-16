@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <pthread.h>
-
+#include <signal.h>
 
 #if defined(_WIN32)
 
@@ -31,10 +31,11 @@
 #define OS_WIN
 
 #elif defined(__linux__) || defined(__unix__)
-
+#include <execinfo.h>
 #ifdef __linux__
 #define PLATFORM L"linux"
 #define OS_LINUX
+#define OS_UNIX
 #else
 #define PLATFORM L"unix"
 #define OS_UNIX

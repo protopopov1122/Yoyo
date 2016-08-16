@@ -91,6 +91,17 @@ uint64_t Common_hashCode(YValue* v, YThread* th) {
 	return un.u64;
 }
 
+wchar_t* Common_toString(YValue* v, YThread* th) {
+	const char* fmt = "%ls@%p";
+	size_t size = snprintf(NULL, 0, fmt, v->type->wstring, (void*) v);
+	char* mbs = calloc(size+1, sizeof(char));
+	sprintf(mbs, fmt, v->type->wstring, (void*) v);
+	wchar_t* wcs = calloc(strlen(mbs) + 1, sizeof(wchar_t));
+	mbstowcs(wcs, mbs, strlen(mbs));
+	free(mbs);
+	return wcs;
+}
+
 void Type_init(YType* type, YThread* th) {
 		type->wstring = NULL;
 		type->TypeConstant = NULL;
@@ -113,8 +124,8 @@ void Type_init(YType* type, YThread* th) {
 		type->oper.subseq = NULL;
 		type->oper.hashCode = Common_hashCode;
 		type->oper.compare = compare_operation;
-		type->oper.toString = NULL;
-		type->oper.readProperty = NULL;
+		type->oper.toString = Common_toString;
+		type->oper.readProperty = Common_readProperty;
 		type->oper.iterator = NULL;
 
 }

@@ -26,7 +26,7 @@ def facLoop(n->sys.types.int)->sys.types.int {
 
 // Object-oriented factorial
 /*WARNING: all functions definitions are collected by
-parser and but to the start of block(whatever root or normal).
+parser and moved to the start of block(whatever root or normal).
 Then they all will be available from the start of execution.
 On the other side, if they use special types(like below) they should
 be defined like this, because these types become available

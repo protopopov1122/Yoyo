@@ -16,17 +16,6 @@
 
 #include "types.h"
 
-wchar_t* Object_toString(YValue* vobj, YThread* th) {
-	YObject* obj = (YObject*) vobj;
-	char* fmt = "Object@%p";
-	size_t sz = snprintf(NULL, 0, fmt, obj);
-	char* cstr = malloc(sizeof(char) * sz);
-	sprintf(cstr, fmt, obj);
-	wchar_t* wstr = malloc(sizeof(wchar_t) * strlen(cstr));
-	mbstowcs(wstr, cstr, sizeof(wchar_t) * strlen(cstr));
-	free(cstr);
-	return wstr;
-}
 uint64_t Object_hashCode(YValue* vobj, YThread* th) {
 	YObject* obj = (YObject*) vobj;
 	int32_t mid = getSymbolId(&th->runtime->symbols,
@@ -128,7 +117,7 @@ void Object_type_init(YRuntime* runtime) {
 	runtime->ObjectType.oper.compare = compare_operation;
 	runtime->ObjectType.oper.negate_operation = undefined_unary_operation;
 	runtime->ObjectType.oper.not_operation = undefined_unary_operation;
-	runtime->ObjectType.oper.toString = Object_toString;
+	runtime->ObjectType.oper.toString = Common_toString;
 	runtime->ObjectType.oper.readProperty = Object_readProperty;
 	runtime->ObjectType.oper.hashCode = Object_hashCode;
 	runtime->ObjectType.oper.readIndex = Object_readIndex;

@@ -165,7 +165,7 @@ typedef struct NativeLambda {
 } NativeLambda;
 
 typedef struct YRawPointer {
-	YObject obj;
+	YValue parent;
 
 	void* ptr;
 	void (*free)(void*);

@@ -31,6 +31,24 @@
 #define OBJ_TYPE L"hash"
 #endif
 
+void Segfault_handler(int sig) {
+	printf("Yoyo aborting. Please report bug at https://github.com/protopopov1122/Yoyo\n");
+	printf("Segmentation fault");
+	#ifdef OS_UNIX
+	printf(". Backtrace:\n");
+	void * buffer[255];
+	const int calls = backtrace(buffer,
+		sizeof(buffer) / sizeof(void *));
+	backtrace_symbols_fd(buffer, calls, 1);
+	#elif defined(OS_WIN)
+	printf(". On Windows backtrace isn't available.\n");
+	#else
+	printf(".\n");
+	#endif
+
+	exit(EXIT_FAILURE);
+}
+
 /*
  * Search file in current runtime path, translate it and
  * execute bytecode by current runtime. Return boolean
@@ -81,6 +99,7 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
  * to set up minimal runtime environment and file specified in arguments.
  * */
 void Yoyo_main(char** argv, int argc) {
+	signal(SIGSEGV, Segfault_handler);
 	YoyoCEnvironment* ycenv = newYoyoCEnvironment(NULL);
 	Environment* env = (Environment*) ycenv;
 	YDebug* debug = NULL;

@@ -35,6 +35,7 @@ void Lambda_type_init(YRuntime*);
 void Declaration_type_init(YRuntime*);
 void Null_type_init(YRuntime*);
 
+wchar_t* Common_toString(YValue*, YThread*);
 YValue* Common_readProperty(int32_t, YValue*, YThread*);
 uint64_t Common_hashCode(YValue*, YThread*);
 YValue* undefined_binary_operation(YValue*, YValue*, YThread*);

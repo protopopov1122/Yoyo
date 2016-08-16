@@ -75,5 +75,6 @@ input = $(str) {
 	console.print(str);
 	return read();
 }
+exit=sys.exit;
 eval=sys.eval;
 import = sys.import;

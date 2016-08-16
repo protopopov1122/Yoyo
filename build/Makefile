@@ -39,10 +39,10 @@ libyoyo_linux=libyoyo.so
 libyoyo_win=yoyo.dll
 libyoyo=$(libyoyo_$(platform))
 
-$(yoyo):
+yoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -o $(yoyo) $(c_source) 
-$(libyoyo):
+libyoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -shared -fPIC -o $(libyoyo.so) $(c_source)
 clean:

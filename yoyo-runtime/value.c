@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "yoyo-runtime.h"
+#include "types/types.h"
 
 /*Procedures to build different types of yoyo values*/
 
@@ -168,29 +169,8 @@ YLambda* newNativeLambda(size_t argc,
 	return (YLambda*) out;
 }
 
-YValue* RawPointer_get(YObject* o, int32_t id, YThread* th) {
-	return getNull(th);
-}
+YType* RawPointerType = NULL;
 
-bool RawPointer_contains(YObject* o, int32_t id, YThread* th) {
-	return false;
-}
-
-void RawPointer_put(YObject* o, int32_t id, YValue* v, bool n, YThread* th) {
-	return;
-}
-
-void RawPointer_remove(YObject* o, int32_t id, YThread* th) {
-	return;
-}
-
-void RawPointer_setType(YObject* o, int32_t id, YoyoType* t, YThread* th) {
-	return;
-}
-
-YoyoType* RawPointer_getType(YObject* o, int32_t id, YThread* th) {
-	return th->runtime->NullType.TypeConstant;
-}
 void RawPointer_free(YoyoObject* ptr) {
 	YRawPointer* raw = (YRawPointer*) ptr;
 	raw->free(raw->ptr);
@@ -198,19 +178,19 @@ void RawPointer_free(YoyoObject* ptr) {
 }
 
 YValue* newRawPointer(void* ptr, void (*freeptr)(void*), YThread* th) {
+	if (RawPointerType == NULL) {
+		RawPointerType = malloc(sizeof(YType));
+		Type_init(RawPointerType, th);
+		RawPointerType->wstring = L"Pointer";
+		RawPointerType->TypeConstant = newAtomicType(RawPointerType, th);
+		((YoyoObject*) RawPointerType->TypeConstant)->linkc++;
+	}
 	YRawPointer* raw = malloc(sizeof(YRawPointer));
 	initAtomicYoyoObject((YoyoObject*) raw, RawPointer_free);
 	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) raw);
-	raw->obj.parent.type = &th->runtime->ObjectType;
+	raw->parent.type = RawPointerType;
 
 	raw->ptr = ptr;
 	raw->free = freeptr;
-	raw->obj.get = RawPointer_get;
-	raw->obj.contains = RawPointer_contains;
-	raw->obj.put = RawPointer_put;
-	raw->obj.remove = RawPointer_remove;
-	raw->obj.setType = RawPointer_setType;
-	raw->obj.getType = RawPointer_getType;
-
 	return (YValue*) raw;
 }
