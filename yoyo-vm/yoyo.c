@@ -261,8 +261,12 @@ void Yoyo_main(char** argv, int argc) {
 	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {
 		runtime->debugger = debug;
         ycenv->jit = jit;
-		Yoyo_interpret_file(ycenv->bytecode, runtime, file);
-		free(file);
+		if (file != NULL) {
+			Yoyo_interpret_file(ycenv->bytecode, runtime, file);
+			free(file);
+		} else {
+			printf("Specify input file\n");
+		}
 	}
 
 	/* Waits all threads to finish and frees resources */
