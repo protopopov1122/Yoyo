@@ -47,6 +47,7 @@ install:
 	@install -D $(yoyo) $(BIN_DIRECTORY)/$(yoyo)
 	@mkdir -p $(SHARE_DIRECTORY)/yoyo/YStd
 	@cp -r ../YStd/*.yoyo $(SHARE_DIRECTORY)/yoyo/YStd
+	@cp ../examples/repl.yoyo $(SHARE_DIRECTORY)/yoyo/YStd
 uninstall:
 	@rm -rf $(SHARE_DIRECTORY)/yoyo
 	@rm -rf $(BIN_DIRECTORY)/$(yoyo)

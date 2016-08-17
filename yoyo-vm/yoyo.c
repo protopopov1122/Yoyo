@@ -265,7 +265,7 @@ void Yoyo_main(char** argv, int argc) {
 			Yoyo_interpret_file(ycenv->bytecode, runtime, file);
 			free(file);
 		} else {
-			printf("Specify input file\n");
+			Yoyo_interpret_file(ycenv->bytecode, runtime, L"repl.yoyo");
 		}
 	}
 
