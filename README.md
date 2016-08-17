@@ -39,11 +39,13 @@ make yoyo target="release" # For Linux x64
 make yoyo target="release" arch="x86" # For Linux x86
 make yoyo target="release" platform="win" # For Windows x64
 make yoyo target="release" platform"win" arch="x86" # For Windows x86
-```
-Then
-```bash
-./yoyo -Dystd=../YStd ../examples/guide.yoyo # Launch interactive guide
-./yoyo -Dystd=../YStd ../examples/repl.yoyo # Launch REPL
+
+sudo make install # Install and uninstall targets work only on Linux
+sudo make uninstall # It's bad to use direct install, but I've not builded packages for Yoyo yet and it's the only way to install yoyo
+
+# In project directory you can launch
+yoyo ../examples/guide.yoyo # Launch interactive guide
+yoyo ../YStd ../examples/repl.yoyo # Launch REPL
 ```
 Project contains 'yoyo.vim' file that provides Yoyo syntax highlighting in Vim.
 In build directory will appear executable.
