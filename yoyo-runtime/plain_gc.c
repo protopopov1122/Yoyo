@@ -119,9 +119,12 @@ void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 GarbageCollector* newPlainGC(size_t icapacity) {
 	PlainGC* gc = malloc(sizeof(PlainGC));
 
+	gc->objects = NULL;
+	gc->temporary = NULL;
 	gc->collecting = false;
 	gc->size = 0;
 	gc->gc.block = false;
+	gc->gc.panic = false;
 	NEW_MUTEX(&gc->mutex);
 	gc->gc.collect = plain_gc_collect;
 	gc->gc.free = plain_gc_free;

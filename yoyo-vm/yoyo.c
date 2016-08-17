@@ -31,9 +31,19 @@
 #define OBJ_TYPE L"hash"
 #endif
 
-void Segfault_handler(int sig) {
+void Signal_handler(int sig) {
 	printf("Yoyo aborting. Please report bug at https://github.com/protopopov1122/Yoyo\n");
-	printf("Segmentation fault");
+	switch (sig) {
+		case SIGSEGV:
+			printf("Segmentation fault");
+		break;
+		case SIGFPE:
+			printf("Floating-point exception");
+		break;
+		default:
+			printf("Fatal error");
+		break;
+	}
 	#ifdef OS_UNIX
 	printf(". Backtrace:\n");
 	void * buffer[255];
@@ -99,7 +109,9 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
  * to set up minimal runtime environment and file specified in arguments.
  * */
 void Yoyo_main(char** argv, int argc) {
-	signal(SIGSEGV, Segfault_handler);
+	signal(SIGSEGV, Signal_handler);
+	signal(SIGFPE, Signal_handler);
+
 	YoyoCEnvironment* ycenv = newYoyoCEnvironment(NULL);
 	Environment* env = (Environment*) ycenv;
 	YDebug* debug = NULL;
@@ -207,7 +219,7 @@ void Yoyo_main(char** argv, int argc) {
 	wchar_t* workdir = env->getDefined(env, L"workdir");
 	wchar_t* libdir = env->getDefined(env, L"ystd");
 	workdir = workdir == NULL ? L"." : workdir;
-	char* mbs_wd = malloc(sizeof(wchar_t) * (wcslen(workdir) + 1));
+	char* mbs_wd = calloc(1, sizeof(wchar_t) * (wcslen(workdir) + 1));
 	wcstombs(mbs_wd, workdir, wcslen(workdir));
 	chdir(mbs_wd);
 	free(mbs_wd);
@@ -250,6 +262,7 @@ void Yoyo_main(char** argv, int argc) {
 		runtime->debugger = debug;
         ycenv->jit = jit;
 		Yoyo_interpret_file(ycenv->bytecode, runtime, file);
+		free(file);
 	}
 
 	/* Waits all threads to finish and frees resources */

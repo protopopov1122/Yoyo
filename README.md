@@ -27,6 +27,7 @@ Main goal is to make project useful and stable.
 
 # Instalation
 ----------------
+Project requires libxslt to build and POSIX, libm, pthreads, dlfcn to work. On Windows all runtime dependencies are statically linked with executable, on Linux & Unix they usually are provided with OS.
 Project contains simple Makefile. It has several options to build Yoyo:
 * arch: x86, x64(default)
 * platform win, linux(default)
@@ -34,21 +35,19 @@ Project contains simple Makefile. It has several options to build Yoyo:
 * misc - specific compilation options and defines.
 ```bash
 cd build
-make yoyo target="release"
+make yoyo target="release" # For Linux x64
+make yoyo target="release" arch="x86" # For Linux x86
+make yoyo target="release" platform="win" # For Windows x64
+make yoyo target="release" platform"win" arch="x86" # For Windows x86
 ```
-You can execute interactive guide
+Then
 ```bash
-cd build
-./yoyo -Dystd=../YStd ../examples/guide.yoyo
-```
-Or REPL
-```bash
-cd build
-./yoyo -Dystd=../YStd ../examples/repl.yoyo
+./yoyo -Dystd=../YStd ../examples/guide.yoyo # Launch interactive guide
+./yoyo -Dystd=../YStd ../examples/repl.yoyo # Launch REPL
 ```
 Project contains 'yoyo.vim' file that provides Yoyo syntax highlighting in Vim.
 In build directory will appear executable.
-Project uses dlfcn-win32 to compile on MinGW.
+Project uses [dlfcn-win32](https://github.com/dlfcn-win32/dlfcn-win32) to compile on MinGW.
 
 ## Contributors
 --------------

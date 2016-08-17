@@ -32,6 +32,9 @@ void YoyoC_free(Environment* _env, YRuntime* runtime) {
 	for (size_t i = 0; i < env->files_size; i++)
 		free(env->files[i]);
 	free(env->files);
+	for (size_t i = 0;i < env->PATH_size;i++)
+		free(env->PATH[i]);
+	free(env->PATH);
 	free(env);
 }
 YObject* YoyoC_system(Environment* env, YRuntime* runtime) {

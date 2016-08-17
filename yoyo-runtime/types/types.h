@@ -19,7 +19,7 @@
 
 #include "yoyo-runtime.h"
 
-#define CHECK_TYPE_TYPES(t1, t2, v1, v2) ((v1->type==t1||v1->type==t2)&&(v2->type==t1||v2->type==t2))
+#define CHECK_TYPES(t1, t2, v1, v2) ((v1->type==t1||v1->type==t2)&&(v2->type==t1||v2->type==t2))
 #define CHECK_TYPE(t1, v1, v2) (v1->type==t1||v2->type==t1)
 
 #define NEW_PROPERTY(name, prop) if (key==getSymbolId(&th->runtime->symbols, name)) return prop;

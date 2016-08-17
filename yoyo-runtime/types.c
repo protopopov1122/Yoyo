@@ -383,7 +383,7 @@ YoyoLambdaSignature* newLambdaSignature(bool meth, int32_t argc, bool vararg,
 	sig->argc = argc;
 	sig->ret = ret;
 	sig->vararg = vararg;
-	sig->args = calloc(1, sizeof(YoyoType*) * argc);
+	sig->args = argc>-1 ? calloc(1, sizeof(YoyoType*) * argc) : NULL;
 	if (args != NULL)
 		memcpy(sig->args, args, sizeof(YoyoType*) * argc);
 
