@@ -12,16 +12,19 @@ but these issues origins in project concept of simplicity.
 The main inspiration was Python and Javascript.
 ** Yoyo is only project to educate myself, gain expirence and some fun, so
 I don't guarantee that project may be useful in any purposes. **
+
 # Examples
 --------------
 See 'examples' directory. It contains several examples of different aspects of
 language.
+
 # Goals
 * Make project usable, remove bugs and refractor code.
 * Add build and installation system.
 * Write standart language library
 * Add code examples and tests
 Main goal is to make project useful and stable.
+
 # Instalation
 ----------------
 Project contains simple Makefile. It has several options to build Yoyo:
@@ -46,6 +49,7 @@ cd build
 Project contains 'yoyo.vim' file that provides Yoyo syntax highlighting in Vim.
 In build directory will appear executable.
 Project uses dlfcn-win32 to compile on MinGW.
+
 ## Contributors
 --------------
 Eugene Protopopov(Jevgenijs Protopopovs) <protopopov1122@yandex.ru>

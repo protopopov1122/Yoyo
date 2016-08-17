@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_ARRAY_H
-#define YILI_ARRAY_H
+#ifndef YOYO_RUNTIME_ARRAY_H
+#define YOYO_RUNTIME_ARRAY_H
 
 #include "collections.h"
 #include "value.h"

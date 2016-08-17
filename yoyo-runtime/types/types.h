@@ -14,12 +14,12 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_OPERATIONS_H
-#define YILI_OPERATIONS_H
+#ifndef YOYO_RUNTIME_TYPE_TYPES_H
+#define YOYO_RUNTIME_TYPE_TYPES_H
 
 #include "yoyo-runtime.h"
 
-#define CHECK_TYPES(t1, t2, v1, v2) ((v1->type==t1||v1->type==t2)&&(v2->type==t1||v2->type==t2))
+#define CHECK_TYPE_TYPES(t1, t2, v1, v2) ((v1->type==t1||v1->type==t2)&&(v2->type==t1||v2->type==t2))
 #define CHECK_TYPE(t1, v1, v2) (v1->type==t1||v2->type==t1)
 
 #define NEW_PROPERTY(name, prop) if (key==getSymbolId(&th->runtime->symbols, name)) return prop;

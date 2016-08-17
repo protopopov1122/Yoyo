@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_THREADS_H
-#define YILI_THREADS_H
+#ifndef YOYO_RUNTIME_THREADS_H
+#define YOYO_RUNTIME_THREADS_H
 
 #include <unistd.h>
 #include <dlfcn.h>

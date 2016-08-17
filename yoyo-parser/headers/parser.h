@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef HEADERS_PARSER_H_
-#define HEADERS_PARSER_H_
+#ifndef YOYO_PARSER_PARSER_H_
+#define YOYO_PARSER_PARSER_H_
 
 #include "base.h"
 #include "node.h"

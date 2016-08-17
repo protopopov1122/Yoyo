@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_DEBUG_H
-#define YILI_DEBUG_H
+#ifndef YOYO_RUNTIME_DEBUG_H
+#define YOYO_RUNTIME_DEBUG_H
 
 #include "yoyo-runtime.h"
 
@@ -48,4 +48,4 @@ typedef struct YDebug {
                                         th->runtime->state = RuntimeRunning;\
                                     }
 
-#endif // YILI_DEBUG_H
+#endif // YOYO_RUNTIME_DEBUG_H

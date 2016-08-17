@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_RUNTIME_H
-#define YILI_RUNTIME_H
+#ifndef YOYO_RUNTIME_RUNTIME_H
+#define YOYO_RUNTIME_RUNTIME_H
 
 #include "core.h"
 #include "debug.h"

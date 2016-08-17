@@ -49,7 +49,7 @@ int compare_operation(YValue* arg1, YValue* arg2, YThread* th) {
 
 #define INIT NativeLambda* nlam = (NativeLambda*) lambda;\
                     YValue* value = (YValue*) nlam->object;
-YOYO_FUNCTION(_Common_toString) {
+YOYO_FUNCTION(Common_property_toString) {
 	INIT
 	;
 	wchar_t* wstr = toString(value, th);
@@ -57,17 +57,17 @@ YOYO_FUNCTION(_Common_toString) {
 	free(wstr);
 	return ystr;
 }
-YOYO_FUNCTION(_Common_hashCode) {
+YOYO_FUNCTION(Common_property_hashCode) {
 	INIT
 	;
 	return newInteger(value->type->oper.hashCode(value, th), th);
 }
-YOYO_FUNCTION(_Common_equals) {
+YOYO_FUNCTION(Common_property_equals) {
 	INIT
 	;
 	return newBoolean(CHECK_EQUALS(value, args[0], th), th);
 }
-YOYO_FUNCTION(Common_getType) {
+YOYO_FUNCTION(Common_property_getType) {
 	INIT
 	;
 	return (YValue*) value->type->TypeConstant;
@@ -75,10 +75,10 @@ YOYO_FUNCTION(Common_getType) {
 #undef INIT
 
 YValue* Common_readProperty(int32_t key, YValue* v, YThread* th) {
-	NEW_METHOD(TO_STRING, _Common_toString, 0, v);
-	NEW_METHOD(HASHCODE, _Common_hashCode, 0, v);
-	NEW_METHOD(EQUALS, _Common_equals, 1, v);
-	NEW_METHOD(L"type", Common_getType, 0, v);
+	NEW_METHOD(TO_STRING, Common_property_toString, 0, v);
+	NEW_METHOD(HASHCODE, Common_property_hashCode, 0, v);
+	NEW_METHOD(EQUALS, Common_property_equals, 1, v);
+	NEW_METHOD(L"type", Common_property_getType, 0, v);
 	return NULL;
 }
 

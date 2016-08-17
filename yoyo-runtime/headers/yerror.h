@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_YERROR_H
-#define YILI_YERROR_H
+#ifndef YOYO_RUNTIME_YERROR_H
+#define YOYO_RUNTIME_YERROR_H
 
 #include "yoyo-runtime.h"
 

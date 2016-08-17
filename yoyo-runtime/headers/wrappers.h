@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_WRAPPERS_H
-#define YILI_WRAPPERS_H
+#ifndef YOYO_RUNTIME_WRAPPERS_H
+#define YOYO_RUNTIME_WRAPPERS_H
 
 #include "value.h"
 #include "collections.h"

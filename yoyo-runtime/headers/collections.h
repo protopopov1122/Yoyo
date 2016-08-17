@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_COLLECTIONS_H
-#define YILI_COLLECTIONS_H
+#ifndef YOYO_RUNTIME_COLLECTIONS_H
+#define YOYO_RUNTIME_COLLECTIONS_H
 
 #include "value.h"
 
@@ -46,4 +46,4 @@ YoyoMap* newHashMap(YThread*);
 YoyoSet* newHashSet(YThread*);
 YArray* newList(YThread*);
 
-#endif // YILI_COLLECTIONS_H
+#endif // YOYO_RUNTIME_COLLECTIONS_H

@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_INTERPRETER_H
-#define YILI_INTERPRETER_H
+#ifndef YOYO_VM_INTERPRETER_H
+#define YOYO_VM_INTERPRETER_H
 
 #include "yoyo-runtime.h"
 #include "opcodes.h"

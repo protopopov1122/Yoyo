@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_BYTECODE_H
-#define YILI_BYTECODE_H
+#ifndef YOYO_VM_BYTECODE_H
+#define YOYO_VM_BYTECODE_H
 
 #include "core.h"
 #include "jit.h"

@@ -14,8 +14,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#ifndef YILI_YOYO_H
-#define YILI_YOYO_H
+#ifndef YOYO_RUNTIME_YOYO_H
+#define YOYO_RUNTIME_YOYO_H
 
 #include "array.h"
 #include "core.h"
@@ -28,4 +28,4 @@
 #include "wrappers.h"
 #include "yerror.h"
 
-#endif // YILI_YOYO_H
+#endif // YOYO_RUNTIME_YOYO_H
