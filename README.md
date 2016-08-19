@@ -35,10 +35,10 @@ Project contains simple Makefile. It has several options to build Yoyo:
 * misc - specific compilation options and defines.
 ```bash
 cd build
-make yoyo target="release" # For Linux x64
-make yoyo target="release" arch="x86" # For Linux x86
-make yoyo target="release" platform="win" # For Windows x64
-make yoyo target="release" platform"win" arch="x86" # For Windows x86
+make # For Linux x64
+make arch="x86" # For Linux x86
+make platform="win" # For Windows x64
+make platform"win" arch="x86" # For Windows x86
 
 sudo make install # Install and uninstall targets work only on Linux
 sudo make uninstall # It's bad to use direct install, but I've not builded packages for Yoyo yet and it's the only way to install yoyo
@@ -46,6 +46,11 @@ sudo make uninstall # It's bad to use direct install, but I've not builded packa
 # In project directory you can launch
 yoyo ../examples/guide.yoyo # Launch interactive guide
 yoyo ../YStd ../examples/repl.yoyo # Launch REPL
+```
+You can also build with GCC Profile-Guided Optimizations(tested only on Linux GCC). It will take some time but resulting executable will be much faster.
+```bash
+./PGO.sh
+./PGO.sh arch="x86"
 ```
 Project contains 'yoyo.vim' file that provides Yoyo syntax highlighting in Vim.
 In build directory will appear executable.

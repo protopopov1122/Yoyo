@@ -1,0 +1,94 @@
+/* This file contains complex stress tests to get proper profile and build Yoyo using GCC PGO to get fine performance */
+
+print("Integer profile generation");
+for i=0;i<1000;i++ {
+	if (i % 10 == 0)
+		print(i/10+"%");
+	for j=1;j<=200;j++ {
+		i+j;
+		i-j;
+		i*j;
+		i/j;
+		i<<j;
+		i>>j;
+		i%j;
+		i&j;
+		i|j;
+		i^j;
+	}
+	~i;
+	-i;
+}
+
+print("Floating-point profile generation");
+for i=0;i<1000;i++ {
+	f = i.float()
+	f2 = f/2;
+	if (i % 10 == 0)
+		print(i/10+"%");
+	f + f2;
+	f - f2;
+	f * f2;
+	f / f2;
+	-f;
+}
+
+print("Boolean and string profile generation");
+// Boolean and string test
+for i=0;i<1000;i++ {
+	if (i % 10 == 0)
+		print(i/10+"%");
+	b = i % 2 == 0;
+	s = if b "123" else "345";
+	b = b && !b || true;
+	b = b | b & b;
+	s = s[i%s.length]+b;
+}
+
+print("Object implementation profile generation");
+parent = object;
+for i=0;i<1000;i++ {
+	if (i % 10 == 0)
+		print(i/10+"%");
+	tree = sys.types.treeObject(parent);
+	hash = sys.types.hashObject(parent);
+	tree.a = hash;
+	hash.a = tree;
+	tree.b = i;
+	tree.a.b = i;
+	hash.c = tree.toString();
+	tree.c = hash.hashCode();
+	hash.equals(tree);
+}
+
+print("Array profile generation");
+for i=0;i<1000;i++ {
+	if (i % 10 == 0)
+		print(i/10+"%");
+	arr = [i;i];
+	for j=0;j<i;j++
+		arr.add(j);
+}
+
+print("Lambda profile generation");
+for i=0;i<1000;i++ {
+	l = $(x) if (i % 10 == 0)
+							print(i/10+"%");
+	l(i);
+}
+
+print("Multithreading profile generation");
+for i=0;i<25;i++
+	threads.newThread($(task) {
+		for j=0;j<1000;j++ {
+			print("Wait");
+		}
+	})
+
+print("GC profile generation");
+for i=0;i<5000;i++ {
+	if (i % 50 == 0)
+		print(i/50+"%");
+	for j=0;j<200;j++
+		object;
+}

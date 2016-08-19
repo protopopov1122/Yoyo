@@ -1,4 +1,4 @@
-target=debug
+target=release
 platform=linux
 arch=x64
 
@@ -35,14 +35,7 @@ yoyo_linux=yoyo
 yoyo_win=yoyo.exe
 yoyo=$(yoyo_$(platform))
 
-yji_linux=libyji.so
-yji_win=yji.dll
-yji=$(yji_$(platform))
-
-libyoyo_linux=libyoyo.so
-libyoyo_win=yoyo.dll
-libyoyo=$(libyoyo_$(platform))
-
+all: yoyo
 install:
 	@install -D $(yoyo) $(BIN_DIRECTORY)/$(yoyo)
 	@mkdir -p $(SHARE_DIRECTORY)/yoyo/YStd
@@ -54,8 +47,5 @@ uninstall:
 yoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -o $(yoyo) $(c_source) 
-libyoyo:
-	./gen_opcodes.sh
-	$(cc) $(cflags) -shared -fPIC -o $(libyoyo.so) $(c_source)
 clean:
 	@./clean.sh

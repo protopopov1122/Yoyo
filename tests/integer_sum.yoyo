@@ -1,0 +1,9 @@
+/* This scripts sums 50 000 000 integers.
+	It tests perfomance and integer caches. May require integer
+	cache and pool size setup.*/
+
+for i=0;i<50000;i++ {
+	print(i);
+	for j=0;j<1000;j++
+		i+j;
+}

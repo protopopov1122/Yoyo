@@ -1,0 +1,7 @@
+/* This file contains tiny script that stess tests gc.
+	 Infinite loop creates objects, but gc is supposed to clean them.
+	 WARNING: script may use __A LOT OF__ memory, but a one point
+	 memory use should stabilize and never grow.*/
+
+print("You should interrupt it manually by pressing Ctrl-C.");
+do object;
