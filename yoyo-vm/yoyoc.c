@@ -37,12 +37,6 @@ void YoyoC_free(Environment* _env, YRuntime* runtime) {
 	free(env->PATH);
 	free(env);
 }
-YObject* YoyoC_system(Environment* env, YRuntime* runtime) {
-	YThread* th = yoyo_thread(runtime);
-	YObject* obj = th->runtime->newObject(NULL, th);
-	return obj;
-}
-
 YValue* YoyoC_eval(Environment* _env, YRuntime* runtime, InputStream* is,
 		wchar_t* wname, YObject* scope) {
 	YoyoCEnvironment* env = (YoyoCEnvironment*) _env;
@@ -125,7 +119,6 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	env->env.in_stream = stdin;
 	env->env.err_stream = stderr;
 	env->env.free = YoyoC_free;
-	env->env.system = YoyoC_system;
 	env->env.eval = YoyoC_eval;
 	env->env.getDefined = YoyoC_getenv;
 	env->env.define = YoyoC_putenv;

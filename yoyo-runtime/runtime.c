@@ -189,7 +189,7 @@ YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc,
 			if (l->sig->args[i] != NULL
 					&& !l->sig->args[i]->verify(l->sig->args[i], args[i], th)) {
 				wchar_t* wstr = toString(args[i], th);
-				throwException(L"Wrong argument type", &wstr, 1, th);
+				throwException(L"WrongArgumentType", &wstr, 1, th);
 				free(wstr);
 				free(args);
 				((YoyoObject*) l)->linkc--;

@@ -22,7 +22,7 @@ wchar_t* Array_toString(YValue* v, YThread* th) {
 		return arr->toString(arr, th);
 	StringBuilder* sb = newStringBuilder(L"[");
 
-	for (uint32_t i = 0; i < arr->size(arr, th); i++) {
+	for (size_t i = 0; i < arr->size(arr, th); i++) {
 		YValue* val = arr->get(arr, i, th);
 		wchar_t* wstr = toString(val, th);
 		sb->append(sb, wstr);
@@ -75,7 +75,7 @@ YOYO_FUNCTION(Array_type_addAll) {
 YOYO_FUNCTION(Array_type_insert) {
 	ARR_INIT
 	if (args[0]->type == &th->runtime->IntType) {
-		uint32_t index = ((YInteger*) args[0])->value;
+		size_t index = ((YInteger*) args[0])->value;
 		array->insert(array, index, args[1], th);
 	} else {
 		wchar_t* wcs = toString(args[0], th);
@@ -87,7 +87,7 @@ YOYO_FUNCTION(Array_type_insert) {
 YOYO_FUNCTION(Array_type_insertAll) {
 	ARR_INIT
 	if (args[0]->type == &th->runtime->IntType && args[1]->type == &th->runtime->ArrayType) {
-		uint32_t index = ((YInteger*) args[0])->value;
+		size_t index = ((YInteger*) args[0])->value;
 		YArray* src = (YArray*) args[1];
 		Array_insertAll(array, src, index, th);
 	} else {
@@ -107,7 +107,7 @@ YOYO_FUNCTION(Array_type_insertAll) {
 YOYO_FUNCTION(Array_type_remove) {
 	ARR_INIT
 	if (args[0]->type == &th->runtime->IntType) {
-		uint32_t index = ((YInteger*) args[0])->value;
+		size_t index = ((YInteger*) args[0])->value;
 		array->remove(array, index, th);
 	} else {
 		wchar_t* wcs = toString(args[0], th);
@@ -211,9 +211,9 @@ YOYO_FUNCTION(Array_type_removeAll) {
 	ARR_INIT
 	if (args[0]->type == &th->runtime->ArrayType) {
 		YArray* arr = (YArray*) args[0];
-		for (uint32_t i = 0; i < arr->size(arr, th); i++) {
+		for (size_t i = 0; i < arr->size(arr, th); i++) {
 			YValue* val = arr->get(arr, i, th);
-			for (uint32_t j = 0; j < array->size(array, th); j++) {
+			for (size_t j = 0; j < array->size(array, th); j++) {
 				YValue* val2 = array->get(array, j, th);
 				if (CHECK_EQUALS(val, val2, th)) {
 					array->remove(array, j, th);
@@ -232,7 +232,7 @@ YOYO_FUNCTION(Array_type_removeAll) {
 YOYO_FUNCTION(Array_type_clone) {
 	ARR_INIT
 	YArray* arr = newArray(th);
-	for (uint32_t i = 0; i < array->size(array, th); i++)
+	for (size_t i = 0; i < array->size(array, th); i++)
 		arr->add(arr, array->get(array, i, th), th);
 	return (YValue*) arr;
 }

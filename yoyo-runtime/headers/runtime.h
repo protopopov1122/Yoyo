@@ -114,7 +114,6 @@ typedef struct Environment {
 	size_t argc;
 
 	void (*free)(struct Environment*, struct YRuntime*);
-	YObject* (*system)(struct Environment*, YRuntime*);
 	YValue* (*eval)(struct Environment*, YRuntime*, InputStream*, wchar_t*,
 			YObject*);
 	wchar_t* (*getDefined)(struct Environment*, wchar_t*);
@@ -169,7 +168,6 @@ typedef struct YRuntime {
 	size_t thread_count;
 
 	MUTEX runtime_mutex;
-	COND suspend_cond;
 	THREAD gc_thread;
 
 	void (*free)(YRuntime*);

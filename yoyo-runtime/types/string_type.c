@@ -35,8 +35,8 @@ YValue* String_mul(YValue* v1, YValue* v2, YThread* th) {
 	if (v1->type == &th->runtime->StringType && v2->type == &th->runtime->IntType) {
 		wchar_t* wstr = ((YString*) v1)->value;
 		StringBuilder* sb = newStringBuilder(wstr);
-		uint32_t count = (uint32_t) ((YInteger*) v2)->value;
-		for (uint32_t i = 1; i < count; i++)
+		size_t count = (size_t) ((YInteger*) v2)->value;
+		for (size_t i = 1; i < count; i++)
 			sb->append(sb, wstr);
 		YValue* out = newString(sb->string, th);
 		sb->free(sb);
@@ -59,7 +59,7 @@ void CharSequence_free(YoyoObject* ptr) {
 }
 size_t CharSequence_size(YArray* a, YThread* th) {
 	CharSequence* seq = (CharSequence*) a;
-	return (uint32_t) wcslen(seq->str->value);
+	return (size_t) wcslen(seq->str->value);
 }
 YValue* CharSequence_get(YArray* a, size_t index, YThread* th) {
 	CharSequence* seq = (CharSequence*) a;
@@ -77,7 +77,7 @@ YValue* CharSequence_get(YArray* a, size_t index, YThread* th) {
 void CharSequence_set(YArray* a, size_t index, YValue* v, YThread* th) {
 	wchar_t* wstr = ((CharSequence*) a)->str->value;
 	wchar_t* vwstr = toString(v, th);
-	for (uint32_t i = 0; i < wcslen(vwstr); i++) {
+	for (size_t i = 0; i < wcslen(vwstr); i++) {
 		if (index + i >= wcslen(wstr)) {
 		wchar_t* wcs = toString(newInteger(index + i, th), th);
 		throwException(L"WrongArrayIndex", &wcs, 1, th);
@@ -104,15 +104,15 @@ void CharSequence_insert(YArray* a, size_t index, YValue* v, YThread* th) {
 	wchar_t* vwstr = toString(v, th);
 	*wstr = realloc(*wstr,
 			sizeof(wchar_t) * (wcslen(*wstr) + wcslen(vwstr) + 1));
-	for (uint32_t i = oldLen; i >= index; i--)
+	for (size_t i = oldLen; i >= index; i--)
 		(*wstr)[i + wcslen(vwstr)] = (*wstr)[i];
-	for (uint32_t i = 0; i < wcslen(vwstr); i++)
+	for (size_t i = 0; i < wcslen(vwstr); i++)
 		(*wstr)[i + index] = vwstr[i];
 	free(vwstr);
 }
 void CharSequence_remove(YArray* a, size_t index, YThread* th) {
 	wchar_t** wstr = &((CharSequence*) a)->str->value;
-	for (uint32_t i = index; i < wcslen(*wstr); i++)
+	for (size_t i = index; i < wcslen(*wstr); i++)
 		(*wstr)[i] = (*wstr)[i + 1];
 	*wstr = realloc(*wstr, sizeof(wchar_t) * wcslen(*wstr));
 }
@@ -216,7 +216,7 @@ YOYO_FUNCTION(_String_toUpperCase) {
 	STR_INIT
 	wchar_t* wstr = str->value;
 	wchar_t* lstr = malloc(sizeof(wchar_t) * (wcslen(wstr) + 1));
-	for (uint32_t i = 0; i < wcslen(wstr); i++)
+	for (size_t i = 0; i < wcslen(wstr); i++)
 		lstr[i] = towupper(wstr[i]);
 	lstr[wcslen(wstr)] = L'\0';
 	YValue* out = newString(lstr, th);

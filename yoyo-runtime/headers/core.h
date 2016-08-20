@@ -68,38 +68,4 @@ wchar_t* getSymbolById(SymbolMap*, int32_t);
 
 FILE* search_file(wchar_t*, wchar_t**, size_t);
 
-#ifndef __cplusplus
-#define YOYO_FUNCTION(name) YValue* name(YLambda* lambda, YObject* scope,\
-	YValue** args, size_t argc, YThread* th)
-#else
-#define YOYO_FUNCTION(name) extern "C" YValue* name(YLambda* lambda,\
-	YValue** args, size_t argc, YThread* th)
-#endif
-#define FUN_OBJECT (((NativeLambda*) lambda)->object)
-#define YOYOID(wstr, th) getSymbolId(&th->runtime->symbols, wstr)
-#define YOYOSYM(id, th) getSymbolById(&th->runtime->symbols, id)
-
-#define TYPE(value, t) value->type==t
-#define OBJECT_GET(obj, id, th) obj->get(obj, YOYOID(id, th), th)
-#define OBJECT_PUT(obj, id, value, th) obj->put(obj, YOYOID(id, th),\
-										(YValue*) value, false, th)
-#define OBJECT_NEW(obj, id, value, th) obj->put(obj, YOYOID(id, th),\
-										(YValue*) value, true, th)
-#define OBJECT_HAS(obj, id, th) obj->contains(obj, YOYOID(id, th), th)
-#define OBJECT(super, th) th->runtime->newObject(super, th)
-
-#define LAMBDA(fn, argc, ptr, th) newNativeLambda(argc, fn, (YoyoObject*) ptr, th)
-
-#define METHOD(obj, name, fn, argc, th) OBJECT_NEW(obj, name,\
-													LAMBDA(fn, argc, \
-															obj, th),\
-                                                    th)
-#define CAST_INTEGER(name, value) int64_t name = getInteger((YValue*) value);
-#define CAST_FLOAT(name, value) double name = getFloat((YValue*) value);
-#define CAST_BOOLEAN(name, val) bool name = ((YBoolean*) val)->value;
-#define CAST_STRING(name, val) wchar_t* name = ((YString*) val)->value;
-#define CAST_OBJECT(name, val) YObject* name = (YObject*) val;
-#define CAST_ARRAY(name, val) YArray* name = (YArray*) val;
-#define CAST_LAMBDA(name, val) YLambda* name = (YLambda*) val;
-
 #endif

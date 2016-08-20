@@ -94,8 +94,7 @@ YOYO_FUNCTION(YSTD_TYPES_FLOAT_NAN) {
 }
 
 YOYO_FUNCTION(YSTD_TYPES_STRING_FROM_BYTES) {
-	if (args[0] == getNull(th))
-		return getNull(th);
+	ASSERT_TYPE(args[0], &th->runtime->ArrayType, th);
 	YArray* arr = (YArray*) args[0];
 	wchar_t* wcs = calloc(1, sizeof(wchar_t) * (arr->size(arr, th) + 1));
 	for (size_t i=0;i<arr->size(arr, th);i++) {
@@ -107,8 +106,7 @@ YOYO_FUNCTION(YSTD_TYPES_STRING_FROM_BYTES) {
 }
 
 YOYO_FUNCTION(YSTD_TYPES_STRING_FROM_MULTIBYTES) {
-	if (args[0] == getNull(th))
-		return getNull(th);
+	ASSERT_TYPE(args[0], &th->runtime->ArrayType, th);
 	YArray* arr = (YArray*) args[0];
 	char* mbs = calloc(1, sizeof(char) * (arr->size(arr, th) + 1));
 	for (size_t i=0;i<arr->size(arr, th);i++) {
