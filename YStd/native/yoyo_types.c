@@ -75,3 +75,49 @@ YOYO_FUNCTION(YSTD_TYPES_INTEGER_MIN) {
 YOYO_FUNCTION(YSTD_TYPES_INTEGER_MAX) {
 	return newInteger(INT64_MAX, th);
 }
+
+YOYO_FUNCTION(YSTD_TYPES_FLOAT_PARSE) {
+	wchar_t* wcs = toString(args[0], th);
+	char *oldLocale = setlocale(LC_NUMERIC, NULL);
+	setlocale(LC_NUMERIC, "C");
+	double fp64 = wcstod(wcs, NULL);
+	setlocale(LC_NUMERIC, oldLocale);
+	return newFloat(fp64, th);
+}
+
+YOYO_FUNCTION(YSTD_TYPES_FLOAT_INF) {
+	return newFloat(INFINITY, th);
+}
+
+YOYO_FUNCTION(YSTD_TYPES_FLOAT_NAN) {
+	return newFloat(NAN, th);
+}
+
+YOYO_FUNCTION(YSTD_TYPES_STRING_FROM_BYTES) {
+	if (args[0] == getNull(th))
+		return getNull(th);
+	YArray* arr = (YArray*) args[0];
+	wchar_t* wcs = calloc(1, sizeof(wchar_t) * (arr->size(arr, th) + 1));
+	for (size_t i=0;i<arr->size(arr, th);i++) {
+		wcs[i] = (wchar_t) ((YInteger*) arr->get(arr, i, th))->value;
+	}
+	YValue* ystr = newString(wcs, th);
+	free(wcs);
+	return ystr;	
+}
+
+YOYO_FUNCTION(YSTD_TYPES_STRING_FROM_MULTIBYTES) {
+	if (args[0] == getNull(th))
+		return getNull(th);
+	YArray* arr = (YArray*) args[0];
+	char* mbs = calloc(1, sizeof(char) * (arr->size(arr, th) + 1));
+	for (size_t i=0;i<arr->size(arr, th);i++) {
+		mbs[i] = (char) ((YInteger*) arr->get(arr, i, th))->value;
+	}
+	wchar_t* wcs = calloc(1, sizeof(wchar_t) * (strlen(mbs) + 1));
+	mbstowcs(wcs, mbs, sizeof(wchar_t) * strlen(mbs));
+	YValue* ystr = newString(wcs, th);
+	free(wcs);
+	free(mbs);
+	return ystr;	
+}

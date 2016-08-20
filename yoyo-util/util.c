@@ -7,7 +7,8 @@ typedef struct FileInputStream {
 
 wint_t FIS_read(InputStream* is) {
 	FileInputStream* fis = (FileInputStream*) is;
-	return fgetwc(fis->fd);
+	wint_t out = fgetwc(fis->fd);
+	return out;
 }
 void FIS_unread(wint_t ch, InputStream* is) {
 	FileInputStream* fis = (FileInputStream*) is;

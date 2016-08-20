@@ -21,7 +21,7 @@
 
 FILE* search_file(wchar_t* wname, wchar_t** wpaths, size_t sz) {
 	char* name = malloc(sizeof(wchar_t) / sizeof(char) * (wcslen(wname) + 1));
-	wcstombs(name, wname, wcslen(wname));
+	wcstombs(name, wname, sizeof(wchar_t) * wcslen(wname));
 	name[wcslen(wname)] = '\0';
 	FILE* fd = NULL;
 	if (access(name, F_OK) != -1) {
@@ -33,7 +33,7 @@ FILE* search_file(wchar_t* wname, wchar_t** wpaths, size_t sz) {
 			char* path = malloc(
 					sizeof(wchar_t) / sizeof(char)
 							* (wcslen(wpaths[i]) + strlen(name) + 2));
-			wcstombs(path, wpaths[i], wcslen(wpaths[i]));
+			wcstombs(path, wpaths[i], sizeof(wchar_t) * wcslen(wpaths[i]));
 			path[wcslen(wpaths[i])] = '/';
 			path[wcslen(wpaths[i]) + 1] = '\0';
 			strcat(path, name);

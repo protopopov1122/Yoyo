@@ -264,6 +264,25 @@ YOYO_FUNCTION(_String_endsWith) {
 			return newBoolean(false, th);
 	return newBoolean(true, th);
 }
+YOYO_FUNCTION(_String_getBytes) {
+	STR_INIT;
+	wchar_t* wstr = str->value;
+	YArray* arr = newArray(th);
+	for (size_t i=0;i<wcslen(wstr);i++)
+		arr->add(arr, newInteger(wstr[i], th), th);
+	return (YValue*) arr;
+}
+YOYO_FUNCTION(_String_getMultiBytes) {
+	STR_INIT;
+	wchar_t* wcs = str->value;
+	char* mbs = calloc(1, sizeof(wchar_t) * wcslen(wcs) + 1);
+	wcstombs(mbs, wcs, wcslen(wcs) * sizeof(wchar_t));
+	YArray* arr = newArray(th);
+	for (size_t i=0;i<strlen(mbs);i++)
+		arr->add(arr, newInteger(mbs[i], th), th);
+	free(mbs);
+	return (YValue*) arr;
+}
 
 #undef STR_INIT
 YValue* String_readProperty(int32_t key, YValue* val, YThread* th) {
@@ -277,6 +296,8 @@ YValue* String_readProperty(int32_t key, YValue* val, YThread* th) {
 	NEW_METHOD(L"trim", _String_trim, 0, str);
 	NEW_METHOD(L"startsWith", _String_startsWith, 1, str);
 	NEW_METHOD(L"endsWith", _String_endsWith, 1, str);
+	NEW_METHOD(L"getMultiBytes", _String_getMultiBytes, 0, str);
+	NEW_METHOD(L"getBytes", _String_getBytes, 0, str);
 	return Common_readProperty(key, val, th);
 
 }

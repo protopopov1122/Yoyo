@@ -109,6 +109,7 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
  * to set up minimal runtime environment and file specified in arguments.
  * */
 void Yoyo_main(char** argv, int argc) {
+	setlocale(LC_ALL, "");
 	signal(SIGSEGV, Signal_handler);
 	signal(SIGFPE, Signal_handler);
 
@@ -220,7 +221,7 @@ void Yoyo_main(char** argv, int argc) {
 	wchar_t* libdir = env->getDefined(env, L"ystd");
 	workdir = workdir == NULL ? L"." : workdir;
 	char* mbs_wd = calloc(1, sizeof(wchar_t) * (wcslen(workdir) + 1));
-	wcstombs(mbs_wd, workdir, wcslen(workdir));
+	wcstombs(mbs_wd, workdir, sizeof(wchar_t) * wcslen(workdir));
 	chdir(mbs_wd);
 	free(mbs_wd);
 	env->addPath(env, workdir);
@@ -231,7 +232,7 @@ void Yoyo_main(char** argv, int argc) {
 	if (env->getDefined(env, L"yjit")!=NULL) {
 		wchar_t* wcs = env->getDefined(env, L"yjit");
 		char* mbs = calloc(1, sizeof(wchar_t)*(wcslen(wcs)+1));
-		wcstombs(mbs, wcs, wcslen(wcs));
+		wcstombs(mbs, wcs, sizeof(wchar_t) * wcslen(wcs));
 		void* handle = dlopen(mbs, RTLD_NOW);
 		if (handle!=NULL) {
 			void* ptr = dlsym(handle, "getYoyoJit");

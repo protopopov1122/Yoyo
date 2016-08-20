@@ -62,7 +62,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_YJI) {
 	if (path == NULL)
 		return getNull(th);
 	char* cpath = calloc(1, sizeof(wchar_t) * wcslen(path) + 1);
-	wcstombs(cpath, path, wcslen(path));
+	wcstombs(cpath, path, sizeof(wchar_t) * wcslen(path));
 	void* h = dlopen(cpath, RTLD_LAZY | RTLD_GLOBAL);
 	free(cpath);
 	void* ptr = dlsym(h, "Yoyo_initYJI");
@@ -139,7 +139,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
 	wchar_t* wstr = toString(args[0], th);
 	char* cstr = malloc(sizeof(wchar_t) * wcslen(wstr) + 1);
-	wcstombs(cstr, wstr, wcslen(wstr));
+	wcstombs(cstr, wstr, sizeof(wchar_t) * wcslen(wstr));
 	cstr[wcslen(wstr)] = '\0';
 	void* handle = dlopen(NULL, RTLD_LAZY);
 	YCallable clb;
@@ -169,7 +169,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_NATIVE) {
 YOYO_FUNCTION(YSTD_SYSTEM_SHARED_LIBRARY) {
 	wchar_t* wstr = toString(args[0], th);
 	char* cstr = malloc(sizeof(wchar_t) * wcslen(wstr) + 1);
-	wcstombs(cstr, wstr, wcslen(wstr));
+	wcstombs(cstr, wstr, sizeof(wchar_t) * wcslen(wstr));
 	cstr[wcslen(wstr)] = '\0';
 	void* handle = dlopen(cstr, RTLD_LAZY | RTLD_GLOBAL);
 	free(cstr);
