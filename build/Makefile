@@ -22,7 +22,7 @@ dbg_debug=-g3 -ggdb -pg
 dbg_release=
 dbg=$(dbg_$(target))
 
-c_platform_linux=-rdynamic -lm -lpthread -ldl -DYSTD=$(SHARE_DIRECTORY)/yoyo/YStd
+c_platform_linux=-fopenmp -rdynamic -lm -lpthread -ldl -DYSTD=$(SHARE_DIRECTORY)/yoyo/YStd
 c_platform_win=-static -Wno-pedantic -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi -lpthread
 c_platform=$(c_platform_$(platform))
 

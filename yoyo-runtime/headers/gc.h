@@ -25,6 +25,7 @@ typedef struct YoyoObject {
 	uint16_t linkc;
 	void (*free)(struct YoyoObject*);
 	clock_t age;
+	uint16_t stage;
 
 	struct YoyoObject* prev;
 } YoyoObject;
@@ -41,9 +42,13 @@ typedef struct GarbageCollector {
 YoyoObject* initYoyoObject(YoyoObject*, void (*)(YoyoObject*),
 		void (*)(YoyoObject*));
 
-GarbageCollector* newPlainGC(size_t);
+GarbageCollector* newPlainGC();
+GarbageCollector* newGenerationalGC(size_t, size_t);
 YoyoObject* initAtomicYoyoObject(YoyoObject*, void (*)(YoyoObject*));
 
 #define MARK(ptr) if (ptr!=NULL&&!((YoyoObject*) ptr)->marked) ((YoyoObject*) ptr)->mark((YoyoObject*) ptr);
+
+#define GENERATIONAL_GC_GEN_COUNT 3
+#define GENERATIONAL_GC_GEN_GAP 5
 
 #endif

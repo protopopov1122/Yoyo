@@ -260,7 +260,22 @@ YRuntime* newRuntime(Environment* env, YDebug* debug) {
 	runtime->threads = NULL;
 	runtime->thread_count = 0;
 
-	runtime->gc = newPlainGC(1000);
+	if (env->getDefined(env, L"GCGenerational")!=NULL) {
+		size_t genCount = GENERATIONAL_GC_GEN_COUNT;
+		size_t genGap = GENERATIONAL_GC_GEN_GAP;
+		if (env->getDefined(env, L"GCGenerationCount")!=NULL) {
+			size_t sz = wcstoul(env->getDefined(env, L"GCGenerationCount"), NULL, 0);
+			if (sz>0)
+				genCount = sz;
+		}
+		if (env->getDefined(env, L"GCGenerationGap")!=NULL) {
+			size_t sz = wcstoul(env->getDefined(env, L"GCGenerationGap"), NULL, 0);
+			if (sz>0)
+				genGap = sz;
+		}
+		runtime->gc = newGenerationalGC(genCount, genGap);
+	} else
+		runtime->gc = newPlainGC();
 	runtime->free = freeRuntime;
 	if (env->getDefined(env, L"objects")!=NULL&&
 		wcscmp(env->getDefined(env, L"objects"), L"tree")==0)

@@ -29,7 +29,7 @@
 #define OBJ_TYPE TOWCS(OBJECTS)
 #else
 #define OBJ_TYPE L"hash"
-#endif
+#endif 
 
 void Signal_handler(int sig) {
 	printf("Yoyo aborting. Please report bug at https://github.com/protopopov1122/Yoyo\n");
@@ -227,6 +227,10 @@ void Yoyo_main(char** argv, int argc) {
 	env->addPath(env, workdir);
 	env->addPath(env, libdir == NULL ? YSTD_PATH : libdir);
 	env->define(env, L"objects", OBJ_TYPE);
+#ifdef GCGenerational
+	if (env->getDefined(env, L"GCPlain")==NULL)
+		env->define(env, L"GCGenerational", L"");
+#endif
 
 	JitCompiler* jit = NULL;
 	if (env->getDefined(env, L"yjit")!=NULL) {

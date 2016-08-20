@@ -23,6 +23,7 @@ YoyoObject* initYoyoObject(YoyoObject* o, void (*mark)(YoyoObject*),
 	o->free = hfree;
 	o->mark = mark;
 	o->age = clock();
+	o->stage = 0;
 	o->prev = NULL;
 	return o;
 }
@@ -116,7 +117,7 @@ void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 	}
 	MUTEX_UNLOCK(&gc->mutex);
 }
-GarbageCollector* newPlainGC(size_t icapacity) {
+GarbageCollector* newPlainGC() {
 	PlainGC* gc = malloc(sizeof(PlainGC));
 
 	gc->objects = NULL;
