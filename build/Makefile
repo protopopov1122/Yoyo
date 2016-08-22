@@ -22,13 +22,13 @@ dbg_debug=-g3 -ggdb -pg
 dbg_release=
 dbg=$(dbg_$(target))
 
-c_platform_linux=-fopenmp -rdynamic -lm -lpthread -ldl -DYSTD=$(SHARE_DIRECTORY)/yoyo/YStd
-c_platform_win=-static -Wno-pedantic -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi -lpthread
-c_platform=$(c_platform_$(platform))
-
 misc=
 
-cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers $(c_platform) $(misc)
+c_platform_linux=-fopenmp -rdynamic -lm -lpthread -ldl -DYSTD=$(SHARE_DIRECTORY)/yoyo/YStd
+c_platform_win=-static -Wno-pedantic -Wno-unused-result -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi -lpthread
+c_platform=$(c_platform_$(platform)) $(misc)
+
+cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers
 c_source=../yoyo-util/*.c ../yoyo-vm/*.c ../YStd/native/*.c ../yoyo-parser/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c
 
 yoyo_linux=yoyo
@@ -46,6 +46,6 @@ uninstall:
 	@rm -rf $(BIN_DIRECTORY)/$(yoyo)
 yoyo:
 	./gen_opcodes.sh
-	$(cc) $(cflags) -o $(yoyo) $(c_source) 
+	$(cc) $(cflags) -o $(yoyo) $(c_source) $(c_platform)
 clean:
 	@./clean.sh
