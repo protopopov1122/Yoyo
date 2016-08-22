@@ -45,6 +45,7 @@ build/*
 !build/gen_opcodes.sh
 !build/Win32
 !build/clean.sh
+!build/PGO.sh
 .cproject
 .project
 .settings

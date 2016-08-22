@@ -215,7 +215,7 @@ NewReduce(Object_reduce) {
 			} else {
 				/*It must be field definition.
 				 * Get field name.*/
-				if (!handle->tokens[0].type==TokenIdentifier) {
+				if (handle->tokens[0].type!=TokenIdentifier) {
 					ParseError(L"Expected identifier or '}'", freestmt, handle);
 				}
 				wchar_t* id = handle->tokens[0].value.id;

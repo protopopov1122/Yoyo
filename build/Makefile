@@ -5,6 +5,8 @@ arch=x64
 PREFIX=
 BIN_DIRECTORY=$(PREFIX)/usr/bin
 SHARE_DIRECTORY=$(PREFIX)/usr/share
+YSTD=$(SHARE_DIRECTORY)/yoyo/YStd
+
 
 cc_linux_x86=gcc -m32 -mtune=i686
 cc_linux_x64=gcc -m64 -mtune=generic
@@ -24,7 +26,7 @@ dbg=$(dbg_$(target))
 
 misc=
 
-c_platform_linux=-fopenmp -rdynamic -lm -lpthread -ldl -DYSTD=$(SHARE_DIRECTORY)/yoyo/YStd
+c_platform_linux=-rdynamic -lm -lpthread -ldl -DYSTD=$(YSTD)
 c_platform_win=-static -Wno-pedantic -Wno-unused-result -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi -lpthread
 c_platform=$(c_platform_$(platform)) $(misc)
 
@@ -38,9 +40,9 @@ yoyo=$(yoyo_$(platform))
 all: yoyo
 install:
 	@install -D $(yoyo) $(BIN_DIRECTORY)/$(yoyo)
-	@mkdir -p $(SHARE_DIRECTORY)/yoyo/YStd
-	@cp -r ../YStd/*.yoyo $(SHARE_DIRECTORY)/yoyo/YStd
-	@cp ../examples/repl.yoyo $(SHARE_DIRECTORY)/yoyo/YStd
+	@mkdir -p $(YSTD)
+	@cp -r ../YStd/*.yoyo $(YSTD)
+	@cp ../examples/repl.yoyo $(YSTD)
 uninstall:
 	@rm -rf $(SHARE_DIRECTORY)/yoyo
 	@rm -rf $(BIN_DIRECTORY)/$(yoyo)

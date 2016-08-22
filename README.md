@@ -50,7 +50,8 @@ yoyo ../YStd ../examples/repl.yoyo # Launch REPL
 You can also build with GCC Profile-Guided Optimizations(tested only on Linux GCC). It will take some time but resulting executable will be much faster.
 ```bash
 ./PGO.sh
-./PGO.sh arch="x86"
+./PGO.sh "arch=x86"
+./PGO.sh "arch=x86" "-DIntPool=5000"	# You can specify make and test lauch options(e.g. switch garbage collectors or object implementations
 ```
 Project contains 'yoyo.vim' file that provides Yoyo syntax highlighting in Vim.
 In build directory will appear executable.
