@@ -1,36 +1,5 @@
 sys.types = sys.native("YSTD_TYPES_TYPES", null, null)();
 sys.types.signature = sys.native("YSTD_TYPES_SIGNATURE", null, null);
-sys.types.treeObject=overload(sys.native("YSTD_TYPES_TREE_OBJECT",
-	sys.types.signature(sys.types.struct, sys.types.struct), null)
-	$() sys.types.treeObject(null));
-sys.types.hashObject=overload(sys.native("YSTD_TYPES_HASH_OBJECT",
-	sys.types.signature(sys.types.struct, sys.types.struct), null)
-	$() sys.types.hashObject(null));
-
-Float = object {
-	parse: sys.native("YSTD_TYPES_FLOAT_PARSE",
-		sys.types.signature(sys.types.float, sys.types.any), null)	
-	Inf: sys.native("YSTD_TYPES_FLOAT_INF",
-		sys.types.signature(sys.types.float), null)()
-	NaN: sys.native("YSTD_TYPES_FLOAT_NAN",
-		sys.types.signature(sys.types.float), null)()
-}
-
-Int = object {
-	parse: sys.native("YSTD_TYPES_INTEGER_PARSE_INT",
-		sys.types.signature(sys.types.int, sys.types.any), null)
-	MAX: sys.native("YSTD_TYPES_INTEGER_MAX",
-		sys.types.signature(sys.types.int), null)()
-	MIN: sys.native("YSTD_TYPES_INTEGER_MIN",
-		sys.types.signature(sys.types.int), null)()
-}
-
-String = object {
-	fromByteArray: sys.native("YSTD_TYPES_STRING_FROM_BYTES",
-		sys.types.signature(sys.types.any, [sys.types.int].types()), null)
-	fromMultiByteArray: sys.native("YSTD_TYPES_STRING_FROM_MULTIBYTES",
-		sys.types.signature(sys.types.any, [sys.types.int].types()), null)
-}
 
 threads = object {
 	newThread: sys.native("YSTD_THREADS_NEW_THREAD",
