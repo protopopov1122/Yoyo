@@ -108,7 +108,8 @@ void* GCThread(void* ptr) {
 		MARK(runtime->Constants.NullPtr);
 		MARK(runtime->Constants.pool);
 		MARK(runtime->global_scope);
-#define MARKTYPE(type) MARK(runtime->type.TypeConstant);
+#define MARKTYPE(type) MARK(runtime->type.TypeConstant);\
+												MARK(runtime->type.prototype);
 		MARKTYPE(ArrayType);
 		MARKTYPE(BooleanType);
 		MARKTYPE(DeclarationType);
@@ -148,12 +149,16 @@ YValue* invokeLambda(YLambda* l, YObject* scope, YValue** targs, size_t argc,
 	YValue** args = NULL;
 
 	if (scope == NULL && l->sig->method) {
-		if (argc == 0 || targs[0]->type != &th->runtime->ObjectType) {
+		if (argc == 0) {
 			throwException(L"LambdaArgumentMismatch", NULL, 0, th);
 			((YoyoObject*) l)->linkc--;
 			return getNull(th);
 		}
-		scope = (YObject*) targs[0];
+		if (targs[0]->type != &th->runtime->ObjectType) {
+			scope = th->runtime->newObject(NULL, th);
+			OBJECT_NEW(scope, L"value", targs[0], th);
+		} else
+			scope = (YObject*) targs[0];
 		targs++;
 		argc--;
 	}
@@ -249,7 +254,7 @@ YObject* new_yoyo_thread(YRuntime* runtime, YLambda* lambda) {
 
 // Create new runtime
 YRuntime* newRuntime(Environment* env, YDebug* debug) {
-	YRuntime* runtime = malloc(sizeof(YRuntime));
+	YRuntime* runtime = calloc(1, sizeof(YRuntime));
 	runtime->debugger = debug;
 
 	runtime->env = env;

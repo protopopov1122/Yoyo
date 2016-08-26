@@ -365,6 +365,7 @@ typedef struct HashTableObject {
 void HashTable_mark(YoyoObject* ptr) {
 	ptr->marked = true;
 	HashTableObject* object = (HashTableObject*) ptr;
+	MUTEX_LOCK(&object->mutex);
 	MARK(object->super);
 	for (size_t i=0;i<object->size;i++) {
 		HashTableEntry* e = object->table[i];
@@ -374,6 +375,7 @@ void HashTable_mark(YoyoObject* ptr) {
 			e = e->next;
 		}
 	}
+	MUTEX_UNLOCK(&object->mutex);
 }
 void HashTable_free(YoyoObject* ptr) {
 	HashTableObject* object = (HashTableObject*) ptr;

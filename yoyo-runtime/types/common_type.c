@@ -75,6 +75,15 @@ YOYO_FUNCTION(Common_property_getType) {
 #undef INIT
 
 YValue* Common_readProperty(int32_t key, YValue* v, YThread* th) {
+	if (key==YOYOID(L"prototype", th)) {
+		if (v->type->prototype==NULL)
+			v->type->prototype = th->runtime->newObject(NULL, th);
+		return (YValue*) v->type->prototype;
+	}
+	if (v->type->prototype!=NULL
+		&&v->type->prototype->contains(v->type->prototype, key, th)) {
+		return v->type->prototype->get(v->type->prototype, key, th);
+	}
 	NEW_METHOD(TO_STRING, Common_property_toString, 0, v);
 	NEW_METHOD(HASHCODE, Common_property_hashCode, 0, v);
 	NEW_METHOD(EQUALS, Common_property_equals, 1, v);

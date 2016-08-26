@@ -254,10 +254,15 @@ NewReduce(Object_reduce) {
 }
 
 NewValidate(Lambda_validate) {
-	return AssertOperator(handle->tokens[0], DollarSignOperator);
+	return AssertOperator(handle->tokens[0], DollarSignOperator) ||
+					(AssertKeyword(handle->tokens[0], MethodKeyword) &&
+						AssertOperator(handle->tokens[1], OpeningParentheseOperator));
 }
 NewReduce(Lambda_reduce) {
 	ExtractCoords(file, line, charPos, handle);
+	bool methL = false;
+	if (AssertKeyword(handle->tokens[0], MethodKeyword))
+		methL = true;
 	shift(handle);
 	size_t length = 0;
 	wchar_t** args = NULL;
@@ -324,7 +329,7 @@ NewReduce(Lambda_reduce) {
 			{ free(args); for (size_t i=0;i<length;i++) if (argTypes[i]!=NULL) argTypes[i]->free(argTypes[i]); free(argTypes); if (retType!=NULL) retType->free(retType); },
 			handle);
 	/*Build lambda node*/
-	YNode* out = newLambdaNode(false, args, argTypes, length, vararg, retType,
+	YNode* out = newLambdaNode(methL, args, argTypes, length, vararg, retType,
 			body);
 	SetCoords(out, file, line, charPos);
 	return out;

@@ -73,6 +73,7 @@ typedef struct YType {
 	Operations oper;
 	YoyoType* TypeConstant;
 	wchar_t* wstring;
+	YObject* prototype;
 } YType;
 
 typedef struct SourceIdentifier {

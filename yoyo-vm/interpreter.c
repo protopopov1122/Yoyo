@@ -390,6 +390,10 @@ YValue* execute(YThread* th) {
 				YValue* scl = getRegister(iarg2, th);
 				if (scl->type == &th->runtime->ObjectType)
 					scope = (YObject*) scl;
+				else {
+					scope = th->runtime->newObject(NULL, th);
+					OBJECT_NEW(scope, L"value", scl, th);
+				}
 			}
 			if (val->type == &th->runtime->LambdaType) {
 

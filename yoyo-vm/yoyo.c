@@ -28,7 +28,7 @@
 #ifdef OBJECTS
 #define OBJ_TYPE TOWCS(OBJECTS)
 #else
-#define OBJ_TYPE L"hash"
+#define OBJ_TYPE L"tree"
 #endif 
 
 void Signal_handler(int sig) {
