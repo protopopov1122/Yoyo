@@ -226,7 +226,8 @@ void Yoyo_main(char** argv, int argc) {
 	free(mbs_wd);
 	env->addPath(env, workdir);
 	env->addPath(env, libdir == NULL ? YSTD_PATH : libdir);
-	env->define(env, L"objects", OBJ_TYPE);
+	if (env->getDefined(env, L"objects")==NULL)
+		env->define(env, L"objects", OBJ_TYPE);
 #ifdef GCGenerational
 	if (env->getDefined(env, L"GCPlain")==NULL)
 		env->define(env, L"GCGenerational", L"");

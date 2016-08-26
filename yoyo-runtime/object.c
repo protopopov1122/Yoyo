@@ -476,11 +476,11 @@ bool HashObject_contains(YObject* o, int32_t id, YThread* th) {
 	HashTableObject* obj = (HashTableObject*) o;
 	MUTEX_LOCK(&obj->mutex);
 	bool res = false;
-	if (obj->super != NULL &&
+	if (HashTable_get(obj, id) != NULL)
+		res = true;
+	else if (obj->super != NULL &&
 			obj->super->contains(obj->super, id, th))
 		res = true;
-	else
-		res = HashTable_get(obj, id) != NULL;
 	MUTEX_UNLOCK(&obj->mutex);
 	return res;
 }

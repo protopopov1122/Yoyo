@@ -1,4 +1,5 @@
 /* This file contains complex stress tests to get proper profile and build Yoyo using GCC PGO to get fine performance */
+sys.load("util.yoyo");
 
 print("Integer profile generation");
 for i=0;i<1000;i++ {
@@ -50,8 +51,8 @@ parent = object;
 for i=0;i<1000;i++ {
 	if (i % 10 == 0)
 		print(i/10+"%");
-	tree = sys.types.treeObject(parent);
-	hash = sys.types.hashObject(parent);
+	tree = Object.treeObject(parent);
+	hash = Object.hashObject(parent);
 	tree.a = hash;
 	hash.a = tree;
 	tree.b = i;
