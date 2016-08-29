@@ -483,6 +483,7 @@ bool HashObject_contains(YObject* o, int32_t id, YThread* th) {
 	else if (obj->super != NULL &&
 			obj->super->contains(obj->super, id, th))
 		res = true;
+
 	MUTEX_UNLOCK(&obj->mutex);
 	return res;
 }
@@ -581,6 +582,7 @@ YoyoType* HashObject_getType(YObject* o, int32_t id, YThread* th) {
 }
 
 YObject* newHashObject(YObject* super, YThread* th) {
+	MARK(super);	// Do not delete. Prevents SEGFAULT
 	if (HashObjectAlloc == NULL) {
 		HashObjectAlloc = newMemoryAllocator(sizeof(HashTableObject), 250);
 		EntryAlloc = newMemoryAllocator(sizeof(HashTableEntry), 250);

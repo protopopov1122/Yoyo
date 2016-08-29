@@ -103,16 +103,15 @@ void plain_gc_free(GarbageCollector* _gc) {
 void plain_gc_registrate(GarbageCollector* _gc, YoyoObject* o) {
 	PlainGC* gc = (PlainGC*) _gc;
 	MUTEX_LOCK(&gc->mutex);
+	o->marked = true;
 	if (!gc->collecting) {
 		o->prev = gc->objects;
 		gc->objects = o;
-		o->marked = true;
 		gc->size++;
 	}
 	else {
 		o->prev = gc->temporary;
 		gc->temporary = o;
-		o->marked = true;
 		gc->temporary_size++;
 	}
 	MUTEX_UNLOCK(&gc->mutex);
