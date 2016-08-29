@@ -115,7 +115,7 @@ typedef struct Environment {
 	size_t argc;
 
 	void (*free)(struct Environment*, struct YRuntime*);
-	YValue* (*eval)(struct Environment*, YRuntime*, InputStream*, wchar_t*,
+	YValue* (*execute)(struct Environment*, YRuntime*, InputStream*, wchar_t*,
 			YObject*);
 	wchar_t* (*getDefined)(struct Environment*, wchar_t*);
 	void (*define)(struct Environment*, wchar_t*, wchar_t*);

@@ -52,7 +52,7 @@ var hashMap, hashSet, list, range, xrange;
 		return lst;
 	}
 	
-	def range(start->sys.types.int, end->sys.types.int, step->sys.types.int) util.arrays.wrapObject(object {
+	def range(start->sys.types.int, end->sys.types.int, step->sys.types.int) util.Array.wrapObject(object {
 	        method size() (end - start) / step
 	        method get(i) if i<0 || i>=self.size()
 	    			throw "WrongIndex";

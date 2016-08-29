@@ -91,7 +91,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
 	YObject* lib = th->runtime->newObject(runtime->global_scope, th);
-	runtime->env->eval(runtime->env, th->runtime,
+	runtime->env->execute(runtime->env, th->runtime,
 			file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
 			lib);
 	free(wstr);
@@ -100,7 +100,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_LOAD_LIBRARY) {
 YOYO_FUNCTION(YSTD_SYSTEM_LOAD) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	YValue* out = runtime->env->eval(runtime->env, th->runtime,
+	YValue* out = runtime->env->execute(runtime->env, th->runtime,
 			file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
 			(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 	free(wstr);
@@ -118,7 +118,7 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 		return loaded->get(loaded, id, th);
 	}
 	YObject* lib = th->runtime->newObject(runtime->global_scope, th);
-	runtime->env->eval(runtime->env, th->runtime,
+	runtime->env->execute(runtime->env, th->runtime,
 			file_input_stream(runtime->env->getFile(runtime->env, wstr)), wstr,
 			lib);
 	free(wstr);
@@ -128,9 +128,14 @@ YOYO_FUNCTION(YSTD_SYSTEM_IMPORT) {
 YOYO_FUNCTION(YSTD_SYSTEM_EVAL) {
 	YRuntime* runtime = th->runtime;
 	wchar_t* wstr = toString(args[0], th);
-	YValue* out = runtime->env->eval(runtime->env, runtime,
-			string_input_stream(wstr), wstr,
+	wchar_t* name = calloc(wcslen(wstr)+3, sizeof(wchar_t));
+	name[0] = L'\"';
+	wcscat(name, wstr);
+	name[wcslen(wstr)+1] = L'\"';
+	YValue* out = runtime->env->execute(runtime->env, runtime,
+			string_input_stream(wstr), name,
 			(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
+	free(name);
 	free(wstr);
 	return out;
 	return getNull(th);

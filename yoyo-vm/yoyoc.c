@@ -119,7 +119,7 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	env->env.in_stream = stdin;
 	env->env.err_stream = stderr;
 	env->env.free = YoyoC_free;
-	env->env.eval = YoyoC_eval;
+	env->env.execute = YoyoC_eval;
 	env->env.getDefined = YoyoC_getenv;
 	env->env.define = YoyoC_putenv;
 	env->env.getFile = YoyoC_getfile;

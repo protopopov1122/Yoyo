@@ -19,10 +19,10 @@ Object = object {
 		null, null)
 	hashObject: overload(sys.native("YSTD_TYPES_HASH_OBJECT",
 		sys.types.signature(sys.types.struct, sys.types.struct), null)
-		$() sys.types.hashObject(null))
+		$() hashObject(null))
 	treeObject: overload(sys.native("YSTD_TYPES_TREE_OBJECT",
 		sys.types.signature(sys.types.struct, sys.types.struct), null)
-		$() sys.types.treeObject(null))
+		$() treeObject(null))
 }
 
 Float = object {

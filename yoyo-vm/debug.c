@@ -462,7 +462,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 			if (argc > 1) {
 				wchar_t* code = &origLine[wcslen(L"eval") + 1];
 				th->runtime->state = RuntimeRunning;
-				YValue* val = th->runtime->env->eval(th->runtime->env,
+				YValue* val = th->runtime->env->execute(th->runtime->env,
 						th->runtime, string_input_stream(code), L"<eval>",
 						(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 				if (th->exception != NULL) {
@@ -590,7 +590,7 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 						 * executes this condition */
 						th->runtime->state = RuntimeRunning;
 						YValue* val =
-								th->runtime->env->eval(th->runtime->env,
+								th->runtime->env->execute(th->runtime->env,
 										th->runtime,
 										string_input_stream(dbbp->condition),
 										L"<eval>",
