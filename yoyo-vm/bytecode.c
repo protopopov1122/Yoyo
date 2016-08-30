@@ -155,45 +155,45 @@ wchar_t* Bytecode_getSymbolById(ILBytecode* bc, int32_t key) {
 int32_t Bytecode_addIntegerConstant(ILBytecode* bc, int64_t cnst) {
 	for (size_t i = 0; i < bc->constants.size; i++)
 		if (bc->constants.pool[i]->type == IntegerC
-				&& ((IntConstant*) bc->constants.pool[i])->value == cnst)
+				&& bc->constants.pool[i]->value.i64 == cnst)
 			return bc->constants.pool[i]->id;
 	bc->constants.pool = realloc(bc->constants.pool,
 			sizeof(Constant*) * (bc->constants.size + 1));
-	IntConstant* out = malloc(sizeof(IntConstant));
-	out->cnst.id = bc->constants.size;
-	out->cnst.type = IntegerC;
-	out->value = cnst;
-	bc->constants.pool[out->cnst.id] = (Constant*) out;
+	Constant* out = malloc(sizeof(Constant));
+	out->id = bc->constants.size;
+	out->type = IntegerC;
+	out->value.i64 = cnst;
+	bc->constants.pool[out->id] = (Constant*) out;
 	return bc->constants.size++;
 }
 
 int32_t Bytecode_addFloatConstant(ILBytecode* bc, double cnst) {
 	for (size_t i = 0; i < bc->constants.size; i++)
 		if (bc->constants.pool[i]->type == FloatC
-				&& ((FloatConstant*) bc->constants.pool[i])->value == cnst)
+				&& bc->constants.pool[i]->value.fp64 == cnst)
 			return bc->constants.pool[i]->id;
 	bc->constants.pool = realloc(bc->constants.pool,
 			sizeof(Constant*) * (bc->constants.size + 1));
-	FloatConstant* out = malloc(sizeof(FloatConstant));
-	out->cnst.id = bc->constants.size;
-	out->cnst.type = FloatC;
-	out->value = cnst;
-	bc->constants.pool[out->cnst.id] = (Constant*) out;
+	Constant* out = malloc(sizeof(Constant));
+	out->id = bc->constants.size;
+	out->type = FloatC;
+	out->value.fp64 = cnst;
+	bc->constants.pool[out->id] = (Constant*) out;
 	return bc->constants.size++;
 }
 
 int32_t Bytecode_addBooleanConstant(ILBytecode* bc, bool cnst) {
 	for (size_t i = 0; i < bc->constants.size; i++)
 		if (bc->constants.pool[i]->type == BooleanC
-				&& ((BooleanConstant*) bc->constants.pool[i])->value == cnst)
+				&& bc->constants.pool[i]->value.boolean == cnst)
 			return bc->constants.pool[i]->id;
 	bc->constants.pool = realloc(bc->constants.pool,
 			sizeof(Constant*) * (bc->constants.size + 1));
-	BooleanConstant* out = malloc(sizeof(BooleanConstant));
-	out->cnst.id = bc->constants.size;
-	out->cnst.type = BooleanC;
-	out->value = cnst;
-	bc->constants.pool[out->cnst.id] = (Constant*) out;
+	Constant* out = malloc(sizeof(Constant));
+	out->id = bc->constants.size;
+	out->type = BooleanC;
+	out->value.boolean = cnst;
+	bc->constants.pool[out->id] = (Constant*) out;
 	return bc->constants.size++;
 }
 
@@ -205,15 +205,15 @@ int32_t Bytecode_addStringConstant(ILBytecode* bc, wchar_t* wstr1) {
 	free(wstr);
 	for (size_t i = 0; i < bc->constants.size; i++)
 		if (bc->constants.pool[i]->type == StringC
-				&& ((StringConstant*) bc->constants.pool[i])->value == cnst)
+				&& bc->constants.pool[i]->value.string_id == cnst)
 			return bc->constants.pool[i]->id;
 	bc->constants.pool = realloc(bc->constants.pool,
 			sizeof(Constant*) * (bc->constants.size + 1));
-	StringConstant* out = malloc(sizeof(StringConstant));
-	out->cnst.id = bc->constants.size;
-	out->cnst.type = StringC;
-	out->value = cnst;
-	bc->constants.pool[out->cnst.id] = (Constant*) out;
+	Constant* out = malloc(sizeof(Constant));
+	out->id = bc->constants.size;
+	out->type = StringC;
+	out->value.string_id = cnst;
+	bc->constants.pool[out->id] = (Constant*) out;
 	return bc->constants.size++;
 }
 

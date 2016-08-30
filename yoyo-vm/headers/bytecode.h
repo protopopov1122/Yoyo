@@ -20,43 +20,19 @@
 #include "core.h"
 #include "jit.h"
 
-typedef struct SymbolEntry {
-	int32_t key;
-	wchar_t* value;
-} SymbolEntry;
-
-typedef struct SymbolTable {
-	SymbolEntry* table;
-	size_t length;
-} SymbolTable;
-
 typedef struct Constant {
 	int32_t id;
 	enum {
 		IntegerC, FloatC, BooleanC, StringC, NullC
 	} type;
+	union {
+		int64_t i64;
+		double fp64;
+		bool boolean;
+		int32_t string_id;
+	} value;
 } Constant;
 typedef Constant YConstant;
-
-typedef struct IntConstant {
-	Constant cnst;
-	int64_t value;
-} IntConstant;
-
-typedef struct FloatConstant {
-	Constant cnst;
-	double value;
-} FloatConstant;
-
-typedef struct BooleanConstant {
-	Constant cnst;
-	bool value;
-} BooleanConstant;
-
-typedef struct StringConstant {
-	Constant cnst;
-	int32_t value;
-} StringConstant;
 
 typedef struct ConstantPool {
 	Constant** pool;

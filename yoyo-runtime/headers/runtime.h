@@ -39,6 +39,13 @@
 
 #define CHECK_EQUALS(v1, v2, th) ((v1->type->oper.compare(v1, v2, th)&COMPARE_EQUALS)!=0)
 
+#ifndef INT_CACHE_SIZE
+#define INT_CACHE_SIZE 8192 /* 2**12 */
+#endif
+#ifndef INT_POOL_SIZE
+#define INT_POOL_SIZE 2048 /* 2**11 */
+#endif
+
 typedef YValue* (*BinaryOperation)(YValue*, YValue*, YThread*);
 typedef YValue* (*UnaryOperation)(YValue*, YThread*);
 typedef struct Operations {
@@ -90,7 +97,7 @@ typedef struct LocalFrame {
 typedef struct YThread {
 	uint32_t id;
 	enum {
-		Working, Paused
+		ThreadWorking, ThreadPaused
 	} state;
 
 	MUTEX mutex;
@@ -123,13 +130,6 @@ typedef struct Environment {
 	void (*addPath)(struct Environment*, wchar_t*);
 	wchar_t** (*getLoadedFiles)(struct Environment*);
 } Environment;
-
-#ifndef INT_CACHE_SIZE
-#define INT_CACHE_SIZE 8192 /* 2**12 */
-#endif
-#ifndef INT_POOL_SIZE
-#define INT_POOL_SIZE 2048 /* 2**11 */
-#endif
 
 typedef struct RuntimeConstants {
 	size_t IntCacheSize;

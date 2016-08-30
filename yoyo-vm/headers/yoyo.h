@@ -18,6 +18,22 @@
 
 #define VERSION "0.01-alpha"
 
+#define STR_VALUE(arg)      #arg
+#define TOWCS(name) L""STR_VALUE(name)
+// Configuration in compile-time
+#ifdef YSTD 
+#define YSTD_PATH TOWCS(YSTD)
+#else
+#define YSTD_PATH L"."
+#endif
+
+
+#ifdef OBJECTS
+#define OBJ_TYPE TOWCS(OBJECTS)
+#else
+#define OBJ_TYPE L"hash"
+#endif 
+
 #ifdef __cplusplus
 extern "C" {
 #endif

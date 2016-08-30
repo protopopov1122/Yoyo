@@ -16,21 +16,6 @@
 
 #include "yoyo.h"
 
-#define STR_VALUE(arg)      #arg
-#define TOWCS(name) L""STR_VALUE(name)
-// Configuration in compile-time
-#ifdef YSTD 
-#define YSTD_PATH TOWCS(YSTD)
-#else
-#define YSTD_PATH L"."
-#endif
-
-#ifdef OBJECTS
-#define OBJ_TYPE TOWCS(OBJECTS)
-#else
-#define OBJ_TYPE L"tree"
-#endif 
-
 void Signal_handler(int sig) {
 	printf("Yoyo aborting. Please report bug at https://github.com/protopopov1122/Yoyo\n");
 	switch (sig) {

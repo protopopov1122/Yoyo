@@ -1,4 +1,4 @@
-var hashMap, hashSet, list, range, xrange;
+var hashMap, hashSet, list, range;
 
 {
 	util = import("util.yoyo");

@@ -168,11 +168,11 @@ YNode* optimize_node(YNode*);
 #define PrintError(mess, handle) {\
                                             fprintf(handle->error_stream, "%ls", mess);\
                                             if (handle->tokens[0].type!=TokenEOF)\
-                                                fprintf(handle->error_stream, " at '%ls'(%" PRIu32 ":%" PRIu32 ")",\
+                                                fprintf(handle->error_stream, " at %ls(%" PRIu32 ":%" PRIu32 ")",\
                                                 	handle->fileName,\
                                                 	handle->tokens[0].line,\
                                                     handle->tokens[0].charPos);\
-                                            else fprintf(handle->error_stream," at '%ls'(%" PRId32 ":%" PRId32 ")",\
+                                            else fprintf(handle->error_stream," at %ls(%" PRId32 ":%" PRId32 ")",\
                                             		handle->fileName,\
                                             		handle->line,\
                                                     handle->charPos);\

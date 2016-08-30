@@ -56,23 +56,6 @@ YOYO_FUNCTION(YSTD_SYSTEM_ARGS) {
 
 	return (YValue*) newTuple((YArray*) yargs, th);
 }
-typedef YValue* (*Yoyo_initYJI)(YRuntime*);
-YOYO_FUNCTION(YSTD_SYSTEM_YJI) {
-	wchar_t* path = th->runtime->env->getDefined(th->runtime->env, L"libyji");
-	if (path == NULL)
-		return getNull(th);
-	char* cpath = calloc(1, sizeof(wchar_t) * wcslen(path) + 1);
-	wcstombs(cpath, path, sizeof(wchar_t) * wcslen(path));
-	void* h = dlopen(cpath, RTLD_LAZY | RTLD_GLOBAL);
-	free(cpath);
-	void* ptr = dlsym(h, "Yoyo_initYJI");
-	Yoyo_initYJI *fun_ptr = (Yoyo_initYJI*) &ptr;
-	Yoyo_initYJI init = *fun_ptr;
-	if (init != NULL)
-		return init(th->runtime);
-	else
-		return getNull(th);
-}
 YOYO_FUNCTION(YSTD_SYSTEM_EXIT) {
 	exit(0);
 	return getNull(th);
@@ -187,14 +170,12 @@ YOYO_FUNCTION(YSTD_SYSTEM_SHARED_LIBRARY) {
 
 YObject* Yoyo_SystemObject(ILBytecode* bc, YThread* th) {
 	YObject* sys = OBJECT(NULL, th);
-	OBJECT_NEW(sys, L"bytecode", newRawPointer(bc, free, th), th);
 	OBJECT_NEW(sys, L"imported", OBJECT(NULL, th), th);
 
 	METHOD(sys, L"eval", YSTD_SYSTEM_EVAL, 1, th);
 	METHOD(sys, L"load", YSTD_SYSTEM_LOAD, 1, th);
 	METHOD(sys, L"loadLibrary", YSTD_SYSTEM_LOAD_LIBRARY, 1, th);
 	METHOD(sys, L"import", YSTD_SYSTEM_IMPORT, 1, th);
-	METHOD(sys, L"yji", YSTD_SYSTEM_YJI, 0, th);
 	METHOD(sys, L"exit", YSTD_SYSTEM_EXIT, 0, th);
 	METHOD(sys, L"native", YSTD_SYSTEM_NATIVE, 3, th);
 	METHOD(sys, L"sharedLibrary", YSTD_SYSTEM_SHARED_LIBRARY, 1, th);

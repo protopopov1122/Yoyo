@@ -374,21 +374,21 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						switch (cnst->type) {
 						case IntegerC:
 							fprintf(th->runtime->env->out_stream, "int %"PRId64,
-									((IntConstant*) cnst)->value);
+									cnst->value.i64);
 							break;
 						case FloatC:
 							fprintf(th->runtime->env->out_stream, "float %lf",
-									((FloatConstant*) cnst)->value);
+									cnst->value.fp64);
 							break;
 						case StringC:
 							fprintf(th->runtime->env->out_stream,
 									"string \"%ls\"",
 									bc->getSymbolById(bc,
-											((StringConstant*) cnst)->value));
+											cnst->value.string_id));
 							break;
 						case BooleanC:
 							fprintf(th->runtime->env->out_stream, "boolean %s",
-									((BooleanConstant*) cnst)->value ?
+									cnst->value.boolean ?
 											"true" : "false");
 							break;
 						case NullC:

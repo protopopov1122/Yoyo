@@ -154,10 +154,10 @@ YValue* execute(YThread* th) {
 	while (frame->pc + 13 <= code_len) {
 		// If runtime is paused then execution should be paused too.
 		if (runtime->state == RuntimePaused) {
-			th->state = Paused;
+			th->state = ThreadPaused;
 			while (runtime->state == RuntimePaused)
 				YIELD();
-			th->state = RuntimeRunning;
+			th->state = ThreadWorking;
 		}
 		// Decode opcode and arguments
 		uint8_t opcode = frame->proc->code[frame->pc];
@@ -190,18 +190,18 @@ YValue* execute(YThread* th) {
 			if (cnst != NULL) {
 				switch (cnst->type) {
 				case IntegerC:
-					val = newInteger(((IntConstant*) cnst)->value, th);
+					val = newInteger(cnst->value.i64, th);
 					break;
 				case FloatC:
-					val = newFloat(((FloatConstant*) cnst)->value, th);
+					val = newFloat(cnst->value.fp64, th);
 					break;
 				case StringC:
 					val = newString(
 							bc->getSymbolById(bc,
-									((StringConstant*) cnst)->value), th);
+									cnst->value.string_id), th);
 					break;
 				case BooleanC:
-					val = newBoolean(((BooleanConstant*) cnst)->value, th);
+					val = newBoolean(cnst->value.boolean, th);
 					break;
 				default:
 					break;

@@ -336,7 +336,7 @@ YThread* yoyo_thread(YRuntime* runtime) {
 			return th;
 	th = malloc(sizeof(YThread));
 	th->runtime = runtime;
-	th->state = Working;
+	th->state = ThreadWorking;
 	th->free = freeThread;
 	th->frame = NULL;
 	th->exception = NULL;

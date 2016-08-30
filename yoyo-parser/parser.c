@@ -557,7 +557,7 @@ NewReduce(Factor_reduce) {
 					func = NULL;
 				}
 			} else
-				ParseError(L"Expected statement or function", freestmt, handle);
+				ParseError(L"Expected statement, function of '}'", freestmt, handle);
 		}
 #undef freestmt
 		shift(handle);
