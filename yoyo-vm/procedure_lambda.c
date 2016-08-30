@@ -71,7 +71,7 @@ YoyoType* ProcedureLambda_signature(YLambda* l, YThread* th) {
 
 YLambda* newProcedureLambda(int32_t procid, ILBytecode* bc, YObject* scope,
 		int32_t* argids, YoyoLambdaSignature* sig, YThread* th) {
-	ProcedureLambda* lmbd = malloc(sizeof(ProcedureLambda));
+	ProcedureLambda* lmbd = calloc(1, sizeof(ProcedureLambda));
 
 	initYoyoObject(&lmbd->lambda.parent.o, ProcedureLambda_mark,
 			ProcedureLambda_free);
@@ -89,6 +89,7 @@ YLambda* newProcedureLambda(int32_t procid, ILBytecode* bc, YObject* scope,
 		lmbd->argids[i] = argids[i];
 
 	lmbd->lambda.execute = ProcedureLambda_exec;
+
 
 	return (YLambda*) lmbd;
 }

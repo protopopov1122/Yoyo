@@ -344,6 +344,197 @@ YObject* newTreeObject(YObject* parent, YThread* th) {
 	return (YObject*) obj;
 }
 
+MemoryAllocator* HashTableAlloc = NULL;
+MemoryAllocator* EntryAlloc = NULL;
+
+typedef struct HashTableEntry {
+	int32_t id;
+	YValue* value;
+	YoyoType* type;
+	struct HashTableEntry* prev;
+} HashTableEntry;
+
+typedef struct HashTableObject {
+	YObject parent;
+
+	MUTEX mutex;
+	YObject* super;
+	HashTableEntry** table;
+	size_t size;
+	size_t col_count;
+	float factor;
+} HashTableObject;
+
+HashTableEntry* HashTable_get(HashTableObject* obj, int32_t id) {
+	size_t index = (size_t) (id % obj->size);
+	HashTableEntry* e = obj->table[index];
+	while (e!=NULL) {
+		if (e->id == id)
+			return e;
+		e = e->prev;
+	}
+	return NULL;
+}
+
+void HashTable_remap(HashTableObject* obj) {
+	size_t newSize = obj->size * (1+obj->factor);
+	HashTableEntry** newTable = calloc(newSize, sizeof(HashTableEntry*));
+	obj->col_count = 0;
+	for (size_t i=0;i<obj->size;i++) {
+		HashTableEntry* e = obj->table[i];
+		while (e!=NULL) {
+			HashTableEntry* prev = e->prev;
+			size_t index = (size_t) (e->id % newSize);
+			e->prev = newTable[index];
+			newTable[index] = e;
+			if (e->prev!=NULL)
+				obj->col_count++;
+			e = prev;
+		}
+	}
+	obj->size = newSize;
+	free(obj->table);
+	obj->table = newTable;
+}
+
+HashTableEntry* HashTable_put(HashTableObject* obj, int32_t id) {
+	size_t index = (size_t) (id % obj->size);
+	HashTableEntry* e = obj->table[index];
+	while (e!=NULL) {
+		if (e->id == id)
+			return e;
+		e = e->prev;
+	}
+	e = EntryAlloc->alloc(EntryAlloc);
+	e->id = id;
+	e->value = NULL;
+	e->type = NULL;
+	e->prev = obj->table[index];
+	if (e->prev!=NULL)
+		obj->col_count++;
+	obj->table[index] = e;
+	if ((float) obj->col_count / (float) obj->size > obj->factor)
+		HashTable_remap(obj);
+	return e;
+}	
+
+bool HashObject_contains(YObject* o, int32_t id, YThread* th) {
+	HashTableObject* obj = (HashTableObject*) o;
+	MUTEX_LOCK(&obj->mutex);
+	bool res = false;
+	HashTableEntry* e = HashTable_get(obj, id);
+	if (e!=NULL)
+		res = true;
+	else if (obj->super!=NULL)
+		res = obj->super->contains(obj->super, id, th);
+	MUTEX_UNLOCK(&obj->mutex);
+	return res;
+}
+
+YValue* HashObject_get(YObject* o, int32_t id, YThread* th) {
+	HashTableObject* obj = (HashTableObject*) o;
+	MUTEX_LOCK(&obj->mutex);
+	YValue* res = getNull(th);
+	HashTableEntry* e = HashTable_get(obj, id);
+	if (e!=NULL)
+		res = e->value;
+	else if (obj->super!=NULL)
+		res = obj->super->get(obj->super, id, th);
+	MUTEX_UNLOCK(&obj->mutex);
+	return res;
+}
+
+void HashObject_put(YObject* o, int32_t id, YValue* val, bool newF, YThread* th) {
+	HashTableObject* obj = (HashTableObject*) o;
+	MUTEX_LOCK(&obj->mutex);
+	HashTableEntry* e = HashTable_get(obj, id);
+	if (newF || e!=NULL) {
+		if (e==NULL)
+			e = HashTable_put(obj, id);
+		e->value = val;
+	} else if (obj->super!=NULL&&
+							obj->super->contains(obj->super, id, th)) {
+		obj->super->put(obj->super, id, val, newF, th);
+	} else {
+		e = HashTable_put(obj, id);
+		e->value = val;
+	}
+	MUTEX_UNLOCK(&obj->mutex);
+}
+
+void HashObject_remove(YObject* o, int32_t id, YThread* th) {
+	return;
+}
+
+void HashObject_setType(YObject* o, int32_t id, YoyoType* type, YThread* th) {
+	return;
+}
+
+YoyoType* HashObject_getType(YObject* o, int32_t id, YThread* th) {
+	HashTableObject* obj = (HashTableObject*) o;
+	MUTEX_LOCK(&obj->mutex);
+	YoyoType* res = th->runtime->NullType.TypeConstant;
+	HashTableEntry* e = HashTable_get(obj, id);
+	if (e!=NULL)
+		res = e->type;
+	else if (obj->super!=NULL)
+		res = obj->super->getType(obj->super, id, th);
+	MUTEX_UNLOCK(&obj->mutex);
+	return res;
+}
+
+void HashObject_mark(YoyoObject* ptr) {
+	ptr->marked = true;
+	HashTableObject* obj = (HashTableObject*) ptr;
+	MUTEX_LOCK(&obj->mutex);
+	MARK(obj->super);
+	for (size_t i=0;i<obj->size;i++) {
+		for (HashTableEntry* e = obj->table[i]; e!=NULL; e = e->prev) {
+			MARK(e->type);
+			MARK(e->value);
+		}
+	}
+	MUTEX_UNLOCK(&obj->mutex);
+}
+
+void HashObject_free(YoyoObject* ptr) {
+	HashTableObject* obj = (HashTableObject*) ptr;
+	for (size_t i=0;i<obj->size;i++) {
+		HashTableEntry* e = obj->table[i];
+		while (e!=NULL) {
+			HashTableEntry* prev = e->prev;
+			EntryAlloc->unuse(EntryAlloc, e);
+			e = prev;
+		}
+	}
+	free(obj->table);
+	DESTROY_MUTEX(&obj->mutex);
+	HashTableAlloc->unuse(HashTableAlloc, obj);	
+}
+
 YObject* newHashObject(YObject* super, YThread* th) {
-	return newTreeObject(super, th); // TODO Rewrite hash map implementation
+	if (HashTableAlloc == NULL) {
+		HashTableAlloc = newMemoryAllocator(sizeof(HashTableObject), 250);
+		EntryAlloc = newMemoryAllocator(sizeof(HashTableEntry), 250);
+	}
+	HashTableObject* obj = HashTableAlloc->alloc(HashTableAlloc);
+	initYoyoObject((YoyoObject*) obj, HashObject_mark, HashObject_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) obj);
+	obj->parent.parent.type = &th->runtime->ObjectType;
+
+	obj->super = super;
+	obj->factor = 0.1;
+	obj->col_count = 0;
+	obj->size = 10;
+	obj->table = calloc(obj->size, sizeof(HashTableEntry*));
+	NEW_MUTEX(&obj->mutex);
+
+	obj->parent.contains = HashObject_contains;
+	obj->parent.get = HashObject_get;
+	obj->parent.put = HashObject_put;
+	obj->parent.remove = HashObject_remove;
+	obj->parent.setType = HashObject_setType;
+	obj->parent.getType = HashObject_getType;
+
+	return (YObject*) obj;
 }
