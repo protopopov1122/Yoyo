@@ -52,14 +52,17 @@ void plain_gc_collect(GarbageCollector* _gc) {
 	YoyoObject* newPool = NULL;
 	size_t newSize = 0;
 	const clock_t MAX_AGE = CLOCKS_PER_SEC;
+	const clock_t START = clock();
 	for (YoyoObject* ptr = gc->objects; ptr!=NULL;) {
 			YoyoObject* prev = ptr->prev;
-			if ((!ptr->marked) && ptr->linkc == 0 && clock()-ptr->age >= MAX_AGE)
+			if ((!ptr->marked) && ptr->linkc == 0 && START-ptr->age >= MAX_AGE)
 					/*Project is garbage only if:
 					 * it's unmarked
 					 * it has zero link count on it
 					 * it was created MAX_AGE processor clocks ago*/
 					{
+				ptr->marked = false;
+				ptr->age = 0;
 				ptr->free(ptr);
 			} else    // Object isn't garbage
 			{
@@ -77,11 +80,18 @@ void plain_gc_collect(GarbageCollector* _gc) {
 	gc->objects = newPool;
 	gc->collecting = false;
 	MUTEX_LOCK(&gc->mutex);
-	for (YoyoObject* ptr=gc->temporary; ptr!=NULL;) {
+	/*for (YoyoObject* ptr=gc->temporary; ptr!=NULL;) {
 		YoyoObject* prev = ptr->prev;
 		ptr->prev = gc->objects;
 		gc->objects = ptr;
 		ptr = prev;
+	}*/
+	if (gc->temporary!=NULL) {
+		YoyoObject* temp_first = gc->temporary;
+		while (temp_first->prev!=NULL)
+			temp_first = temp_first->prev;
+		temp_first->prev = gc->objects;
+		gc->objects = gc->temporary;
 	}
 	gc->gc.panic = false;
 	if (freed<gc->temporary_size)

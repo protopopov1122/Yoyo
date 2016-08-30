@@ -81,7 +81,7 @@ void* GCThread(void* ptr) {
 		YIELD();
 		if (!gc->panic&&(runtime->gc->block||
 			runtime->state==RuntimePaused||
-			clock()-last_gc<CLOCKS_PER_SEC/4))
+			clock()-last_gc<CLOCKS_PER_SEC/2))
 			continue;
 		bool panic = gc->panic;
 		if (panic)
