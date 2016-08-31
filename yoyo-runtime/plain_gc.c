@@ -61,8 +61,6 @@ void plain_gc_collect(GarbageCollector* _gc) {
 					 * it has zero link count on it
 					 * it was created MAX_AGE processor clocks ago*/
 					{
-				ptr->marked = false;
-				ptr->age = 0;
 				ptr->free(ptr);
 			} else    // Object isn't garbage
 			{

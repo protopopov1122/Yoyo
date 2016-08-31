@@ -418,6 +418,28 @@ HashTableEntry* HashTable_put(HashTableObject* obj, int32_t id) {
 	return e;
 }	
 
+bool HashTable_remove(HashTableObject* obj, int32_t id) {
+	size_t index = (size_t) (id % obj->size);
+	HashTableEntry* e = obj->table[index];
+	HashTableEntry* next = NULL;
+	while (e!=NULL) {
+		if (e->id == id)
+			break;
+		next = e;
+		e = e->prev;
+	}
+	if (e==NULL)
+		return false;
+	if (next==NULL) {
+		obj->table[index] = e->prev;
+	}
+	else {
+		next->prev = e->prev;
+	}
+	EntryAlloc->unuse(EntryAlloc, e);
+	return true;
+}
+
 bool HashObject_contains(YObject* o, int32_t id, YThread* th) {
 	HashTableObject* obj = (HashTableObject*) o;
 	MUTEX_LOCK(&obj->mutex);
@@ -436,10 +458,14 @@ YValue* HashObject_get(YObject* o, int32_t id, YThread* th) {
 	MUTEX_LOCK(&obj->mutex);
 	YValue* res = getNull(th);
 	HashTableEntry* e = HashTable_get(obj, id);
-	if (e!=NULL)
+	if (e!=NULL) {
 		res = e->value;
-	else if (obj->super!=NULL)
+	} else if (obj->super!=NULL) {
 		res = obj->super->get(obj->super, id, th);
+	} else {
+		wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+		throwException(L"UnknownField", &name, 1, th);
+	}
 	MUTEX_UNLOCK(&obj->mutex);
 	return res;
 }
@@ -451,23 +477,57 @@ void HashObject_put(YObject* o, int32_t id, YValue* val, bool newF, YThread* th)
 	if (newF || e!=NULL) {
 		if (e==NULL)
 			e = HashTable_put(obj, id);
-		e->value = val;
+		if (e->type!=NULL && !e->type->verify(e->type, val, th)) {
+				wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+				throwException(L"WrongFieldType", &name, 1, th);
+		} else {
+			e->value = val;
+		}
 	} else if (obj->super!=NULL&&
 							obj->super->contains(obj->super, id, th)) {
 		obj->super->put(obj->super, id, val, newF, th);
 	} else {
 		e = HashTable_put(obj, id);
-		e->value = val;
+		if (e->type!=NULL && !e->type->verify(e->type, val, th)) {
+				wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+				throwException(L"WrongFieldType", &name, 1, th);
+		} else {
+			e->value = val;
+		}
 	}
 	MUTEX_UNLOCK(&obj->mutex);
 }
 
 void HashObject_remove(YObject* o, int32_t id, YThread* th) {
-	return;
+	HashTableObject* obj = (HashTableObject*) o;
+	MUTEX_LOCK(&obj->mutex);
+	if (HashTable_remove(obj, id)) {}
+	else if (obj->super!=NULL) {
+		obj->super->remove(obj->super, id, th);
+	}	else {
+		wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+		throwException(L"UnknownField", &name, 1, th);
+	}
+	MUTEX_UNLOCK(&obj->mutex);
 }
 
 void HashObject_setType(YObject* o, int32_t id, YoyoType* type, YThread* th) {
-	return;
+	HashTableObject* obj = (HashTableObject*) o;
+	MUTEX_LOCK(&obj->mutex);
+	HashTableEntry* e = HashTable_get(obj, id);
+	if (e!=NULL) {
+		e->type = type;
+		if (!type->verify(type, e->value, th)) {
+				wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+				throwException(L"WrongFieldType", &name, 1, th);
+		}
+	} else if (obj->super!=NULL) {
+		obj->super->setType(obj->super, id, type, th);
+	} else {
+		wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+		throwException(L"UnknownField", &name, 1, th);
+	}
+	MUTEX_UNLOCK(&obj->mutex);
 }
 
 YoyoType* HashObject_getType(YObject* o, int32_t id, YThread* th) {
@@ -475,10 +535,14 @@ YoyoType* HashObject_getType(YObject* o, int32_t id, YThread* th) {
 	MUTEX_LOCK(&obj->mutex);
 	YoyoType* res = th->runtime->NullType.TypeConstant;
 	HashTableEntry* e = HashTable_get(obj, id);
-	if (e!=NULL)
+	if (e!=NULL) {
 		res = e->type;
-	else if (obj->super!=NULL)
+	} else if (obj->super!=NULL) {
 		res = obj->super->getType(obj->super, id, th);
+	} else {
+		wchar_t* name = getSymbolById(&th->runtime->symbols, id);
+		throwException(L"UnknownField", &name, 1, th);
+	}
 	MUTEX_UNLOCK(&obj->mutex);
 	return res;
 }
@@ -523,7 +587,7 @@ YObject* newHashObject(YObject* super, YThread* th) {
 	obj->parent.parent.type = &th->runtime->ObjectType;
 
 	obj->super = super;
-	obj->factor = 0.1;
+	obj->factor = 0.25;
 	obj->col_count = 0;
 	obj->size = 10;
 	obj->table = calloc(obj->size, sizeof(HashTableEntry*));

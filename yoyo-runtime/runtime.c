@@ -75,7 +75,6 @@ void Types_init(YRuntime* runtime) {
 void* GCThread(void* ptr) {
 	YRuntime* runtime = (YRuntime*) ptr;
 	GarbageCollector* gc = runtime->gc;
-	sleep(2);
 	clock_t last_gc = clock();
 	while (runtime->state != RuntimeTerminated) {
 		YIELD();
@@ -84,8 +83,6 @@ void* GCThread(void* ptr) {
 			clock()-last_gc<2*CLOCKS_PER_SEC))
 			continue;
 		bool panic = gc->panic;
-		if (panic)
-			runtime->state = RuntimePaused;
 		runtime->state = RuntimePaused;
 		bool wait = true;
 		while (wait) {
@@ -134,11 +131,12 @@ void* GCThread(void* ptr) {
 #undef MARKTYPE
 		for (size_t i=0;i<runtime->Type_pool_size;i++)
 			MARK(runtime->Type_pool[i]->TypeConstant);
+		if (!panic)
+			runtime->state = RuntimeRunning;
+
 
 		// Collect garbage
 		gc->collect(gc);
-		if (panic)
-			runtime->state = RuntimeRunning;
 		runtime->state = RuntimeRunning;
 		last_gc = clock();
 	}
