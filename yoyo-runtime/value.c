@@ -130,9 +130,8 @@ YValue* newString(wchar_t* value, YThread* th) {
 	th->runtime->gc->registrate(th->runtime->gc, &out->parent.o);
 	out->parent.type = &th->runtime->StringType;
 
-	out->value = malloc(sizeof(wchar_t) * (wcslen(value) + 1));
+	out->value = calloc(1, sizeof(wchar_t) * (wcslen(value) + 1));
 	wcscpy(out->value, value);
-	out->value[wcslen(value)] = L'\0';
 
 	return (YValue*) out;
 }

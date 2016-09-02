@@ -93,7 +93,7 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
  * according to arguments. Executes 'core.yoyo' from standart library
  * to set up minimal runtime environment and file specified in arguments.
  * */
-void Yoyo_main(char** argv, int argc) {
+int main(int argc, char** argv) {
 	setlocale(LC_ALL, "");
 	signal(SIGSEGV, Signal_handler);
 	signal(SIGFPE, Signal_handler);
@@ -269,4 +269,6 @@ void Yoyo_main(char** argv, int argc) {
 		debug->free(debug);
 	if (jit!=NULL)
 		jit->free(jit);
+
+	exit(EXIT_SUCCESS);
 }

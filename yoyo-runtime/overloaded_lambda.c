@@ -99,8 +99,7 @@ YLambda* newOverloadedLambda(YLambda** l, size_t c, YLambda* def, YThread* th) {
 	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) lmbd);
 	lmbd->count = c;
 	lmbd->lambdas = malloc(sizeof(YLambda*) * c);
-	for (size_t i = 0; i < c; i++)
-		lmbd->lambdas[i] = l[i];
+	memcpy(lmbd->lambdas, l, sizeof(YLambda*) * c);
 	lmbd->parent.sig = newLambdaSignature(false, -1, false, NULL, NULL, th);
 	lmbd->parent.signature = OverloadedLambda_signature;
 	lmbd->parent.execute = OverloadedLambda_exec;

@@ -33,12 +33,40 @@ typedef struct DbgBreakpoint {
 	wchar_t* condition;
 } DbgBreakpoint;
 
+typedef struct DbgPager {
+	FILE* out_stream;
+	FILE* in_stream;
+	uint16_t page_size;
+	uint16_t string;
+	bool enabled;
+} DbgPager;
+
+void Pager_print(DbgPager* pager) {
+	if (!pager->enabled)
+		return;
+	if (pager->string<pager->page_size) {
+		pager->string++;
+		return;
+	}
+	pager->string = 0;
+	fprintf(pager->out_stream, "Press <ENTER> to continue");
+	fflush(pager->out_stream);
+	free(readLine(pager->in_stream));
+}
+
+void Pager_session(DbgPager* pager) {
+	pager->string = 0;
+}
+
 typedef struct DefaultDebugger {
 	YDebug debug;
 
 	DbgBreakpoint* breakpoints;
 	size_t bp_count;
 	ILBytecode* bytecode;
+
+	bool pager;
+	uint16_t page_size;
 } DefaultDebugger;
 
 #define LINE_FLAG 0
@@ -50,6 +78,9 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 	((ExecutionFrame*) th->frame)->debug_flags &= ~(1 << STEP_FLAG);
 	DefaultDebugger* dbg = (DefaultDebugger*) debug;
 	bool work = true;
+	DbgPager pager = {.out_stream = th->runtime->env->out_stream, .in_stream = th->runtime->env->in_stream,
+		.page_size = dbg->page_size, .enabled = dbg->pager,
+		.string = 0};
 #define CMD(l, cmd) if (wcscmp(l, cmd)==0)
 	while (work) {
 		ILProcedure* proc =
@@ -86,6 +117,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 			argv = realloc(argv, sizeof(wchar_t*) * argc);
 			argv[argc - 1] = arg;
 		}
+
+		Pager_session(&pager);
 
 		CMD(argv[0], L"run") {
 			work = false;
@@ -172,6 +205,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 							first -= wcstoul(argv[2], NULL, 0);
 						if (argc > 3)
 							last += wcstoul(argv[3], NULL, 0);
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream,
 							"%"PRIu32":\t", first == 0 ? first + 1 : first);
 						while ((wch = fgetwc(file)) != WEOF) {
@@ -184,6 +218,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 								if (line > last)
 									break;
 								if (line >= first) {
+									Pager_print(&pager);
 									if (line != first)
 										fprintf(th->runtime->env->out_stream,
 											"%"PRIu32":", line);
@@ -226,9 +261,11 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 							first = wcstoul(argv[3], NULL, 0);
 						if (argc > 4)
 							last = wcstoul(argv[4], NULL, 0);
-						if (first == 1)
+						if (first == 1) {
+							Pager_print(&pager);
 							fprintf(th->runtime->env->out_stream,
 									"%"PRIu32":\t", first);
+						}
 						while ((wch = fgetwc(file)) != WEOF) {
 							if (line >= first
 									&& !(line == last && wch == L'\n'))
@@ -236,6 +273,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 										wch);
 							if (wch == L'\n') {
 								line++;
+								Pager_print(&pager);	
 								if (line > last)
 									break;
 								if (line >= first) {
@@ -258,6 +296,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 				} else CMD(req, L"breaks") {
 					for (size_t i = 0; i < dbg->bp_count; i++) {
 						DbgBreakpoint* bp = &dbg->breakpoints[i];
+						Pager_print(&pager);	
 						wchar_t* fileid = dbg->bytecode->getSymbolById(
 								dbg->bytecode, bp->fileid);
 						if (bp->condition == NULL)
@@ -275,6 +314,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					for (size_t i = 0; i < bc->procedure_count; i++)
 						if (bc->procedures[i] != NULL)
 							pcount++;
+					Pager_print(&pager);
 					fprintf(th->runtime->env->out_stream,
 							"Procedure count: "SIZE_T"\n", pcount);
 					for (size_t i = 0; i < dbg->bytecode->procedure_count;
@@ -282,6 +322,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						ILProcedure* proc = dbg->bytecode->procedures[i];
 						if (proc == NULL)
 							continue;
+						Pager_print(&pager);
 						if (((ExecutionFrame*) th->frame)->proc->id == proc->id)
 							fprintf(th->runtime->env->out_stream, "*");
 						fprintf(th->runtime->env->out_stream,
@@ -302,24 +343,31 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 					if (pid != -1&& pid < bc->procedure_count &&
 					bc->procedures[pid]!=NULL) {
 						ILProcedure* proc = bc->procedures[pid];
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream,
-								"Procedure #%"PRIu32":\n", proc->id);
+								"Procedure #%"PRIu32":\n", proc->id);;
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream,
 								"Register count = %"PRIu32"\n", proc->regc);
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream,
 								"Code length = "SIZE_T" bytes\n",
 								proc->code_length);
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream,
 								"Label table("SIZE_T" entries):\n",
 								proc->labels.length);
 						for (size_t i = 0; i < proc->labels.length; i++) {
+							Pager_print(&pager);
 							fprintf(th->runtime->env->out_stream,
 									"\t%"PRId32"\t%"PRIu32"\n",
 									proc->labels.table[i].id,
 									proc->labels.table[i].value);
 						}
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream, "\nCode:\n");
 						for (size_t i = 0; i < proc->code_length; i += 13) {
+							Pager_print(&pager);
 							for (size_t j = 0; j < proc->labels.length; j++)
 								if (proc->labels.table[j].value == i)
 									fprintf(th->runtime->env->out_stream,
@@ -364,10 +412,12 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 								th->runtime->symbols.map[i].symbol);
 				} else CMD(req, L"constants") {
 					ILBytecode* bc = dbg->bytecode;
+					Pager_print(&pager);
 					fprintf(th->runtime->env->out_stream,
 							"Constant pool size: %"PRIu32"\n",
 							bc->constants.size);
 					for (size_t i = 0; i < bc->constants.size; i++) {
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream, "\t%"PRId32"\t",
 								bc->constants.pool[i]->id);
 						Constant* cnst = bc->constants.pool[i];
@@ -398,16 +448,20 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						fprintf(th->runtime->env->out_stream, "\n");
 					}
 				} else CMD(req, L"runtime") {
+					Pager_print(&pager);
 					if (th->runtime->newObject == newTreeObject)
 						fprintf(th->runtime->env->out_stream, "Object: AVL tree\n");
 					else
 						fprintf(th->runtime->env->out_stream, "Object: hash table\n");
+					Pager_print(&pager);
 					fprintf(th->runtime->env->out_stream, "Integer pool size: "SIZE_T"\n"
 								"Integer cache size: "SIZE_T"\n",
 								th->runtime->Constants.IntPoolSize,
 								th->runtime->Constants.IntCacheSize);
+					Pager_print(&pager);
 					fprintf(th->runtime->env->out_stream, "Thread count: "SIZE_T"\n", th->runtime->thread_count);
 					for (YThread* t = th->runtime->threads; t!=NULL; t = t->prev) {
+						Pager_print(&pager);
 						fprintf(th->runtime->env->out_stream, "\tThread #%"PRIu32, t->id);
 						if (t->frame != NULL) {
 							SourceIdentifier sid = t->frame->get_source_id(t->frame);
@@ -501,6 +555,25 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 									sid.file), sid.line, sid.charPosition);
 				frame = frame->prev;
 			}
+		} else CMD(argv[0], L"pager") {
+			if (argc>1) {
+				CMD(argv[1], L"enable") {
+					dbg->pager = true;
+					pager.enabled = true;
+				} else CMD(argv[1], L"disable") {
+					dbg->pager = false;
+					pager.enabled = false;
+				} else {
+					uint16_t ps = (uint16_t) wcstoul(argv[1], NULL, 0);
+					if (ps>0) {
+						dbg->page_size = ps;
+						pager.page_size = ps;
+					}
+				}
+			} else {
+				fprintf(th->runtime->env->out_stream,
+					"Use: pager enabled - to enable pager; pager disabled - to disable pager; pager [number] - set page size\n");
+			}
 		} else CMD(argv[0], L"quit") {
 			exit(0);
 		} else CMD(argv[0], L"nodebug") {
@@ -519,7 +592,8 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						"\ttrace - print thread backtrace. Format: trace [thread id]\n"
 						"\teval - execute code in current scope\n"
 						"\trm - remove breakpoint. Format: rm break breakpoint_id\n"
-						"\tls - list information. Type 'ls' for manual\n");
+						"\tls - list information. Type 'ls' for manual\n"
+						"\tpager - control built-in pager\n");
 		else
 			fprintf(th->runtime->env->out_stream,
 					"Unknown command '%ls'. Use 'help' command.\n", argv[0]);
@@ -670,6 +744,8 @@ YDebug* newDefaultDebugger(ILBytecode* bc) {
 	dbg->bp_count = 0;
 	dbg->breakpoints = NULL;
 	dbg->bytecode = bc;
+	dbg->pager = true;
+	dbg->page_size = 25;
 
 	YDebug* debug = (YDebug*) dbg;
 	debug->mode = Debug;

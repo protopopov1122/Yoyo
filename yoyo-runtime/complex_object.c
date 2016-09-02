@@ -100,8 +100,7 @@ YObject* newComplexObject(YObject* base, YObject** mixins, size_t mixinc,
 	obj->base = base;
 	obj->mixin_count = mixinc;
 	obj->mixins = malloc(sizeof(YObject*) * mixinc);
-	for (size_t i = 0; i < mixinc; i++)
-		obj->mixins[i] = mixins[i];
+	memcpy(obj->mixins, mixins, sizeof(YObject*) * mixinc);
 
 	obj->parent.get = ComplexObject_get;
 	obj->parent.contains = ComplexObject_contains;
