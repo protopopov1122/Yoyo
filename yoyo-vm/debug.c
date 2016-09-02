@@ -49,9 +49,14 @@ void Pager_print(DbgPager* pager) {
 		return;
 	}
 	pager->string = 0;
-	fprintf(pager->out_stream, "Press <ENTER> to continue");
+	const char* mess =  "Press <ENTER> to continue";
+	fprintf(pager->out_stream, mess);
 	fflush(pager->out_stream);
 	free(readLine(pager->in_stream));
+#ifdef OS_UNIX 
+	printf("\033[1A");
+	printf("%c[2K", 27);
+#endif
 }
 
 void Pager_session(DbgPager* pager) {
@@ -572,7 +577,10 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 				}
 			} else {
 				fprintf(th->runtime->env->out_stream,
-					"Use: pager enabled - to enable pager; pager disabled - to disable pager; pager [number] - set page size\n");
+					"Current state: %s(%"PRIu16" lines per page)\n",
+					pager.enabled ? "enabled" : "disabled", pager.page_size);
+				fprintf(th->runtime->env->out_stream,
+					"Use:\n\t'pager enable' - to enable pager\n\t'pager disable' - to disable pager\n\t'pager [number]' - set page size\n");
 			}
 		} else CMD(argv[0], L"quit") {
 			exit(0);
@@ -593,7 +601,7 @@ void DefaultDebugger_cli(YDebug* debug, YThread* th) {
 						"\teval - execute code in current scope\n"
 						"\trm - remove breakpoint. Format: rm break breakpoint_id\n"
 						"\tls - list information. Type 'ls' for manual\n"
-						"\tpager - control built-in pager\n");
+						"\tpager - control built-in pager. Type 'pager' for manual and info\n");
 		else
 			fprintf(th->runtime->env->out_stream,
 					"Unknown command '%ls'. Use 'help' command.\n", argv[0]);
@@ -667,7 +675,7 @@ void DefaultDebugger_instruction(YDebug* debug, void* ptr, YThread* th) {
 								th->runtime->env->execute(th->runtime->env,
 										th->runtime,
 										string_input_stream(dbbp->condition),
-										L"<eval>",
+										dbbp->condition,
 										(YObject*) ((ExecutionFrame*) th->frame)->regs[0]);
 						th->exception = NULL;
 						if (val->type == &th->runtime->BooleanType) {

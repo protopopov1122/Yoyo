@@ -39,6 +39,7 @@ make # For Linux x64
 make arch="x86" # For Linux x86
 make platform="win" # For Windows x64
 make platform"win" arch="x86" # For Windows x86
+# You can pass "native=yes" to Makefile to build binary optimized for current architecture 
 
 sudo make install # Install and uninstall targets work only on Linux
 sudo make uninstall # It's bad to use direct install, but I've not builded packages for Yoyo yet and it's the only way to install yoyo
@@ -51,7 +52,7 @@ You can also build with GCC Profile-Guided Optimizations(tested only on Linux GC
 ```bash
 ./PGO.sh
 ./PGO.sh "arch=x86"
-./PGO.sh "arch=x86" "-DIntPool=5000"	# You can specify make and test lauch options(e.g. switch garbage collectors or object implementations
+./PGO.sh "arch=x86" "-DIntPool=5000"	# You can specify make and test launch options(e.g. switch garbage collectors or object implementations
 ```
 Project contains 'yoyo.vim' file that provides Yoyo syntax highlighting in Vim.
 In build directory will appear executable.

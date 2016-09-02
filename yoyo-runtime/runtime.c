@@ -76,11 +76,20 @@ void* GCThread(void* ptr) {
 	YRuntime* runtime = (YRuntime*) ptr;
 	GarbageCollector* gc = runtime->gc;
 	clock_t last_gc = clock();
+	clock_t GC_PAUSE = 2*CLOCKS_PER_SEC;
+	if (runtime->env->getDefined(runtime->env, L"GCPause")!=NULL) {
+		wchar_t* wvalue = runtime->env->getDefined(runtime->env, L"GCPause");
+		char *oldLocale = setlocale(LC_NUMERIC, NULL);
+		setlocale(LC_NUMERIC, "C");
+		double fp64 = wcstod(wvalue, NULL);
+		setlocale(LC_NUMERIC, oldLocale);
+		GC_PAUSE = fp64 * CLOCKS_PER_SEC;
+	}
 	while (runtime->state != RuntimeTerminated) {
 		YIELD();
 		if (!gc->panic&&(runtime->gc->block||
 			runtime->state==RuntimePaused||
-			clock()-last_gc<2*CLOCKS_PER_SEC))
+			clock()-last_gc<GC_PAUSE))
 			continue;
 		bool panic = gc->panic;
 		runtime->state = RuntimePaused;
