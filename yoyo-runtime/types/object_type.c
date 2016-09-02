@@ -41,6 +41,11 @@ YValue* Object_readIndex(YValue* o, YValue* index, YThread* th) {
 			YLambda* lambda = (YLambda*) val;
 			return invokeLambda(lambda, NULL, &index, 1, th);
 		}
+	} else {
+		wchar_t* wcs = toString(index, th);
+		YValue* val = OBJECT_GET(obj, wcs, th);
+		free(wcs);
+		return val;
 	}
 	return getNull(th);
 }
@@ -55,6 +60,11 @@ YValue* Object_writeIndex(YValue* o, YValue* index, YValue* value, YThread* th) 
 			YValue* args[] = { index, value };
 			return invokeLambda(lambda, NULL, args, 2, th);
 		}
+	} else {
+		wchar_t* wcs = toString(index, th);
+		OBJECT_PUT(obj, wcs, value, th);
+		free(wcs);
+		return getNull(th);
 	}
 	return getNull(th);
 }
@@ -68,7 +78,12 @@ YValue* Object_removeIndex(YValue* o, YValue* index, YThread* th) {
 			YLambda* lambda = (YLambda*) val;
 			return invokeLambda(lambda, NULL, &index, 1, th);
 		}
-	}
+	} else {
+		wchar_t* wcs = toString(index, th);
+		OBJECT_REMOVE(obj, wcs, th);
+		free(wcs);
+		return getNull(th);
+	}	
 	return getNull(th);
 }
 YoyoIterator* Object_iterator(YValue* v, YThread* th) {

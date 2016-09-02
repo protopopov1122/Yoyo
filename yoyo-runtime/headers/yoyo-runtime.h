@@ -46,6 +46,7 @@
 #define OBJECT_NEW(obj, id, value, th) obj->put(obj, YOYOID(id, th),\
 										(YValue*) value, true, th)
 #define OBJECT_HAS(obj, id, th) obj->contains(obj, YOYOID(id, th), th)
+#define OBJECT_REMOVE(obj, id, th) obj->remove(obj, YOYOID(id, th), th)
 #define OBJECT(super, th) th->runtime->newObject(super, th)
 
 #define LAMBDA(fn, argc, ptr, th) newNativeLambda(argc, fn, (YoyoObject*) ptr, th)
