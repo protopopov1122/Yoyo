@@ -220,6 +220,7 @@ typedef struct YAssignmentNode {
 	YNode** src;
 	size_t src_len;
 	bool newVar;
+	bool local;
 	YNode* type;
 } YAssignmentNode;
 
@@ -350,7 +351,7 @@ YNode* newObjectNode(YNode*, ObjectNodeField*, size_t, YFunctionBlock*, size_t);
 YNode* newInterfaceNode(YNode**, size_t, wchar_t**, YNode**, size_t);
 YNode* newBinaryNode(YBinaryOperation, YNode*, YNode*);
 YNode* newUnaryNode(YUnaryOperation, YNode*);
-YNode* newAssignmentNode(YAssignmentOperation, bool, YNode*, YNode**, size_t,
+YNode* newAssignmentNode(YAssignmentOperation, bool, bool, YNode*, YNode**, size_t,
 		YNode**, size_t);
 YNode* newDeleteNode(YNode**, size_t);
 YNode* newConditionNode(YNode*, YNode*, YNode*);

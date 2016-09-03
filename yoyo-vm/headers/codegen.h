@@ -29,6 +29,8 @@ typedef struct YModifier {
 	void (*typeSetter)(struct YModifier*, struct YCodeGen*, YoyoCEnvironment*,
 			int32_t);
 	void (*free)(struct YModifier*);
+
+	bool local;
 } YModifier;
 
 typedef struct ProcedureBuilderLoop {
@@ -39,6 +41,13 @@ typedef struct ProcedureBuilderLoop {
 
 	struct ProcedureBuilderLoop* prev;
 } ProcdeureBuilderLoop;
+
+typedef struct LocalVarEntry {
+	int32_t id;
+	int32_t value_reg;
+	int32_t type_reg;
+	struct LocalVarEntry* prev;
+} LocalVarEntry;
 
 typedef struct ProcedureBuilder {
 	ILProcedure* proc;
@@ -60,6 +69,8 @@ typedef struct ProcedureBuilder {
 	size_t regc;
 	ProcdeureBuilderLoop* loop;
 
+	LocalVarEntry* local_vars;
+
 	struct ProcedureBuilder* prev;
 } ProcedureBuilder;
 
@@ -79,7 +90,7 @@ typedef struct YCodeGen {
 					node->fileName, node->line, node->charPos);
 
 int32_t ycompile(YoyoCEnvironment*, YNode*, FILE*);
-YModifier* ymodifier(YCodeGen*, YoyoCEnvironment*, YNode*);
+YModifier* ymodifier(YCodeGen*, YoyoCEnvironment*, YNode*, bool);
 void optimize_procedure(ILProcedure*);
 
 #endif

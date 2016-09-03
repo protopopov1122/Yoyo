@@ -70,7 +70,7 @@ Mnemonic Mnemonics[] = {
 	{0x32, L"Iterator"},
 	{0x33, L"Iterate"},
 	{0x34, L"NewInterface"},
-	{0x35, L"ChType"},
+	{0x35, L"ChangeType"},
 	{0x36, L"FastCompare"},
 	{0x37, L"Increment"},
 	{0x38, L"Decrement"},
@@ -87,5 +87,6 @@ Mnemonic Mnemonics[] = {
 	{0x43, L"JumpIfNotGreater"},
 	{0x44, L"GotoIfNotLesser"},
 	{0x45, L"JumpIfNotLesser"},
+	{0x46, L"CheckType"},
 };
-const size_t OPCODE_COUNT = 69;
+const size_t OPCODE_COUNT = 70;

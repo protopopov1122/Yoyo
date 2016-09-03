@@ -98,6 +98,26 @@ ProcdeureBuilderLoop* ProcedureBuilder_getLoop(ProcedureBuilder* proc,
 	return NULL;
 }
 
+LocalVarEntry* Procedure_defineLocalVar(ProcedureBuilder* proc, int32_t id) {
+	for (LocalVarEntry* e = proc->local_vars;e!=NULL;e=e->prev)
+		if (e->id == id)
+			return e;
+	LocalVarEntry* e = malloc(sizeof(LocalVarEntry));
+	e->id = id;
+	e->value_reg = proc->nextRegister(proc);
+	e->type_reg = -1;
+	e->prev = proc->local_vars;
+	proc->local_vars = e;
+	return e;
+}
+
+LocalVarEntry* Procedure_getLocalVar(ProcedureBuilder* proc, int32_t id) {
+	for (LocalVarEntry* e = proc->local_vars;e!=NULL;e=e->prev)
+		if (e->id == id)
+			return e;
+	return NULL;
+}
+
 ProcedureBuilder* YCodeGen_newProcedure(YCodeGen* builder) {
 	ProcedureBuilder* proc = malloc(sizeof(ProcedureBuilder));
 	proc->prev = builder->proc;
@@ -110,6 +130,7 @@ ProcedureBuilder* YCodeGen_newProcedure(YCodeGen* builder) {
 	proc->regs_length = 1;
 	proc->regc = 0;
 	proc->loop = NULL;
+	proc->local_vars = NULL;
 
 	proc->nextLabel = ProcedureBuilder_nextLabel;
 	proc->nextRegister = ProcedureBuilder_nextRegister;
@@ -181,6 +202,11 @@ void YCodeGen_endProcedure(YCodeGen* builder) {
     		builder->jit->compile(builder->jit, builder->proc->proc, builder->bc);
 		ProcedureBuilder* proc = builder->proc;
 		builder->proc = proc->prev;
+		for (LocalVarEntry* e = proc->local_vars;e!=NULL;) {
+			LocalVarEntry* prev = e->prev;
+			free(e);
+			e = prev;
+		}
 		free(proc->regs);
 		free(proc);
 	}
@@ -221,7 +247,17 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node);
 void Identifier_setter(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 bool newVar, int32_t val) {
 	YIdentifierModifier* mod = (YIdentifierModifier*) m;
-	ProcedureBuilder* proc = builder->proc;
+	ProcedureBuilder* proc = builder->proc;;
+	LocalVarEntry* e = Procedure_getLocalVar(proc, mod->id);
+	if (mod->mod.local&&e==NULL) {
+		e = Procedure_defineLocalVar(proc, mod->id);
+	}
+	if (e!=NULL) {
+		if (e->type_reg!=-1)
+			proc->append(proc, VM_CheckType, val, e->type_reg, mod->id);
+		proc->append(proc, VM_Copy, e->value_reg, val, -1);
+		return;
+	}
 	if (newVar)
 		proc->append(proc, VM_NewField, 0, mod->id, val);
 	else
@@ -236,7 +272,15 @@ void Identifier_setType(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 		int32_t reg) {
 	YIdentifierModifier* mod = (YIdentifierModifier*) m;
 	ProcedureBuilder* proc = builder->proc;
-	proc->append(proc, VM_ChType, 0, mod->id, reg);
+	LocalVarEntry* e = Procedure_getLocalVar(proc, mod->id);
+	if (e!=NULL) {
+		if (e->type_reg == -1)
+			e->type_reg = proc->nextRegister(proc);
+		proc->append(proc, VM_Copy, e->type_reg, reg, -1);
+	}
+	else {
+		proc->append(proc, VM_ChangeType, 0, mod->id, reg);
+	}
 }
 
 void Field_setter(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
@@ -262,7 +306,7 @@ void Field_setType(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 	YFieldModifier* mod = (YFieldModifier*) m;
 	int32_t obj = ytranslate(builder, env, mod->object);
 	ProcedureBuilder* proc = builder->proc;
-	proc->append(proc, VM_ChType, obj, mod->id, reg);
+	proc->append(proc, VM_ChangeType, obj, mod->id, reg);
 	proc->unuse(proc, obj);
 }
 
@@ -297,7 +341,7 @@ bool newVar, int32_t val) {
 	ProcedureBuilder* proc = builder->proc;
 	int32_t reg = proc->nextRegister(proc);
 	for (size_t i = 0; i < mod->length; i++) {
-		YModifier* imod = ymodifier(builder, env, mod->list[i]);
+		YModifier* imod = ymodifier(builder, env, mod->list[i], m->local);
 		if (imod == NULL) {
 			fprintf(env->env.out_stream,
 					"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -330,7 +374,7 @@ bool newVar, int32_t val) {
 	int32_t falseL = proc->nextLabel(proc);
 	proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 	proc->unuse(proc, cond);
-	YModifier* tmod = ymodifier(builder, env, mod->body);
+	YModifier* tmod = ymodifier(builder, env, mod->body, m->local);
 	if (tmod == NULL) {
 		fprintf(env->env.out_stream,
 				"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -341,7 +385,7 @@ bool newVar, int32_t val) {
 	tmod->free(tmod);
 	proc->append(proc, VM_Goto, trueL, -1, -1);
 	proc->bind(proc, falseL);
-	tmod = ymodifier(builder, env, mod->elseBody);
+	tmod = ymodifier(builder, env, mod->elseBody, m->local);
 	if (tmod == NULL) {
 		fprintf(env->env.out_stream,
 				"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -362,7 +406,7 @@ void Conditinal_remover(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env) 
 	int32_t falseL = proc->nextLabel(proc);
 	proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 	proc->unuse(proc, cond);
-	YModifier* tmod = ymodifier(builder, env, mod->body);
+	YModifier* tmod = ymodifier(builder, env, mod->body, false);
 	if (tmod == NULL) {
 		fprintf(env->env.out_stream,
 				"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -373,7 +417,7 @@ void Conditinal_remover(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env) 
 	tmod->free(tmod);
 	proc->append(proc, VM_Goto, trueL, -1, -1);
 	proc->bind(proc, falseL);
-	tmod = ymodifier(builder, env, mod->elseBody);
+	tmod = ymodifier(builder, env, mod->elseBody, false);
 	if (tmod == NULL) {
 		fprintf(env->env.out_stream,
 				"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -395,7 +439,7 @@ void Conditional_setType(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 	int32_t falseL = proc->nextLabel(proc);
 	proc->append(proc, VM_GotoIfFalse, falseL, cond, -1);
 	proc->unuse(proc, cond);
-	YModifier* tmod = ymodifier(builder, env, mod->body);
+	YModifier* tmod = ymodifier(builder, env, mod->body, m->local);
 	if (tmod == NULL) {
 		fprintf(env->env.out_stream,
 				"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -406,7 +450,7 @@ void Conditional_setType(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 	tmod->free(tmod);
 	proc->append(proc, VM_Goto, trueL, -1, -1);
 	proc->bind(proc, falseL);
-	tmod = ymodifier(builder, env, mod->elseBody);
+	tmod = ymodifier(builder, env, mod->elseBody, m->local);
 	if (tmod == NULL) {
 		fprintf(env->env.out_stream,
 				"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -418,7 +462,7 @@ void Conditional_setType(YModifier* m, YCodeGen* builder, YoyoCEnvironment* env,
 	proc->bind(proc, trueL);
 }
 
-YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
+YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node, bool local) {
 	if (node->type == IdentifierReferenceN) {
 		YIdentifierReferenceNode* ref = (YIdentifierReferenceNode*) node;
 		YIdentifierModifier* mod = malloc(sizeof(YIdentifierModifier));
@@ -427,6 +471,7 @@ YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		mod->mod.remover = Identifier_remover;
 		mod->mod.typeSetter = Identifier_setType;
 		mod->mod.free = (void (*)(YModifier*)) free;
+		mod->mod.local = local;
 		return (YModifier*) mod;
 	} else if (node->type == FieldReferenceN) {
 		YFieldReferenceNode* ref = (YFieldReferenceNode*) node;
@@ -437,6 +482,7 @@ YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		mod->mod.remover = Field_remover;
 		mod->mod.typeSetter = Field_setType;
 		mod->mod.free = (void (*)(YModifier*)) free;
+		mod->mod.local = local;
 		return (YModifier*) mod;
 	} else if (node->type == ArrayReferenceN) {
 		YArrayReferenceNode* ref = (YArrayReferenceNode*) node;
@@ -447,6 +493,7 @@ YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		mod->mod.remover = Array_remover;
 		mod->mod.typeSetter = Array_setType;
 		mod->mod.free = (void (*)(YModifier*)) free;
+		mod->mod.local = local;
 		return (YModifier*) mod;
 	} else if (node->type == FilledArrayN) {
 		YFilledArrayNode* farr = (YFilledArrayNode*) node;
@@ -457,6 +504,7 @@ YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		mod->mod.remover = List_remover;
 		mod->mod.typeSetter = List_setType;
 		mod->mod.free = (void (*)(YModifier*)) free;
+		mod->mod.local = local;
 		return (YModifier*) mod;
 	} else if (node->type == ConditionN) {
 		YConditionNode* cnd = (YConditionNode*) node;
@@ -468,6 +516,7 @@ YModifier* ymodifier(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		mod->mod.remover = Conditinal_remover;
 		mod->mod.typeSetter = Conditional_setType;
 		mod->mod.free = (void (*)(YModifier*)) free;
+		mod->mod.local = local;
 		return (YModifier*) mod;
 	} else {
 		CompilationError(builder->err_stream, L"Unmodifieable", node,
@@ -509,10 +558,15 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	}
 		break;
 	case IdentifierReferenceN: {
-		int32_t reg = proc->nextRegister(proc);
 		int32_t id = env->bytecode->getSymbolId(env->bytecode,
 				((YIdentifierReferenceNode*) node)->id);
-		proc->append(proc, VM_GetField, reg, 0, id);
+		int32_t reg = proc->nextRegister(proc);
+		LocalVarEntry* e = Procedure_getLocalVar(proc, id);
+		if (e!=NULL) {
+			proc->append(proc, VM_Copy, reg, e->value_reg, -1);
+		} else {
+			proc->append(proc, VM_GetField, reg, 0, id);
+		}
 		output = reg;
 	}
 		break;
@@ -556,7 +610,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			proc->unuse(proc, vreg);
 			if (fld->type != NULL) {
 				int32_t treg = ytranslate(builder, env, fld->type);
-				proc->append(proc, VM_ChType, reg,
+				proc->append(proc, VM_ChangeType, reg,
 						builder->bc->getSymbolId(builder->bc, fld->id), treg);
 				proc->unuse(proc, treg);
 			}
@@ -732,7 +786,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			break;
 		case PreDecrement: {
 			proc->append(proc, VM_Decrement, reg, reg, -1);
-			YModifier* mod = ymodifier(builder, env, un->argument);
+			YModifier* mod = ymodifier(builder, env, un->argument, false);
 			if (mod == NULL) {
 				fprintf(env->env.out_stream,
 						"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -745,7 +799,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			break;
 		case PreIncrement: {
 			proc->append(proc, VM_Increment, reg, reg, -1);
-			YModifier* mod = ymodifier(builder, env, un->argument);
+			YModifier* mod = ymodifier(builder, env, un->argument, false);
 			if (mod == NULL) {
 				fprintf(env->env.out_stream,
 						"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -760,7 +814,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			int32_t res = proc->nextRegister(proc);
 			proc->append(proc, VM_Decrement, res, reg, -1);
 
-			YModifier* mod = ymodifier(builder, env, un->argument);
+			YModifier* mod = ymodifier(builder, env, un->argument, false);
 			if (mod == NULL) {
 				fprintf(env->env.out_stream,
 						"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -777,7 +831,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			int32_t res = proc->nextRegister(proc);
 			proc->append(proc, VM_Increment, res, reg, -1);
 
-			YModifier* mod = ymodifier(builder, env, un->argument);
+			YModifier* mod = ymodifier(builder, env, un->argument, false);
 			if (mod == NULL) {
 				fprintf(env->env.out_stream,
 						"Expected modifieable expression at %"PRId32":%"PRId32"\n",
@@ -903,7 +957,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			src[i] = ytranslate(builder, env, asn->src[i]);
 
 		for (size_t i = 0; i < asn->dest_len; i++) {
-			YModifier* mod = ymodifier(builder, env, asn->dest[i]);
+			YModifier* mod = ymodifier(builder, env, asn->dest[i], asn->local);
 			if (mod != NULL) {
 				if (asn->type != NULL) {
 					int32_t nullReg = proc->nextRegister(proc);
@@ -1010,7 +1064,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 	case DeleteN: {
 		YDeleteNode* del = (YDeleteNode*) node;
 		for (size_t i = 0; i < del->length; i++) {
-			YModifier* mod = ymodifier(builder, env, del->list[i]);
+			YModifier* mod = ymodifier(builder, env, del->list[i], false);
 			mod->remover(mod, builder, env);
 			mod->free(mod);
 		}
@@ -1122,7 +1176,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		break;
 	case ForeachLoopN: { //TODO 
 		YForeachLoopNode* loop = (YForeachLoopNode*) node;
-		YModifier* mod = ymodifier(builder, env, loop->refnode);
+		YModifier* mod = ymodifier(builder, env, loop->refnode, false);
 		int32_t reg = ytranslate(builder, env, loop->col);
 		int32_t startL = proc->nextLabel(proc);
 		int32_t endL = proc->nextLabel(proc);
@@ -1215,7 +1269,7 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			proc->append(proc, VM_NewObject, tempReg, 0, -1);
 			proc->append(proc, VM_Swap, tempReg, 0, -1);
 
-			YModifier* mod = ymodifier(builder, env, tn->catchRef);
+			YModifier* mod = ymodifier(builder, env, tn->catchRef, false);
 			mod->setter(mod, builder, env, true, regExc);
 			mod->free(mod);
 			proc->unuse(proc, regExc);

@@ -49,7 +49,7 @@ struct {
 				CaseKeyword }, { L"default", DefaultKeyword }, { L"overload",
 				OverloadKeyword }, { L"using", UsingKeyword }, { L"with",
 				WithKeyword }, { L"def", FunctionKeyword }, { L"method",
-				MethodKeyword } };
+				MethodKeyword }, {L"local", LocalKeyword} };
 const size_t KEYWORDS_LEN = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
 
 bool isOperator(wchar_t ch) {

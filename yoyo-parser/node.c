@@ -353,7 +353,7 @@ YNode* newInterfaceNode(YNode** parents, size_t pcount, wchar_t** ids,
 	node->attr_count = acount;
 	return (YNode*) node;
 }
-YNode* newAssignmentNode(YAssignmentOperation op, bool newVar, YNode* type,
+YNode* newAssignmentNode(YAssignmentOperation op, bool newVar, bool localVar, YNode* type,
 		YNode** src, size_t src_s, YNode** dst, size_t dst_s) {
 	YAssignmentNode* assn;
 	NewNode(&assn, YAssignmentNode, AssignmentN, Assignment_free);
@@ -363,6 +363,7 @@ YNode* newAssignmentNode(YAssignmentOperation op, bool newVar, YNode* type,
 	assn->src = src;
 	assn->src_len = src_s;
 	assn->newVar = newVar;
+	assn->local = localVar;
 	assn->type = type;
 	return (YNode*) assn;
 }

@@ -1407,6 +1407,7 @@ NewReduce(Expr_reduce) {
 NewValidate(Expression_validate) {
 	return Validate(expr, handle)
 			|| AssertKeyword(handle->tokens[0], VarKeyword)
+			|| AssertKeyword(handle->tokens[0], LocalKeyword)
 			|| AssertKeyword(handle->tokens[0], DelKeyword);
 }
 NewReduce(Expression_reduce) {
@@ -1439,9 +1440,13 @@ NewReduce(Expression_reduce) {
 	}
 
 	bool newVar = false;
+	bool localVar = false;
 	if (AssertKeyword(handle->tokens[0], VarKeyword)) {
 		shift(handle);
 		newVar = true;
+	} else if (AssertKeyword(handle->tokens[0], LocalKeyword)) {
+		shift(handle);
+		localVar = true;
 	}
 	YNode* type = NULL;
 	if (AssertOperator(handle->tokens[0], MinusOperator)&&
@@ -1577,7 +1582,7 @@ NewReduce(Expression_reduce) {
 			srcs = realloc(srcs, sizeof(YNode*) * slength);
 			srcs[slength - 1] = nd;
 		}
-		YNode* out = newAssignmentNode(op, newVar, type, srcs, slength, dests,
+		YNode* out = newAssignmentNode(op, newVar, localVar, type, srcs, slength, dests,
 				dest_count);
 		SetCoords(out, file, line, charPos);
 		return out;
@@ -1590,7 +1595,7 @@ NewReduce(Expression_reduce) {
 		}
 		YNode** srcs = malloc(sizeof(YNode*));
 		srcs[0] = newNullNode();
-		YNode* out = newAssignmentNode(AAssign, newVar, type, srcs, 1, dests,
+		YNode* out = newAssignmentNode(AAssign, newVar, localVar, type, srcs, 1, dests,
 				dest_count);
 		SetCoords(out, file, line, charPos);
 		return out;

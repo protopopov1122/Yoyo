@@ -809,7 +809,7 @@ YValue* execute(YThread* th) {
 			free(parents);
 		}
 			break;
-		case VM_ChType: {
+		case VM_ChangeType: {
 			/*Change field type*/
 			YValue* val = getRegister(iarg2, th);
 			YoyoType* type = NULL;
@@ -947,6 +947,20 @@ YValue* execute(YThread* th) {
 			if ((cmp & COMPARE_LESSER_OR_EQUALS) != 0) {
 				frame->pc = iarg0;
 				continue;
+			}
+		}
+		break;
+		case VM_CheckType: {
+			YValue* value = getRegister(iarg0, th);
+			YValue* tv = getRegister(iarg1, th);
+			YoyoType* type = NULL;
+			if (tv->type == &th->runtime->DeclarationType)
+				type = (YoyoType*) tv;
+			else
+				type = tv->type->TypeConstant;
+			if (!type->verify(type, value, th)) {
+				wchar_t* wcs = getSymbolById(&th->runtime->symbols, iarg2);
+				throwException(L"WrongFieldType", &wcs, 1, th);
 			}
 		}
 		break;

@@ -75,7 +75,8 @@ typedef enum {
 	UsingKeyword,
 	WithKeyword,
 	FunctionKeyword,
-	MethodKeyword
+	MethodKeyword,
+	LocalKeyword
 } ykeyword_t;
 
 typedef struct ytoken {
