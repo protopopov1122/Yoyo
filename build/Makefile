@@ -11,13 +11,13 @@ YSTD=$(SHARE_DIRECTORY)/yoyo/YStd
 native_yes=-march=native
 native_no=
 
-cc_linux_x86=gcc -m32 -mtune=i686 $(native_$(native))
-cc_linux_x64=gcc -m64 -mtune=generic $(native_$(native))
-cc_win_x86=i686-w64-mingw32-gcc $(native_$(native))
-cc_win_x64=x86_64-w64-mingw32-gcc $(native_$(native))
+cc_linux_x86=gcc -m32 -mtune=i686 
+cc_linux_x64=gcc -m64 -mtune=generic
+cc_win_x86=i686-w64-mingw32-gcc
+cc_win_x64=x86_64-w64-mingw32-gcc
 cc=$(cc_$(platform)_$(arch))
 
-c_lang=-std=c11 -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -pedantic -Werror
+c_lang=$(native_$(native)) -std=c11 -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -pedantic -Werror
 
 opt_debug=-O0
 opt_release=-O3

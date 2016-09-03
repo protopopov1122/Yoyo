@@ -132,10 +132,72 @@ CommandStream* newCommandStream(ILProcedure* proc) {
 	return cs;
 }
 
-void optimize_procedure(ILProcedure* proc) {
+void init_command(VMCommand* cmd, uint8_t opcode) {
+	cmd->old_position = -1;
+	cmd->opcode = opcode;
+	cmd->args[0] = -1;
+	cmd->args[1] = -1;
+	cmd->args[2] = -1;
+}
+
+void raw_optimize_procedure(ILProcedure* proc) {
 	CommandStream* cs = newCommandStream(proc);
 	while(cs->stream[0]!=NULL) {
 		if (cs->stream[1]!=NULL) {
+			if (cs->stream[2]!=NULL) {
+				if (cs->stream[0]->opcode==VM_Copy &&
+					cs->stream[1]->opcode==VM_Copy) {
+					if (cs->stream[2]->args[1] == cs->stream[0]->args[0] &&
+						cs->stream[2]->args[2] == cs->stream[1]->args[0] &&
+						(cs->stream[2]->opcode == VM_Add ||
+						cs->stream[2]->opcode == VM_Subtract ||
+						cs->stream[2]->opcode == VM_Multiply ||
+						cs->stream[2]->opcode == VM_Divide ||
+						cs->stream[2]->opcode == VM_Modulo ||
+						cs->stream[2]->opcode == VM_And ||
+						cs->stream[2]->opcode == VM_Or ||
+						cs->stream[2]->opcode == VM_Xor ||
+						cs->stream[2]->opcode == VM_Compare ||
+						cs->stream[2]->opcode == VM_ShiftLeft ||
+						cs->stream[2]->opcode == VM_ShiftRight)) {
+						VMCommand cmd;
+						init_command(&cmd, cs->stream[2]->opcode);
+						cmd.args[0] = cs->stream[2]->args[0];
+						cmd.args[1] = cs->stream[0]->args[1];
+						cmd.args[2] = cs->stream[1]->args[1];
+						cs->append(cs, &cmd);
+						cs->shift(cs);
+						cs->shift(cs);
+						cs->shift(cs);
+					}
+				}
+			}
+			if (cs->stream[0]->opcode == VM_Copy &&
+				cs->stream[1]->opcode == VM_Push &&
+				cs->stream[0]->args[0] == cs->stream[1]->args[0]) {
+				VMCommand cmd;
+				init_command(&cmd, VM_Push);
+				cmd.args[0] = cs->stream[0]->args[1];
+				cs->append(cs, &cmd);
+				cs->shift(cs);
+				cs->shift(cs);
+			}
+			if (cs->stream[0]->opcode == VM_Copy &&
+				cs->stream[1]->opcode == VM_Copy &&
+				cs->stream[0]->args[0] == cs->stream[1]->args[1] &&
+				cs->stream[0]->args[1] == cs->stream[1]->args[0]) {
+				cs->append(cs, cs->stream[0]);
+				cs->shift(cs);
+				cs->shift(cs);
+			}
+			if (cs->stream[0]->opcode == VM_Copy &&
+				cs->stream[1]->opcode == VM_Copy &&
+				cs->stream[0]->args[0] == cs->stream[1]->args[0] &&
+				cs->stream[0]->args[1] == cs->stream[1]->args[1]) {
+				cs->append(cs, cs->stream[0]);
+				cs->shift(cs);
+				cs->shift(cs);
+			}
 			if (cs->stream[0]->opcode==VM_FastCompare&&
 				cs->stream[1]->opcode==VM_GotoIfFalse&&
 				cs->stream[0]->args[0]==cs->stream[1]->args[1]) {
@@ -193,4 +255,9 @@ void optimize_procedure(ILProcedure* proc) {
 		cs->shift(cs);
 	}
 	cs->close(cs);
+}
+
+void optimize_procedure(ILProcedure* proc) {
+	raw_optimize_procedure(proc);
+	raw_optimize_procedure(proc);
 }

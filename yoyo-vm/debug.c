@@ -50,7 +50,7 @@ void Pager_print(DbgPager* pager) {
 	}
 	pager->string = 0;
 	const char* mess =  "Press <ENTER> to continue";
-	fprintf(pager->out_stream, mess);
+	fprintf(pager->out_stream, "%s", mess);
 	fflush(pager->out_stream);
 	free(readLine(pager->in_stream));
 #ifdef OS_UNIX 
