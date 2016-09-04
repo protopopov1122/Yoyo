@@ -172,6 +172,15 @@ void raw_optimize_procedure(ILProcedure* proc) {
 					}
 				}
 			}
+			if (cs->stream[0]->opcode == VM_Swap &&
+				cs->stream[1]->opcode == VM_Swap &&
+				((cs->stream[0]->args[0] == cs->stream[1]->args[1] &&
+				cs->stream[0]->args[1] == cs->stream[1]->args[0]) ||
+				(cs->stream[0]->args[0] == cs->stream[1]->args[0] &&
+				cs->stream[0]->args[1] == cs->stream[1]->args[1]))) {
+				cs->shift(cs);
+				cs->shift(cs);
+			}
 			if (cs->stream[0]->opcode == VM_Copy &&
 				cs->stream[1]->opcode == VM_Push &&
 				cs->stream[0]->args[0] == cs->stream[1]->args[0]) {

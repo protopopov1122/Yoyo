@@ -24,9 +24,6 @@
 /*Assign certain register value. If value is NULL then
  * assigned is Null.*/
 
-#define getRegister(reg, th) ((reg>-1&&reg<((ExecutionFrame*) ((ExecutionFrame*) th->frame))->regc) ?\
-																((ExecutionFrame*) ((ExecutionFrame*) th->frame))->regs[reg] : getNull(th))
-
 void setRegister(YValue* v, size_t reg, YThread* th) {
 	ExecutionFrame* frame = (ExecutionFrame*) ((ExecutionFrame*) th->frame);
 	if (reg < frame->regc)

@@ -59,6 +59,13 @@ typedef struct ExecutionFrame {
 	void* breakpoint;
 } ExecutionFrame;
 
+#define getRegister(reg, th) ((reg>-1&&reg<((ExecutionFrame*) ((ExecutionFrame*) th->frame))->regc) ?\
+																((ExecutionFrame*) ((ExecutionFrame*) th->frame))->regs[reg] : getNull(th))
+void setRegister(YValue*, size_t, YThread*); 
+void push(YValue*, YThread*);
+YValue* pop(YThread*);
+int64_t popInt(YThread*);
+
 YObject* Yoyo_SystemObject(ILBytecode*, YThread*);
 YLambda* newProcedureLambda(int32_t, ILBytecode*, YObject*, int32_t*,
 		YoyoLambdaSignature*, YThread*);
