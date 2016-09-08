@@ -42,6 +42,7 @@ typedef struct GarbageCollector {
 YoyoObject* initYoyoObject(YoyoObject*, void (*)(YoyoObject*),
 		void (*)(YoyoObject*));
 
+void markAtomic(YoyoObject*);
 GarbageCollector* newPlainGC();
 GarbageCollector* newGenerationalGC(size_t, size_t);
 YoyoObject* initAtomicYoyoObject(YoyoObject*, void (*)(YoyoObject*));

@@ -175,4 +175,6 @@ YoyoType* newNotNullType(YoyoType*, YThread*);
 
 YValue* newRawPointer(void*, void (*)(void*), YThread*);
 
+void freeAtomicData(YoyoObject*); 
+
 #endif
