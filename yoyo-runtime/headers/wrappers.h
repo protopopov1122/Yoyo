@@ -19,14 +19,18 @@
 
 #include "value.h"
 #include "collections.h"
+#include "set.h"
+#include "map.h"
 
 YObject* newReadonlyObject(YObject*, YThread*);
 YArray* newTuple(YArray*, YThread*);
 YArray* newSlice(YArray*, size_t, size_t, YThread*);
-YObject* newYoyoMap(YoyoMap*, YThread*);
-YObject* newYoyoSet(YoyoSet*, YThread*);
+YObject* newYoyoMap(AbstractYoyoMap*, YThread*);
+YObject* newYoyoSet(AbstractYoyoSet*, YThread*);
 YArray* newArrayObject(YObject*, YThread*);
 YoyoIterator* newYoyoIterator(YObject*, YThread*);
 void YoyoIterator_init(YoyoIterator*, YThread*);
+
+extern YType* IteratorType;
 
 #endif

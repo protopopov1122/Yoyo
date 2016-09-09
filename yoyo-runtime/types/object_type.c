@@ -97,6 +97,8 @@ YoyoIterator* Object_iterator(YValue* v, YThread* th) {
 			YValue* out = invokeLambda(exec, NULL, NULL, 0, th);
 			if (out->type == &th->runtime->ObjectType)
 				iter = newYoyoIterator((YObject*) out, th);
+			else if (out->type == IteratorType)
+				iter = (YoyoIterator*) out;
 		}
 	} else
 		iter = newYoyoIterator(obj, th);

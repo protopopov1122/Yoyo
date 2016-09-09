@@ -46,6 +46,117 @@ void HashMap_free(YoyoObject* ptr) {
 	free(map);
 }
 
+typedef struct HashMap_KeySet {
+	AbstractYoyoSet parent;
+
+	YoyoHashMap* map;
+} HashMap_KeySet;
+
+void HashMap_KeySet_mark(YoyoObject* ptr) {
+	ptr->marked = true;
+	HashMap_KeySet* set = (HashMap_KeySet*) ptr;
+	MARK(set->map);
+}
+
+size_t HashMap_KeySet_size(AbstractYoyoCollection* col, YThread* th) {
+	HashMap_KeySet* set = (HashMap_KeySet*) col;
+	return set->map->parent.col.size((AbstractYoyoCollection*) set->map, th);
+}
+
+bool HashMap_KeySet_add(AbstractYoyoSet* s, YValue* val, YThread* th) {
+	return false;
+}
+
+bool HashMap_KeySet_remove(AbstractYoyoSet* s, YValue* val, YThread* th) {
+	return false;
+}
+
+bool HashMap_KeySet_has(AbstractYoyoSet* s, YValue* val, YThread* th) {
+	HashMap_KeySet* set = (HashMap_KeySet*) s;
+	return set->map->parent.has((AbstractYoyoMap*) set->map, val, th);
+}
+
+typedef struct HashMapKeyIter {
+	YoyoIterator iter;
+
+	YoyoHashMap* map;
+	size_t index;
+	HashMapEntry* entry;
+} HashMapKeyIter;
+
+void HashMapKeyIter_mark(YoyoObject* ptr) {
+	ptr->marked = true;
+	HashMapKeyIter* iter = (HashMapKeyIter*) ptr;
+	MARK(iter->map);
+}
+
+void HashMapKeyIter_findNext(HashMapKeyIter* iter) {
+	if (iter->entry != NULL) {
+		iter->entry = iter->entry->prev;
+	}
+	while (iter->entry == NULL) {
+		iter->index++;
+		if (iter->index >= iter->map->size)
+			break;
+		iter->entry = iter->map->map[iter->index];
+	}
+}
+
+void HashMapKeyIter_reset(YoyoIterator* i, YThread* th) {
+	HashMapKeyIter* iter = (HashMapKeyIter*) i;
+	iter->index = 0;
+	iter->entry = iter->map->map[iter->index];
+	HashMapKeyIter_findNext(iter);
+}
+
+bool HashMapKeyIter_hasNext(YoyoIterator* i, YThread* th) {
+	HashMapKeyIter* iter = (HashMapKeyIter*) i;
+	return iter->entry != NULL;
+}
+
+YValue* HashMapKeyIter_next(YoyoIterator* i, YThread* th) {
+	HashMapKeyIter* iter = (HashMapKeyIter*) i;
+	if (iter->entry == NULL)
+		return getNull(th);
+	YValue* out = iter->entry->key;
+	HashMapKeyIter_findNext(iter);
+	return out;
+}
+
+YoyoIterator* HashMap_KeySet_iter(AbstractYoyoSet* s, YThread* th) {
+	HashMapKeyIter* iter = calloc(1, sizeof(HashMapKeyIter));
+	initYoyoObject((YoyoObject*) iter, HashMapKeyIter_mark, (void (*)(YoyoObject*)) free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) iter);
+
+	iter->map = ((HashMap_KeySet*) s)->map;
+	iter->index = 0;
+	iter->entry = iter->map->map[iter->index];
+	HashMapKeyIter_findNext(iter);
+
+	YoyoIterator_init((YoyoIterator*) iter, th);
+	
+	iter->iter.reset = HashMapKeyIter_reset;
+	iter->iter.hasNext = HashMapKeyIter_hasNext;
+	iter->iter.next = HashMapKeyIter_next;
+
+	return (YoyoIterator*) iter;
+}
+
+AbstractYoyoSet* HashMap_keySet(AbstractYoyoMap* m, YThread* th) {
+	HashMap_KeySet* set = calloc(1, sizeof(HashMap_KeySet));
+	initYoyoObject((YoyoObject*) set, HashMap_KeySet_mark, (void (*)(YoyoObject*)) free);	
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) set);
+	
+	set->map = (YoyoHashMap*) m;
+	set->parent.col.size = HashMap_KeySet_size;
+	set->parent.add = HashMap_KeySet_add;
+	set->parent.has = HashMap_KeySet_has;
+	set->parent.remove = HashMap_KeySet_remove;
+	set->parent.iter = HashMap_KeySet_iter;	
+
+	return (AbstractYoyoSet*) set;
+}
+
 YValue* HashMap_get(struct AbstractYoyoMap* m, YValue* key, YThread* th) {
 	YoyoHashMap* map = (YoyoHashMap*) m;
 	MUTEX_LOCK(&map->mutex);
@@ -98,9 +209,45 @@ void HashMap_put(struct AbstractYoyoMap* m, YValue* key, YValue* value, YThread*
 	MUTEX_UNLOCK(&map->mutex);
 }
 
+bool HashMap_remove(AbstractYoyoMap* m, YValue* key, YThread* th) {
+	YoyoHashMap* map = (YoyoHashMap*) m;
+	MUTEX_LOCK(&map->mutex);
+	uint64_t hash = key->type->oper.hashCode(key, th);
+	size_t index = (size_t) (hash % map->size);
+	HashMapEntry* next = NULL;
+	HashMapEntry* e = map->map[index];
+	while (e != NULL) {
+		if (CHECK_EQUALS(e->key, key, th)) {
+			break;
+		}
+		next = e;
+		e = e->prev;
+	}
+	bool res = false;
+	if (e!=NULL) {
+		if (next != NULL)
+			next->prev = e->prev;
+		else
+			map->map[index] = e->prev;
+		if (e->prev != NULL ||
+			next != NULL) {
+			map->col_count--;
+		}
+		map->fullSize--;
+		free(e);
+		res = true;
+	}
+	MUTEX_UNLOCK(&map->mutex);
+	return res;
+}
+
+size_t HashMap_size(AbstractYoyoCollection* col, YThread* th) {
+	return ((YoyoHashMap*) col)->fullSize;
+}
+
 
 AbstractYoyoMap* newYoyoHashMap(YThread* th) {
-	YoyoHashMap* map = calloc(1, sizeof(YoyoHashMap*));
+	YoyoHashMap* map = calloc(1, sizeof(YoyoHashMap));
 	initYoyoObject((YoyoObject*) map, HashMap_mark, HashMap_free);
 	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) map);
 
@@ -111,10 +258,12 @@ AbstractYoyoMap* newYoyoHashMap(YThread* th) {
 	map->col_count = 0;
 	map->map = calloc(map->size, sizeof(HashMapEntry*));
 
+	map->parent.col.size = HashMap_size;
 	map->parent.put = HashMap_put;
 	map->parent.get = HashMap_get;
 	map->parent.has = HashMap_has;
-	map->parent.remove = NULL; // TODO
+	map->parent.remove = HashMap_remove;
+	map->parent.keySet = HashMap_keySet;
 
 	return (AbstractYoyoMap*) map;
 }

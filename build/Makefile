@@ -33,7 +33,7 @@ c_platform_linux=-rdynamic -lm -lpthread -ldl -DYSTD=$(YSTD)
 c_platform_win=-static -Wno-pedantic -Wno-unused-result -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi -lpthread
 c_platform=$(c_platform_$(platform)) $(misc)
 
-cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers -Iyoyo-runtime/collections
+cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers -I../yoyo-runtime/collections
 c_source=../yoyo-util/*.c ../yoyo-vm/*.c ../YStd/native/*.c ../yoyo-parser/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c ../yoyo-runtime/collections/*.c
 
 yoyo_linux=yoyo

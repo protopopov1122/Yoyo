@@ -8,10 +8,30 @@ var hashMap, hashSet, list, range;
 		sys.types.signature(sys.types.any), null);
 	rawList = sys.native("YSTD_COLLECTIONS_LIST_NEW",
 		sys.types.signature(sys.types.any), null);
+	wrapSet = $(raw) object : raw {
+	    def add(e) {
+		super.add(e);
+		return this;
+	    }
+	    def toString() {
+		out = "[";
+		iter = super.iter();
+		while iter.hasNext() {
+		    out += iter.next();
+		    if iter.hasNext()
+			out+=", ";
+		}
+		out+="]";
+		return out;
+	    }
+	}
 	hashMap = overload($() object : rawHashMap() {
 		def put(key, value) {
 			super.put(key, value);
 			return this;
+		}
+		def keys() {
+		    return wrapSet(super.keys());
 		}
 		def #readIndex(i) get(i);
 		def #writeIndex(i, v) put(i, v);
@@ -27,21 +47,7 @@ var hashMap, hashSet, list, range;
 		}
 	});
 	hashSet = $(?els) {
-		set = object : rawHashSet() {
-			def add(e) {
-				super.add(e);
-				return this;
-			}
-			def toString() {
-				out = "[";
-				iter = super.iter();
-				while iter.hasNext() {
-					key = iter.next();
-					out+=key+(if iter.hasNext() "; " else "");
-				}
-				return out+"]";
-			}
-		}
+		set = wrapSet(rawHashSet);
 		foreach el : els
 			set.add(el);
 		return set;

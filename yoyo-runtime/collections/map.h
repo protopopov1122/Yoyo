@@ -7,12 +7,14 @@
 #include "set.h"
 
 typedef struct AbstractYoyoMap {
-	AbstractYoyoCollection* o;
+	AbstractYoyoCollection col;
 
 	void (*put)(struct AbstractYoyoMap*, YValue*, YValue*, YThread*);
 	bool (*has)(struct AbstractYoyoMap*, YValue*, YThread*);
 	YValue* (*get)(struct AbstractYoyoMap*, YValue*, YThread*);
-	void (*remove)(struct AbstractYoyoMap*, YValue*, YThread*);
+	bool (*remove)(struct AbstractYoyoMap*, YValue*, YThread*);
 	AbstractYoyoSet* (*keySet)(struct AbstractYoyoMap*, YThread*);
 } AbstractYoyoMap;
+
+AbstractYoyoMap* newYoyoHashMap(YThread*);
 #endif
