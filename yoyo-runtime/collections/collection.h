@@ -9,5 +9,7 @@ typedef struct AbstractYoyoCollection {
 	size_t (*size)(struct AbstractYoyoCollection*, YThread*);
 } AbstractYoyoCollection;
 
+YArray* newList(YThread*);
+
 
 #endif

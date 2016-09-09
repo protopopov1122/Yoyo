@@ -17,7 +17,6 @@
 #ifndef YOYO_RUNTIME_ARRAY_H
 #define YOYO_RUNTIME_ARRAY_H
 
-#include "collections.h"
 #include "value.h"
 
 void Array_addAll(YArray*, YArray*, YThread*);

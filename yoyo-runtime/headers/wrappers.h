@@ -18,7 +18,6 @@
 #define YOYO_RUNTIME_WRAPPERS_H
 
 #include "value.h"
-#include "collections.h"
 #include "set.h"
 #include "map.h"
 

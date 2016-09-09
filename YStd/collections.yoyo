@@ -4,8 +4,7 @@ var hashMap, hashSet, list, range;
 	util = import("util.yoyo");
 	rawHashMap = sys.native("YSTD_COLLECTIONS_HASH_MAP_NEW",
 		sys.types.signature(sys.types.any), null);
-	rawHashSet = sys.native("YSTD_COLLECTIONS_HASH_SET_NEW",
-		sys.types.signature(sys.types.any), null);
+	rawHashSet = null;
 	rawList = sys.native("YSTD_COLLECTIONS_LIST_NEW",
 		sys.types.signature(sys.types.any), null);
 	wrapSet = $(raw) object : raw {
@@ -15,6 +14,7 @@ var hashMap, hashSet, list, range;
 	    }
 	    def toString() {
 		out = "[";
+		print(super);
 		iter = super.iter();
 		while iter.hasNext() {
 		    out += iter.next();
@@ -47,7 +47,7 @@ var hashMap, hashSet, list, range;
 		}
 	});
 	hashSet = $(?els) {
-		set = wrapSet(rawHashSet);
+		set = wrapSet(rawHashSet());
 		foreach el : els
 			set.add(el);
 		return set;

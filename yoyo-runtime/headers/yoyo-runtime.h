@@ -27,6 +27,7 @@
 #include "value.h"
 #include "wrappers.h"
 #include "yerror.h"
+#include "collection.h"
 
 #ifndef __cplusplus
 #define YOYO_FUNCTION(name) YValue* name(YLambda* lambda, YObject* scope,\
