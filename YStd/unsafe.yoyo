@@ -1,0 +1,34 @@
+ptr = sys.native("YSTD_UNSAFE_PTR", sys.types.signature(sys.types.int, sys.types.any), null);
+unptr = sys.native("YSTD_UNSAFE_UNPTR", sys.types.signature(sys.types.any, sys.types.int), null);
+alloc = sys.native("YSTD_UNSAFE_ALLOC", sys.types.signature(sys.types.int, sys.types.int), null);
+free = sys.native("YSTD_UNSAFE_FREE", sys.types.signature(sys.types.any, sys.types.int), null);
+getInt64 = sys.native("YSTD_UNSAFE_GET_I64", sys.types.signature(sys.types.int, sys.types.int, sys.types.int), null);
+setInt64 = sys.native("YSTD_UNSAFE_SET_I64", sys.types.signature(sys.types.any, sys.types.int, sys.types.int, sys.types.int), null);
+getInt32 = sys.native("YSTD_UNSAFE_GET_I32", sys.types.signature(sys.types.int, sys.types.int, sys.types.int), null);
+setInt32 = sys.native("YSTD_UNSAFE_SET_I32", sys.types.signature(sys.types.any, sys.types.int, sys.types.int, sys.types.int), null);
+getInt16 = sys.native("YSTD_UNSAFE_GET_I16", sys.types.signature(sys.types.int, sys.types.int, sys.types.int), null);
+setInt16 = sys.native("YSTD_UNSAFE_SET_I16", sys.types.signature(sys.types.any, sys.types.int, sys.types.int, sys.types.int), null);
+getInt8 = sys.native("YSTD_UNSAFE_GET_I8", sys.types.signature(sys.types.int, sys.types.int, sys.types.int), null);
+setInt8 = sys.native("YSTD_UNSAFE_SET_I8", sys.types.signature(sys.types.any, sys.types.int, sys.types.int, sys.types.int), null);
+
+def pointer(ptr->sys.types.int) object {
+	ptr: ptr
+	def free() outer.free(ptr)
+	def getInt8(i->sys.types.int) outer.getInt8(ptr, i)
+	def setInt8(i->sys.types.int, e->sys.types.int) outer.setInt8(ptr, i, e)
+	def getInt16(i->sys.types.int) outer.getInt16(ptr, i)
+	def setInt16(i->sys.types.int, e->sys.types.int) outer.setInt16(ptr, i, e)
+	def getInt32(i->sys.types.int) outer.getInt32(ptr, i)
+	def setInt32(i->sys.types.int, e->sys.types.int) outer.setInt32(ptr, i, e)
+	def getInt64(i->sys.types.int) outer.getInt64(ptr, i)
+	def setInt64(i->sys.types.int, e->sys.types.int) outer.setInt64(ptr, i, e)
+	#readIndex: getInt8
+	#writeIndex: setInt8
+}
+
+def malloc(sz->sys.types.int) pointer(alloc(sz))
+
+Int8 = 1;
+Int16 = 2;
+Int32 = 3;
+Int64 = 8;

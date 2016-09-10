@@ -584,6 +584,8 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 			proc->unuse(proc, preg);
 		}
 		proc->append(proc, VM_NewField, reg,
+				builder->bc->getSymbolId(builder->bc, L"outer"), 0);
+		proc->append(proc, VM_NewField, reg,
 				builder->bc->getSymbolId(builder->bc, L"this"), reg);
 		proc->append(proc, VM_Push, 0, -1, -1);
 		proc->append(proc, VM_NewComplexObject, scopeReg, reg, 1);
