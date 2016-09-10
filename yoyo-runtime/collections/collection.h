@@ -11,5 +11,13 @@ typedef struct AbstractYoyoCollection {
 
 YArray* newList(YThread*);
 
+typedef struct AbstractYoyoSet AbstractYoyoSet;
+typedef struct AbstractYoyoMap AbstractYoyoMap;
+
+#include "set.h"
+#include "map.h"
+
+AbstractYoyoSet* newMapBasedSet(AbstractYoyoMap*, YThread*);
+
 
 #endif

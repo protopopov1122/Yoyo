@@ -111,7 +111,7 @@ YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_MAP_NEW) {
 }
 
 YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_SET_NEW) {
-	return getNull(th); // TODO
+	return (YValue*) newYoyoSetWrapper(newMapBasedSet(newHashMap(th), th), th);
 }
 
 YOYO_FUNCTION(YSTD_COLLECTIONS_LIST_NEW) {
