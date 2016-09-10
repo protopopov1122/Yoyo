@@ -16,5 +16,5 @@ typedef struct AbstractYoyoMap {
 	AbstractYoyoSet* (*keySet)(struct AbstractYoyoMap*, YThread*);
 } AbstractYoyoMap;
 
-AbstractYoyoMap* newYoyoHashMap(YThread*);
+AbstractYoyoMap* newHashMap(YThread*);
 #endif

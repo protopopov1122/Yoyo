@@ -55,7 +55,7 @@ YOYO_FUNCTION(Map_clear) {
 }
 YOYO_FUNCTION(Map_keys) {
 	INIT_HASHMAP;
-	return (YValue*) newYoyoSet(map->keySet(map, th), th);
+	return (YValue*) newYoyoSetWrapper(map->keySet(map, th), th);
 }
 #undef INIT_HASHMAP
 #define INIT_SET AbstractYoyoSet* set = (AbstractYoyoSet*) ((NativeLambda*) lambda)->object;
@@ -84,7 +84,7 @@ YOYO_FUNCTION(Set_iter) {
 
 #undef INIT_SET
 
-YObject* newYoyoMap(AbstractYoyoMap* map, YThread* th) {
+YObject* newYoyoMapWrapper(AbstractYoyoMap* map, YThread* th) {
 	YObject* out = th->runtime->newObject(NULL, th);
 	NEW_METHOD(L"size", Map_size, 0, out, map, th);
 	NEW_METHOD(L"get", Map_get, 1, out, map, th);
@@ -96,7 +96,7 @@ YObject* newYoyoMap(AbstractYoyoMap* map, YThread* th) {
 	return out;
 }
 
-YObject* newYoyoSet(AbstractYoyoSet* set, YThread* th) {
+YObject* newYoyoSetWrapper(AbstractYoyoSet* set, YThread* th) {
 	YObject* out = th->runtime->newObject(NULL, th);
 	NEW_METHOD(L"size", Set_size, 0, out, set, th);
 	NEW_METHOD(L"add", Set_add, 1, out, set, th);
@@ -106,8 +106,8 @@ YObject* newYoyoSet(AbstractYoyoSet* set, YThread* th) {
 }
 
 YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_MAP_NEW) {
-	AbstractYoyoMap* map = newYoyoHashMap(th);
-	return (YValue*) newYoyoMap(map, th);
+	AbstractYoyoMap* map = newHashMap(th);
+	return (YValue*) newYoyoMapWrapper(map, th);
 }
 
 YOYO_FUNCTION(YSTD_COLLECTIONS_HASH_SET_NEW) {

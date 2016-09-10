@@ -24,8 +24,8 @@
 YObject* newReadonlyObject(YObject*, YThread*);
 YArray* newTuple(YArray*, YThread*);
 YArray* newSlice(YArray*, size_t, size_t, YThread*);
-YObject* newYoyoMap(AbstractYoyoMap*, YThread*);
-YObject* newYoyoSet(AbstractYoyoSet*, YThread*);
+YObject* newYoyoMapWrapper(AbstractYoyoMap*, YThread*);
+YObject* newYoyoSetWrapper(AbstractYoyoSet*, YThread*);
 YArray* newArrayObject(YObject*, YThread*);
 YoyoIterator* newYoyoIterator(YObject*, YThread*);
 void YoyoIterator_init(YoyoIterator*, YThread*);
