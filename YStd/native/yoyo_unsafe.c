@@ -113,3 +113,41 @@ YOYO_FUNCTION(YSTD_UNSAFE_SET_I8) {
 	un.ptr[((YInteger*) args[1])->value] = (int8_t) ((YInteger*) args[2])->value;
 	return getNull(th);
 }
+
+YOYO_FUNCTION(YSTD_UNSAFE_GET_FLOAT) {
+	union {
+		float* ptr;
+		int64_t i64;
+	} un;
+	un.i64 = ((YInteger*) args[0])->value;
+	return newFloat(un.ptr[((YInteger*) args[1])->value], th);
+}
+
+YOYO_FUNCTION(YSTD_UNSAFE_SET_FLOAT) {
+	union {
+		float* ptr;
+		int64_t i64;
+	} un;
+	un.i64 = ((YInteger*) args[0])->value;
+	un.ptr[((YInteger*) args[1])->value] = (float) ((YFloat*) args[2])->value;
+	return getNull(th);
+}
+
+YOYO_FUNCTION(YSTD_UNSAFE_GET_DOUBLE) {
+	union {
+		double* ptr;
+		int64_t i64;
+	} un;
+	un.i64 = ((YInteger*) args[0])->value;
+	return newFloat(un.ptr[((YInteger*) args[1])->value], th);
+}
+
+YOYO_FUNCTION(YSTD_UNSAFE_SET_DOUBLE) {
+	union {
+		double* ptr;
+		int64_t i64;
+	} un;
+	un.i64 = ((YInteger*) args[0])->value;
+	un.ptr[((YInteger*) args[1])->value] = ((YFloat*) args[2])->value;
+	return getNull(th);
+}

@@ -11,6 +11,13 @@ setInt16 = sys.native("YSTD_UNSAFE_SET_I16", sys.types.signature(sys.types.any, 
 getInt8 = sys.native("YSTD_UNSAFE_GET_I8", sys.types.signature(sys.types.int, sys.types.int, sys.types.int), null);
 setInt8 = sys.native("YSTD_UNSAFE_SET_I8", sys.types.signature(sys.types.any, sys.types.int, sys.types.int, sys.types.int), null);
 
+getFloat = sys.native("YSTD_UNSAFE_GET_FLOAT", sys.types.signature(sys.types.float, sys.types.int, sys.types.int), null);
+setFloat = sys.native("YSTD_UNSAFE_SET_FLOAT", sys.types.signature(sys.types.any, sys.types.int, sys.types.int, sys.types.float), null);
+getDouble = sys.native("YSTD_UNSAFE_GET_DOUBLE", sys.types.signature(sys.types.float, sys.types.int, sys.types.int), null);
+setDouble = sys.native("YSTD_UNSAFE_SET_DOUBLE", sys.types.signature(sys.types.any, sys.types.int, sys.types.int, sys.types.float), null);
+
+
+
 def pointer(ptr->sys.types.int) object {
 	ptr: ptr
 	def free() outer.free(ptr)
@@ -22,8 +29,52 @@ def pointer(ptr->sys.types.int) object {
 	def setInt32(i->sys.types.int, e->sys.types.int) outer.setInt32(ptr, i, e)
 	def getInt64(i->sys.types.int) outer.getInt64(ptr, i)
 	def setInt64(i->sys.types.int, e->sys.types.int) outer.setInt64(ptr, i, e)
+	def getFloat(i->sys.types.int) outer.getFloat(ptr, i);
+	def setFloat(i->sys.types.int, e->sys.types.float) outer.setFloat(ptr, i, e);
+	def getDouble(i->sys.types.int) outer.getDouble(ptr, i);
+	def setDouble(i->sys.types.int, e->sys.types.float) outer.setDouble(ptr, i, e);
+	def offset(i->sys.types.int) pointer(ptr+i);
 	#readIndex: getInt8
 	#writeIndex: setInt8
+
+	def i8() {
+		out = pointer(ptr);
+		out.#readIndex = getInt8;
+		out.#writeIndex = setInt8;
+		return out;
+	}
+	def i16() {
+		out = pointer(ptr);
+		out.#readIndex = getInt16;
+		out.#writeIndex = setInt16;
+		return out;
+	}
+	def i32() {
+		out = pointer(ptr);
+		out.#readIndex = getInt32;
+		out.#writeIndex = setInt32;
+		return out;
+	}
+	def i64() {
+		out = pointer(ptr);
+		out.#readIndex = getInt64;
+		out.#writeIndex = setInt64;
+		return out;
+	}
+
+	def fp32() { 
+		out = pointer(ptr);
+		out.#readIndex = getFloat;
+		out.#writeIndex = setFloat;
+		return out;
+	}
+
+	def fp64() {
+		out = pointer(ptr);
+		out.#readIndex = getDouble;
+		out.#writeIndex = setDouble;
+		return out;
+	}
 }
 
 def malloc(sz->sys.types.int) pointer(alloc(sz))
@@ -32,3 +83,5 @@ Int8 = 1;
 Int16 = 2;
 Int32 = 3;
 Int64 = 8;
+Float = 4;
+Double = 8;
