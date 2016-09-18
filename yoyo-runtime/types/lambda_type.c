@@ -52,10 +52,74 @@ YOYO_FUNCTION(Lambda_callArray) {
 	return ret;
 }
 
+typedef struct CurriedLambda {
+	YoyoObject o;
+	YLambda* lambda;
+	size_t argc;
+	YValue** args;
+} CurriedLambda;
+
+void CurriedLambda_mark(YoyoObject* ptr) {
+	ptr->marked = true;
+	CurriedLambda* lambda = (CurriedLambda*) ptr;
+	MARK(lambda);
+	for (size_t i=0;i<lambda->argc;i++)
+		MARK(lambda->args[i]);
+}
+
+void CurriedLambda_free(YoyoObject* ptr) {
+	CurriedLambda* lambda = (CurriedLambda*) ptr;
+	free(lambda->args);
+	free(lambda);
+}
+
+YOYO_FUNCTION(CurriedLambda_exec) {
+	CurriedLambda* cl = (CurriedLambda*) ((NativeLambda*) lambda)->object;
+	size_t cargc = argc + cl->argc;
+	if (cargc == cl->lambda->sig->argc ||
+		(cl->lambda->sig->method && cargc - 1 == cl->lambda->sig->argc)) {
+		YValue** cargs = calloc(cargc, sizeof(YValue*));
+		memcpy(cargs, cl->args, sizeof(YValue*) * cl->argc);
+		memcpy(&cargs[cl->argc], args, sizeof(YValue*) * argc);
+		YValue* res = cl->lambda->execute(cl->lambda, NULL, cargs, cargc, th);
+		free(cargs);
+		return res;
+	}
+	CurriedLambda* ncl = malloc(sizeof(CurriedLambda));
+	ncl->lambda = cl->lambda;
+	ncl->argc = cl->argc + argc;
+	ncl->args = calloc(ncl->argc, sizeof(YValue*));
+	memcpy(ncl->args, cl->args, sizeof(YValue*) * cl->argc);
+	memcpy(&ncl->args[cl->argc], args, sizeof(YValue*) * argc);
+	initYoyoObject((YoyoObject*) ncl, CurriedLambda_mark, CurriedLambda_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) ncl);
+	return (YValue*) newNativeLambda(-1, CurriedLambda_exec, (YoyoObject*) ncl, th);
+}
+
+YOYO_FUNCTION(Lambda_curry) {
+	YLambda* lmbd = (YLambda*) ((NativeLambda*) lambda)->object;
+	if (lmbd->sig->vararg) {
+		throwException(L"CurryingVarargLambda", NULL, 0, th);
+		return getNull(th);
+	}
+	if (lmbd->sig->argc < 2)
+		return (YValue*) lmbd;
+	CurriedLambda* cl = malloc(sizeof(CurriedLambda));
+	cl->lambda = lmbd;
+	cl->argc = argc;
+	cl->args = calloc(argc, sizeof(YValue*));
+	memcpy(cl->args, args, sizeof(YValue*) * argc);
+	initYoyoObject((YoyoObject*) cl, CurriedLambda_mark, CurriedLambda_free);
+	th->runtime->gc->registrate(th->runtime->gc, (YoyoObject*) cl);
+	YLambda* out = newNativeLambda(-1, CurriedLambda_exec, (YoyoObject*) cl, th);
+	return (YValue*) out;
+}
+
 YValue* Lambda_readProperty(int32_t key, YValue* v, YThread* th) {
 	NEW_METHOD(L"signature", Lambda_signature, 0, v);
 	NEW_METHOD(L"call", Lambda_call, -1, v);
 	NEW_METHOD(L"callArray", Lambda_callArray, 1, v);
+	NEW_METHOD(L"curry", Lambda_curry, -1, v);
 	return Common_readProperty(key, v, th);
 }
 
