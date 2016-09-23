@@ -37,6 +37,8 @@ typedef struct YoyoCEnvironment {
 	size_t PATH_size;
 	wchar_t** files;
 	size_t files_size;
+
+	bool preprocess_bytecode;
 } YoyoCEnvironment;
 
 YoyoCEnvironment* newYoyoCEnvironment(ILBytecode*);

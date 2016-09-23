@@ -88,6 +88,16 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 	return false;
 }
 
+int32_t Yoyo_compile(ILBytecode* bc, Environment* env, wchar_t* wpath) {
+	FILE* file = env->getFile(env, wpath);
+	CompilationResult res = yoyoc((YoyoCEnvironment*) env, file_input_stream(file), wpath);
+	if (res.pid != -1)
+		return res.pid;
+	fprintf(env->out_stream, "%ls\n", res.log);
+	free(res.log);
+	return -1;
+}
+
 /*
  * Create runtime and compilation environment and set up it
  * according to arguments. Executes 'core.yoyo' from standart library
@@ -241,6 +251,8 @@ int main(int argc, char** argv) {
 
 	YRuntime* runtime = newRuntime(env, NULL);
 	ycenv->bytecode = newBytecode(&runtime->symbols);
+	ycenv->preprocess_bytecode = true;
+
 	if (dbg)
 		debug = newDefaultDebugger(ycenv->bytecode);
 

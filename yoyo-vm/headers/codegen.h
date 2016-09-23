@@ -83,6 +83,8 @@ typedef struct YCodeGen {
 
 	ProcedureBuilder* proc;
 
+	bool preprocess;
+
 	FILE* err_stream;
 } YCodeGen;
 

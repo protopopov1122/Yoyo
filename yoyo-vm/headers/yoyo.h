@@ -19,7 +19,7 @@
 #define VERSION "0.01-alpha"
 
 #define STR_VALUE(arg)      #arg
-#define TOWCS(name) L""STR_VALUE(name)
+#define TOWCS(name) L"" STR_VALUE(name)
 // Configuration in compile-time
 #ifdef YSTD 
 #define YSTD_PATH TOWCS(YSTD)

@@ -50,6 +50,7 @@ build/*
 .project
 .settings
 .syntastic_c_config
+.syntastic_cpp_config
 .ycm_extra_conf.py
 __pycache__
 \\
