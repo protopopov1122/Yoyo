@@ -40,7 +40,7 @@ c_platform_win=-static -Wno-pedantic -Wno-unused-result -IWin32 Win32/*.c -Wl,-e
 c_platform=$(c_platform_$(platform)) $(misc)
 cxx_platform_linux=
 cxx_platform_win=
-cxx_platform=$(c_platform_$(platform)) $(misc)
+cxx_platform=$(cxx_platform_$(platform)) $(misc)
 
 cflags=$(c_lang) $(opt) $(dbg) -I../yoyo-util -I../yoyo-runtime/headers -I../yoyo-parser/headers -I../yoyo-vm/headers -I../yoyo-runtime/collections
 c_source=../yoyo-util/*.c ../yoyo-vm/*.c ../YStd/native/*.c ../yoyo-parser/*.c ../yoyo-runtime/*.c ../yoyo-runtime/types/*.c ../yoyo-runtime/collections/*.c
@@ -65,6 +65,6 @@ yoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -o $(yoyo) $(c_source) $(c_platform)
 yoyo-jit:
-	$(cxx) `llvm-config --cxxflags --ldflags --libs core engine analysis native bitwriter --system-libs` $(cxxflags) -fPIC -shared ../yoyo-jit/*.cpp -o $(yoyo-jit)
+	$(cc) $(cflags) -fPIC -shared ../yoyo-jit/*.c -o $(yoyo-jit) $(c_platform)
 clean:
 	@./clean.sh
