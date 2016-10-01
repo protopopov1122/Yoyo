@@ -48,7 +48,9 @@ typedef struct ProcedureFrame {
 	X86GpVar stack_index;
 	X86GpVar scope;
 	X86GpVar null_ptr;
+	X86GpVar ObjectType;
 	X86GpVar th;
+	X86GpVar runtime;
 } ProcedureFrame;
 
 void x64_set_register(X86GpVar var, int32_t reg, ProcedureFrame* frame, X86Compiler* c) {
@@ -95,9 +97,8 @@ void test_fun(YValue* v, YThread* th) {
 
 #define x64_get_register(reg, frame) (reg>-1&&reg<(frame)->regc ? (frame)->regs[reg] : (frame)->null_ptr)
 #define x64_assert_type(var, tp, c) {X86GpVar _var = c.newIntPtr();\
-																		X86GpVar _val =  c.newInt16();\
 																		c.mov(_var, x86::ptr(var, offsetof(YValue, type)));\
-																		c.cmp(_var, imm_ptr(tp));\
+																		c.cmp(_var, tp);\
 																		c.unuse(_var);}
 
 
@@ -143,6 +144,11 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
     frame.stack_index = c.newIntPtr("stack_index");
 		c.xor_(frame.stack_index, frame.stack_index);
     c.mov(frame.stack_index, imm(0));
+		frame.runtime = c.newIntPtr("runtime");
+		c.mov(frame.runtime, x86::ptr(frame.th, offsetof(YThread, runtime)));
+		frame.ObjectType = c.newIntPtr("runtime_ObjectType");
+		c.mov(frame.ObjectType, frame.runtime);
+		c.add(frame.ObjectType, offsetof(YRuntime, ObjectType));
 
 
     size_t pc = 0;
@@ -239,6 +245,78 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 				x64_set_register(val, args[0], &frame, &c);
 				c.unuse(ptr);
 				c.unuse(val);
+			}
+			break;
+
+			case VM_SetField: {
+				X86GpVar obj = x64_get_register(args[0], &frame);
+				X86GpVar val = x64_get_register(args[2], &frame);
+
+				Label not_object = c.newLabel();			
+				x64_assert_type(obj, frame.ObjectType, c);
+				c.jne(not_object);
+				
+				
+				X86GpVar ptr = c.newIntPtr("Object_put");
+				c.mov(ptr, x86::ptr(obj, offsetof(YObject, put)));
+
+				X86CallNode* call = c.call(ptr,
+					FuncBuilder5<void, YObject*, int32_t, YValue*, int, YThread*>(kCallConvHost));
+				call->setArg(0, obj);
+				call->setArg(1, imm(args[1]));
+				call->setArg(2, val);
+				call->setArg(3, imm(false));
+				call->setArg(4, frame.th); 
+				c.unuse(ptr);
+
+				c.bind(not_object);
+			}
+			break;
+
+			case VM_NewField: {
+				X86GpVar obj = x64_get_register(args[0], &frame);
+				X86GpVar val = x64_get_register(args[2], &frame);
+
+				Label not_object = c.newLabel();			
+				x64_assert_type(obj, frame.ObjectType, c);
+				c.jne(not_object);
+				
+				
+				X86GpVar ptr = c.newIntPtr("Object_put");
+				c.mov(ptr, x86::ptr(obj, offsetof(YObject, put)));
+
+				X86CallNode* call = c.call(ptr,
+					FuncBuilder5<void, YObject*, int32_t, YValue*, int, YThread*>(kCallConvHost));
+				call->setArg(0, obj);
+				call->setArg(1, imm(args[1]));
+				call->setArg(2, val);
+				call->setArg(3, imm(true));
+				call->setArg(4, frame.th); 
+				c.unuse(ptr);
+
+				c.bind(not_object);
+			}
+			break;
+
+			case VM_DeleteField: {
+				X86GpVar obj = x64_get_register(args[0], &frame);
+
+				Label not_object = c.newLabel();			
+				x64_assert_type(obj, frame.ObjectType, c);
+				c.jne(not_object);
+				
+				
+				X86GpVar ptr = c.newIntPtr("Object_remove");
+				c.mov(ptr, x86::ptr(obj, offsetof(YObject, remove)));
+
+				X86CallNode* call = c.call(ptr,
+					FuncBuilder3<void, YObject*, int32_t, YThread*>(kCallConvHost));
+				call->setArg(0, obj);
+				call->setArg(1, imm(args[1]));
+				call->setArg(2, frame.th); 
+				c.unuse(ptr);
+
+				c.bind(not_object);
 			}
 			break;
 
