@@ -38,7 +38,7 @@ misc=
 c_platform_linux=-rdynamic -lm -lpthread -ldl -DYSTD=$(YSTD)
 c_platform_win=-static -Wno-pedantic -Wno-unused-result -IWin32 Win32/*.c -Wl,-export-all-symbols -lm -lpsapi -lpthread
 c_platform=$(c_platform_$(platform)) $(misc)
-cxx_platform_linux=
+cxx_platform_linux=-lasmjit
 cxx_platform_win=
 cxx_platform=$(cxx_platform_$(platform)) $(misc)
 
@@ -65,6 +65,6 @@ yoyo:
 	./gen_opcodes.sh
 	$(cc) $(cflags) -o $(yoyo) $(c_source) $(c_platform)
 yoyo-jit:
-	$(cc) $(cflags) -fPIC -shared ../yoyo-jit/*.c -o $(yoyo-jit) $(c_platform)
+	$(cxx) $(cxxflags) -fPIC -shared ../yoyo-jit/*.cpp -o $(yoyo-jit) $(cxx_platform)
 clean:
 	@./clean.sh
