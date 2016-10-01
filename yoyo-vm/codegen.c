@@ -195,10 +195,8 @@ void Procedure_preprocess(ProcedureBuilder *proc) {
 void YCodeGen_endProcedure(YCodeGen* builder) {
 	if (builder->proc != NULL) {
 		optimize_procedure(builder->proc->proc);
-		if (builder->jit==NULL) {
 			if (builder->preprocess)
 				Procedure_preprocess(builder->proc);
-		}
 		else
   		builder->proc->proc->compiled =
     		builder->jit->compile(builder->jit, builder->proc->proc, builder->bc);

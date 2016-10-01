@@ -444,8 +444,9 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 				c.and_(i_var, i2_var);
 				c.unuse(i2_var);
 				c.cmp(i_var, imm(0));
-				c.jne(falseL);
+				c.je(falseL);
 				c.unuse(i_var);
+				c.jmp(falseL);
 
     		X86GpVar val_ptr = c.newIntPtr();
     		X86CallNode* call = c.call(imm_ptr(newBoolean),
@@ -468,6 +469,55 @@ CompiledProcedure* X64Jit_compile(JitCompiler* jc, ILProcedure* proc, ILBytecode
 	   		c.unuse(val_ptr);
 
 				c.bind(trueL);
+
+			}
+			break;
+
+			case VM_FastCompare: {
+				Label trueL = c.newLabel();
+				Label falseL = c.newLabel();
+				X86GpVar op1 = x64_get_register(args[0], &frame);
+				X86GpVar op2 = x64_get_register(args[1], &frame);
+				X86GpVar ptr = c.newIntPtr();
+				X86GpVar val = c.newInt64();
+				c.mov(ptr, x86::ptr(op1, offsetof(YValue, type)));
+				c.mov(ptr, x86::ptr(ptr, offsetof(YType, oper)+offsetof(Operations, compare)));
+				c.xor_(val, val);
+				X86CallNode* call = c.call(ptr, FuncBuilder3<int, YValue*, YValue*, YThread*>(kCallConvHost));
+				call->setArg(0, op1);
+				call->setArg(1, op2);
+				call->setArg(2, frame.th);
+				call->setRet(0, val);
+
+				c.and_(val, x64_get_register(args[2], &frame));
+				c.cmp(val, imm(0));
+				c.je(falseL);
+				
+				X86GpVar val_ptr = c.newIntPtr();
+    		call = c.call(imm_ptr(newBoolean),
+    			FuncBuilder2<YValue*, int32_t, YThread*>(kCallConvHost));
+    		call->setArg(0, imm(true));
+    		call->setArg(1, frame.th);
+    		call->setRet(0, val_ptr);
+				x64_set_register(val_ptr, args[0], &frame, &c);
+	   		c.unuse(val_ptr);
+				c.jmp(trueL);
+
+				c.bind(falseL);
+
+    		val_ptr = c.newIntPtr();
+    		call = c.call(imm_ptr(newBoolean),
+    			FuncBuilder2<YValue*, int32_t, YThread*>(kCallConvHost));
+    		call->setArg(0, imm(false));
+    		call->setArg(1, frame.th);
+    		call->setRet(0, val_ptr);
+				x64_set_register(val_ptr, args[0], &frame, &c);
+	   		c.unuse(val_ptr);
+
+				c.bind(trueL);
+
+				c.unuse(val);
+				c.unuse(ptr);
 
 			}
 			break;
