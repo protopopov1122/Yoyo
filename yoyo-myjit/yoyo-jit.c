@@ -20,6 +20,7 @@ typedef struct Frame {
 	jit_value accum[ACCUM_COUNT];
 	jit_value runtime;
 	jit_value ObjectType;
+	jit_value IntType;
 } Frame;
 
 void test_value(YValue* v, YThread* th) {
@@ -42,17 +43,17 @@ void set_reg(ssize_t r, jit_value v, Frame* frame) {
 	if (r >= 0 && r < frame->regc) {
 		jit_op*  label = jit_beqi(frame->jit, JIT_FORWARD, v, 0);;
 		//print_value(v, frame);
-		/*jit_ldxi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->regs[r], offsetof(YValue, o) + offsetof(YoyoObject, linkc), JIT_UNSIGNED_NUM);
+/*		jit_ldxi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->regs[r], offsetof(YValue, o) + offsetof(YoyoObject, linkc), sizeof(uint16_t));
 		jit_subi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->accum[ACCUM_COUNT-1], 1);
-		jit_stxi(frame->jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame->regs[r], frame->accum[ACCUM_COUNT-1], JIT_UNSIGNED_NUM);*/
-		jit_prepare(frame->jit);
+		jit_stxi(frame->jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame->regs[r], frame->accum[ACCUM_COUNT-1], sizeof(uint16_t));
+		*/jit_prepare(frame->jit);
 		jit_putargr(frame->jit, frame->regs[r]);
 		jit_putargr(frame->jit, v);
 		jit_call(frame->jit, exchange_values);
 		jit_movr(frame->jit, frame->regs[r], v);
-		/*jit_ldxi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->regs[r], offsetof(YValue, o) + offsetof(YoyoObject, linkc), JIT_UNSIGNED_NUM);
+/*		jit_ldxi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->regs[r], offsetof(YValue, o) + offsetof(YoyoObject, linkc), sizeof(uint16_t));
 		jit_addi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->accum[ACCUM_COUNT-1], 1);
-		jit_stxi(frame->jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame->regs[r], frame->accum[ACCUM_COUNT-1], JIT_UNSIGNED_NUM);*/
+		jit_stxi(frame->jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame->regs[r], frame->accum[ACCUM_COUNT-1], sizeof(uint16_t));*/
 		jit_patch(frame->jit, label);
 	}
 }
@@ -92,6 +93,7 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 	}
 	frame.runtime = R(frame.regc + 2 + ACCUM_COUNT);
 	frame.ObjectType = R(frame.regc + 2 + ACCUM_COUNT + 1);
+	frame.IntType = R(frame.regc + 2 + ACCUM_COUNT + 2);
 	for (size_t i = 0; i < frame.regc; i++) {
 		frame.regs[i] = R(i + 1);
 		jit_movr(jit, frame.regs[i], frame.null_ptr);
@@ -100,8 +102,8 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 		jit_stxi(jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame.regs[i], frame.accum[0], JIT_UNSIGNED_NUM);
 	}
 	jit_ldxi(jit, frame.runtime, frame.th, offsetof(YThread, runtime), sizeof(YRuntime*));
-	jit_movr(jit, frame.ObjectType, frame.runtime);
-	jit_addi(jit, frame.ObjectType, frame.ObjectType, offsetof(YRuntime, ObjectType));
+	jit_addi(jit, frame.IntType, frame.runtime, offsetof(YRuntime, IntType));
+	jit_addi(jit, frame.ObjectType, frame.runtime, offsetof(YRuntime, ObjectType));
 	jit_getarg(jit, frame.accum[0], 0);
 	set_reg(0, frame.accum[0], &frame);
 
@@ -179,10 +181,6 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 				jit_patch(jit, rp_null);
 			}
 			break;
-			case VM_Goto: {
-				GenBr(args[0], jit_jmpi(jit, JIT_FORWARD), jit_jmpi(jit, label_list[args[0]]));
-			}
-			break;
 
 			case VM_SetField: {
 				jit_value obj = get_reg(args[0], frame);
@@ -195,6 +193,41 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 				jit_putargi(jit, args[1]);
 				jit_putargr(jit, get_reg(args[2], frame));
 				jit_putargi(jit, false);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+
+
+				jit_patch(jit, not_obj_label);
+			}
+			break;
+
+			case VM_NewField: {
+				jit_value obj = get_reg(args[0], frame);
+				jit_ldxi(jit, frame.accum[0], obj, offsetof(YValue, type), sizeof(void*));
+				jit_op* not_obj_label = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[0], frame.ObjectType);
+				
+				jit_ldxi(jit, frame.accum[0], obj, offsetof(YObject, put), sizeof(void*));
+				jit_prepare(jit);
+				jit_putargr(jit, obj);
+				jit_putargi(jit, args[1]);
+				jit_putargr(jit, get_reg(args[2], frame));
+				jit_putargi(jit, true);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+
+				jit_patch(jit, not_obj_label);
+			}
+			break;
+
+			case VM_DeleteField: {
+				jit_value obj = get_reg(args[0], frame);
+				jit_ldxi(jit, frame.accum[0], obj, offsetof(YValue, type), sizeof(void*));
+				jit_op* not_obj_label = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[0], frame.ObjectType);
+				
+				jit_ldxi(jit, frame.accum[0], obj, offsetof(YObject, remove), sizeof(void*));
+				jit_prepare(jit);
+				jit_putargr(jit, obj);
+				jit_putargi(jit, args[1]);
 				jit_putargr(jit, frame.th);
 				jit_callr(jit, frame.accum[0]);
 
@@ -243,6 +276,135 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 			case VM_Xor: BinOp(xor_operation) break;
 			case VM_Negate: UnOp(negate_operation) break;
 			case VM_Not: UnOp(not_operation) break;
+
+			case VM_Compare: {
+				jit_value a1 = get_reg(args[1], frame);
+				jit_value a2 = get_reg(args[2], frame);
+
+				jit_ldxi(jit, frame.accum[0], a1, offsetof(YValue, type), sizeof(void*));
+				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YType, oper) + offsetof(Operations, compare), sizeof(void*));
+				jit_prepare(jit);
+				jit_putargr(jit, a1);
+				jit_putargr(jit, a2);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+				jit_retval(jit, frame.accum[0]);
+
+				jit_prepare(jit);
+				jit_putargi(jit, frame.accum[0]);
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newInteger);
+				jit_retval(jit, frame.accum[0]);
+				set_reg(args[0], frame.accum[0], &frame);
+			}
+			break;
+
+			case VM_Test: {
+				jit_value arg = get_reg(args[1], frame);
+
+				jit_ldxi(jit, frame.accum[0], arg, offsetof(YValue, type), sizeof(void*));
+				jit_op* false_jump1 = jit_bner(jit, 0, frame.accum[0], frame.IntType);
+				
+				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YInteger, value), sizeof(int64_t));
+				jit_andi(jit, frame.accum[0], frame.accum[0], args[2]);
+				jit_op* false_jump2 = jit_beqi(jit, JIT_FORWARD, frame.accum[0], 0);
+
+				jit_movi(jit, frame.accum[0], (int) true);
+				jit_op* true_jump = jit_jmpi(jit, JIT_FORWARD);
+
+				jit_patch(jit, false_jump1);
+				jit_patch(jit, false_jump2);
+
+				jit_movi(jit, frame.accum[0], (int) false);
+
+				jit_patch(jit, true_jump);
+
+				jit_prepare(jit);
+				jit_putargr(jit, frame.accum[0]);
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newBoolean);
+				jit_retval(jit, frame.accum[0]);
+				set_reg(args[0], frame.accum[0], &frame);
+			}
+			break;
+
+			case VM_FastCompare: {
+				jit_value a1 = get_reg(args[0], frame);
+				jit_value a2 = get_reg(args[1], frame);
+
+				jit_ldxi(jit, frame.accum[0], a1, offsetof(YValue, type), sizeof(void*));
+				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YType, oper) + offsetof(Operations, compare), sizeof(void*));
+				jit_prepare(jit);
+				jit_putargr(jit, a1);
+				jit_putargr(jit, a2);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+				jit_retval(jit, frame.accum[0]);
+
+				jit_andi(jit, frame.accum[0], frame.accum[0], args[2]);
+				jit_op* false_jump2 = jit_beqi(jit, JIT_FORWARD, frame.accum[0], 0);
+
+				jit_movi(jit, frame.accum[0], (int) true);
+				jit_op* true_jump = jit_jmpi(jit, JIT_FORWARD);
+
+				jit_patch(jit, false_jump2);
+
+				jit_movi(jit, frame.accum[0], (int) false);
+
+				jit_patch(jit, true_jump);
+
+				jit_prepare(jit);
+				jit_putargr(jit, frame.accum[0]);
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newBoolean);
+				jit_retval(jit, frame.accum[0]);
+				set_reg(args[0], frame.accum[0], &frame);
+
+				print_value(frame.accum[0], &frame);
+
+			}
+			break;
+
+			case VM_Goto: {
+				GenBr(args[0], jit_jmpi(jit, JIT_FORWARD), jit_jmpi(jit, label_list[args[0]]));
+			}
+			break;
+			case VM_GotoIfEquals: {
+				jit_value a1 = get_reg(args[1], frame);
+				jit_value a2 = get_reg(args[2], frame);
+
+				jit_ldxi(jit, frame.accum[0], a1, offsetof(YValue, type), sizeof(void*));
+				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YType, oper) + offsetof(Operations, compare), sizeof(void*));
+				jit_prepare(jit);
+				jit_putargr(jit, a1);
+				jit_putargr(jit, a2);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+				jit_retval(jit, frame.accum[0]);
+
+				jit_andi(jit, frame.accum[0], frame.accum[0], COMPARE_EQUALS);
+				GenBr(args[0], jit_bnei(jit, (intptr_t) JIT_FORWARD, frame.accum[0], 0),
+												jit_bnei(jit, (intptr_t) label_list[args[0]], frame.accum[0], 0));	
+			}
+			break;
+			case VM_GotoIfNotEquals: {
+				jit_value a1 = get_reg(args[1], frame);
+				jit_value a2 = get_reg(args[2], frame);
+
+				jit_ldxi(jit, frame.accum[0], a1, offsetof(YValue, type), sizeof(void*));
+				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YType, oper) + offsetof(Operations, compare), sizeof(void*));
+				jit_prepare(jit);
+				jit_putargr(jit, a1);
+				jit_putargr(jit, a2);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+				jit_retval(jit, frame.accum[0]);
+
+				jit_andi(jit, frame.accum[0], frame.accum[0], COMPARE_EQUALS);
+				GenBr(args[0], jit_beqi(jit, (intptr_t) JIT_FORWARD, frame.accum[0], 0),
+												jit_beqi(jit, (intptr_t) label_list[args[0]], frame.accum[0], 0));	
+			}
+			break;
 			default:
 			break;
 		}
