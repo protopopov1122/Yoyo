@@ -1,0 +1,281 @@
+#include "yoyo.h"
+#include "jitlib.h"
+#include <stddef.h>
+
+typedef struct YoyoJitCompiler {
+	JitCompiler cmp;
+
+	struct jit* jit;
+} YoyoJitCompiler;
+
+#define ACCUM_COUNT 100
+
+typedef struct Frame {
+	struct jit* jit;
+
+	jit_value th;
+	jit_value* regs;
+	size_t regc;
+	jit_value null_ptr;
+	jit_value accum[ACCUM_COUNT];
+	jit_value runtime;
+	jit_value ObjectType;
+} Frame;
+
+void test_value(YValue* v, YThread* th) {
+ wchar_t* wcs = toString(v, th);
+ printf("%ls\n", wcs);
+ free(wcs);
+}
+
+void exchange_values(YValue* v1, YValue* v2) {
+	v1->o.linkc--;
+	v2->o.linkc++;
+}
+
+#define print_value(v, frame) jit_prepare((frame)->jit);\
+															jit_putargr((frame)->jit, v);\
+															jit_putargr((frame)->jit, (frame)->th);\
+															jit_call((frame)->jit, test_value);
+#define get_reg(r, frame) ((r >= 0 && r < frame.regc) ? frame.regs[r] : frame.null_ptr)
+void set_reg(ssize_t r, jit_value v, Frame* frame) {
+	if (r >= 0 && r < frame->regc) {
+		jit_op*  label = jit_beqi(frame->jit, JIT_FORWARD, v, 0);;
+		//print_value(v, frame);
+		/*jit_ldxi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->regs[r], offsetof(YValue, o) + offsetof(YoyoObject, linkc), JIT_UNSIGNED_NUM);
+		jit_subi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->accum[ACCUM_COUNT-1], 1);
+		jit_stxi(frame->jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame->regs[r], frame->accum[ACCUM_COUNT-1], JIT_UNSIGNED_NUM);*/
+		jit_prepare(frame->jit);
+		jit_putargr(frame->jit, frame->regs[r]);
+		jit_putargr(frame->jit, v);
+		jit_call(frame->jit, exchange_values);
+		jit_movr(frame->jit, frame->regs[r], v);
+		/*jit_ldxi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->regs[r], offsetof(YValue, o) + offsetof(YoyoObject, linkc), JIT_UNSIGNED_NUM);
+		jit_addi(frame->jit, frame->accum[ACCUM_COUNT-1], frame->accum[ACCUM_COUNT-1], 1);
+		jit_stxi(frame->jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame->regs[r], frame->accum[ACCUM_COUNT-1], JIT_UNSIGNED_NUM);*/
+		jit_patch(frame->jit, label);
+	}
+}
+#define JITREG(name, num) jit_value name = R(num);
+#define GenBr(id, cmd, cmd2) if (label_list[id] != NULL)\
+															cmd2;\
+									else {\
+										if (label_patch_list[id] == NULL)\
+											label_patch_list[id] = calloc(1, sizeof(jit_op*));\
+										size_t sz = 0;\
+										for (;label_patch_list[id][sz] != NULL; sz++);\
+										label_patch_list[id][sz] = cmd;\
+										label_patch_list[id] = realloc(label_patch_list[id], sizeof(jit_op*) * (sz + 2));\
+										label_patch_list[id][sz + 1] = NULL;\
+									}
+CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILBytecode* bc) {
+	struct jit* jit = ((YoyoJitCompiler*) jitcmp)->jit;
+	CompiledProcedure* cproc = malloc(sizeof(CompiledProcedure));
+	cproc->free = (void (*)(CompiledProcedure*)) free;
+	jit_prolog(jit, &cproc->call);
+	jit_declare_arg(jit, JIT_PTR, sizeof(YObject*));
+	jit_declare_arg(jit, JIT_PTR, sizeof(YThread*));
+	Frame frame;
+	frame.jit = jit;
+	frame.th = R(0);
+	frame.regs = malloc(sizeof(jit_value) * proc->regc);
+	frame.regc = proc->regc;
+	jit_getarg(jit, frame.th, 1);
+	
+	frame.null_ptr = R(frame.regc + 1);
+	jit_prepare(jit);
+	jit_putargr(jit, frame.th);
+	jit_call(jit, getNull);
+	jit_retval(jit, frame.null_ptr);
+	for (size_t i = 0; i < ACCUM_COUNT; i++) {
+		frame.accum[i] = R(frame.regc + 2 + i);
+	}
+	frame.runtime = R(frame.regc + 2 + ACCUM_COUNT);
+	frame.ObjectType = R(frame.regc + 2 + ACCUM_COUNT + 1);
+	for (size_t i = 0; i < frame.regc; i++) {
+		frame.regs[i] = R(i + 1);
+		jit_movr(jit, frame.regs[i], frame.null_ptr);
+		jit_ldxi(jit, frame.accum[0], frame.regs[i], offsetof(YValue, o) + offsetof(YoyoObject, linkc), JIT_UNSIGNED_NUM);
+		jit_addi(jit, frame.accum[0], frame.accum[0], 1);
+		jit_stxi(jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame.regs[i], frame.accum[0], JIT_UNSIGNED_NUM);
+	}
+	jit_ldxi(jit, frame.runtime, frame.th, offsetof(YThread, runtime), sizeof(YRuntime*));
+	jit_movr(jit, frame.ObjectType, frame.runtime);
+	jit_addi(jit, frame.ObjectType, frame.ObjectType, offsetof(YRuntime, ObjectType));
+	jit_getarg(jit, frame.accum[0], 0);
+	set_reg(0, frame.accum[0], &frame);
+
+	jit_label** label_list = calloc(proc->labels.length, sizeof(jit_label));
+	jit_op*** label_patch_list = calloc(proc->labels.length, sizeof(jit_op**));
+
+
+	size_t pc = 0;
+  while (pc+13<=proc->code_length) {
+		for (size_t i=0;i<proc->labels.length;i++) {
+			if (proc->labels.table[i].value==pc) {
+				label_list[i] = jit_get_label(jit);
+				if (label_patch_list[i] != NULL) {
+					for (size_t j = 0; label_patch_list[i][j] != NULL; j++)
+						jit_patch(jit, label_patch_list[i][j]);
+				}
+			}
+		}
+		
+   	uint8_t opcode = proc->code[pc];
+   	int32_t* args = (int32_t*) &proc->code[pc+1];
+   	switch (opcode) {
+			case VM_LoadConstant: {
+				Constant* cnst = bc->getConstant(bc, args[1]);
+				switch (cnst->type) {
+					case IntegerC: {
+						jit_prepare(jit);
+						jit_putargi(jit, cnst->value.i64);
+						jit_putargr(jit, frame.th);
+						jit_call(jit, newInteger);
+						jit_retval(jit, frame.accum[0]);
+						set_reg(args[0], frame.accum[0], &frame);
+					}
+					break;
+					case BooleanC: {
+						jit_prepare(jit);
+						jit_putargi(jit, cnst->value.boolean);
+						jit_putargr(jit, frame.th);
+						jit_call(jit, newBoolean);
+						jit_retval(jit, frame.accum[0]);
+						set_reg(args[0], frame.accum[0], &frame);
+					}
+					break;
+					default:
+					break;
+				}
+			}
+			break;
+			case VM_LoadInteger: {
+				jit_prepare(jit);
+				jit_putargi(jit, args[1]);
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newInteger);
+				jit_retval(jit, frame.accum[0]);
+				set_reg(args[0], frame.accum[0], &frame);
+			}
+			break;
+			case VM_Copy: {
+				set_reg(args[0], get_reg(args[1], frame), &frame);
+			}
+			break;
+
+			case VM_GetField: {
+				jit_value obj = get_reg(args[1], frame);
+				jit_ldxi(jit, frame.accum[0], obj, offsetof(YValue, type), sizeof(void*));
+				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YType, oper)+offsetof(Operations, readProperty), sizeof(void*));
+				jit_op* rp_null = jit_beqi(jit, JIT_FORWARD, frame.accum[0], 0);
+				jit_prepare(jit);
+				jit_putargi(jit, args[2]);
+				jit_putargr(jit, obj);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+				jit_retval(jit, frame.accum[0]);
+				set_reg(args[0], frame.accum[0], &frame);
+				jit_patch(jit, rp_null);
+			}
+			break;
+			case VM_Goto: {
+				GenBr(args[0], jit_jmpi(jit, JIT_FORWARD), jit_jmpi(jit, label_list[args[0]]));
+			}
+			break;
+
+			case VM_SetField: {
+				jit_value obj = get_reg(args[0], frame);
+				jit_ldxi(jit, frame.accum[0], obj, offsetof(YValue, type), sizeof(void*));
+				jit_op* not_obj_label = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[0], frame.ObjectType);
+				
+				jit_ldxi(jit, frame.accum[0], obj, offsetof(YObject, put), sizeof(void*));
+				jit_prepare(jit);
+				jit_putargr(jit, obj);
+				jit_putargi(jit, args[1]);
+				jit_putargr(jit, get_reg(args[2], frame));
+				jit_putargi(jit, false);
+				jit_putargr(jit, frame.th);
+				jit_callr(jit, frame.accum[0]);
+
+				jit_patch(jit, not_obj_label);
+			}
+			break;
+
+			#define BinOp(name) {\
+				jit_value a1 = get_reg(args[1], frame);\
+				jit_value a2 = get_reg(args[2], frame);\
+				jit_ldxi(jit, frame.accum[0], a1, offsetof(YValue, type), sizeof(void*));\
+				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YType, oper) + offsetof(Operations, name), sizeof(void*));\
+				jit_prepare(jit);\
+				jit_putargr(jit, a1);\
+				jit_putargr(jit, a2);\
+				jit_putargr(jit, frame.th);\
+				jit_callr(jit, frame.accum[0]);\
+				jit_retval(jit, frame.accum[0]);\
+				set_reg(args[0], frame.accum[0], &frame);\
+				print_value(frame.accum[0], &frame);\
+			}
+
+			#define UnOp(name) {\
+				jit_value a1 = get_reg(args[1], frame);\
+				jit_ldxi(jit, frame.accum[0], a1, offsetof(YValue, type), sizeof(void*));\
+				jit_ldxi(jit, frame.accum[0], frame.accum[0],offsetof(YType, oper) + offsetof(Operations, name), sizeof(void*));\
+				jit_prepare(jit);\
+				jit_putargr(jit, a1);\
+				jit_putargr(jit, frame.th);\
+				jit_callr(jit, frame.accum[0]);\
+				jit_retval(jit, frame.accum[0]);\
+				set_reg(args[0], frame.accum[0], &frame);\
+				print_value(frame.accum[0], &frame);\
+			}
+
+			case VM_Add: BinOp(add_operation) break;
+			case VM_Subtract: BinOp(subtract_operation) break;
+			case VM_Multiply: BinOp(multiply_operation) break;
+			case VM_Divide: BinOp(divide_operation) break;
+			case VM_Power: BinOp(power_operation) break;
+			case VM_Modulo: BinOp(modulo_operation) break;
+			case VM_ShiftLeft: BinOp(shl_operation) break;
+			case VM_ShiftRight: BinOp(shr_operation) break;
+			case VM_Or: BinOp(or_operation) break;
+			case VM_And: BinOp(and_operation) break;
+			case VM_Xor: BinOp(xor_operation) break;
+			case VM_Negate: UnOp(negate_operation) break;
+			case VM_Not: UnOp(not_operation) break;
+			default:
+			break;
+		}
+		pc += 13;
+	}
+
+	for (size_t i = 0; i < frame.regc; i++) {
+		jit_ldxi_u(jit, frame.accum[0], frame.regs[i], offsetof(YValue, o) + offsetof(YoyoObject, linkc), sizeof(uint16_t));
+		jit_subi(jit, frame.accum[0], frame.accum[0], 1);
+		jit_stxi(jit, offsetof(YValue, o) + offsetof(YoyoObject, linkc), frame.regs[i], frame.accum[0], sizeof(uint16_t));
+	}
+	free(label_list);
+	for (size_t i = 0; i < proc->labels.length; i++)
+		free(label_patch_list[i]);
+	free(label_patch_list);
+	jit_retr(jit, frame.regs[0]);
+	jit_dump_ops(jit, JIT_DEBUG_OPS);
+	jit_generate_code(jit);
+	free(frame.regs);
+	return cproc;
+}
+
+void YoyoJit_free(JitCompiler* cmp) {
+	YoyoJitCompiler* jitcmp = (YoyoJitCompiler*) cmp;
+	jit_free(jitcmp->jit);
+	free(jitcmp);
+}
+
+JitCompiler* getYoyoJit() {
+	YoyoJitCompiler* cmp = malloc(sizeof(YoyoJitCompiler));
+	cmp->jit = jit_init();
+	cmp->cmp.compile = YoyoJit_compile;
+	cmp->cmp.free = YoyoJit_free;
+	printf("HE$Y\n");
+	return (JitCompiler*) cmp;
+}

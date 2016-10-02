@@ -66,5 +66,8 @@ yoyo:
 	$(cc) $(cflags) -o $(yoyo) $(c_source) $(c_platform)
 yoyo-jit:
 	$(cxx) $(cxxflags) -fPIC -shared ../yoyo-jit/*.cpp -o $(yoyo-jit) $(cxx_platform)
+yoyo-myjit:
+	$(cc) $(cflags) -c -fPIC -Imyjit/myjit ../yoyo-myjit/*.c
+	$(cc) -shared -o $(yoyo-jit) myjit/*.o *.o $(c_platform)
 clean:
 	@./clean.sh
