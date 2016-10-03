@@ -141,6 +141,7 @@ void init_command(VMCommand* cmd, uint8_t opcode) {
 }
 
 void raw_optimize_procedure(ILProcedure* proc) {
+	return;
 	CommandStream* cs = newCommandStream(proc);
 	while(cs->stream[0]!=NULL) {
 		if (cs->stream[1]!=NULL) {
