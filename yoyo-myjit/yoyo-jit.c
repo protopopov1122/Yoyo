@@ -28,6 +28,7 @@ typedef struct Frame {
 	
 	jit_value ObjectType;
 	jit_value IntType;
+	jit_value FloatType;
 	jit_value BooleanType;
 	jit_value LambdaType;
 } Frame;
@@ -102,6 +103,9 @@ void push_reg(jit_value reg, Frame* frame) {
 	jit_stxr(jit, frame->stack_ptr, frame->accum[ACCUM_COUNT-1], reg, sizeof(YValue*));
 	jit_addi(jit, frame->stack_offset, frame->stack_offset, 1);
 
+	jit_prepare(jit);
+	jit_putargr(jit, reg);
+	jit_call(jit, inc_linkc);
 }
 
 jit_value pop_reg(Frame* frame) {
@@ -114,6 +118,10 @@ jit_value pop_reg(Frame* frame) {
 	jit_ldxr(jit, frame->accum[0], frame->stack_ptr, frame->accum[ACCUM_COUNT-1], sizeof(YValue*));	
 
 	jit_patch(jit, underflow_jump);
+
+	jit_prepare(jit);
+	jit_putargr(jit, frame->accum[0]);
+	jit_call(jit, dec_linkc);
 	return frame->accum[0];
 }
 jit_value pop_int(Frame* frame) {
@@ -180,6 +188,7 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 	frame.IntType = R(frame.regc + 8 + ACCUM_COUNT);
 	frame.BooleanType = R(frame.regc + 9 + ACCUM_COUNT);
 	frame.LambdaType = R(frame.regc + 10 + ACCUM_COUNT);
+	frame.FloatType = R(frame.regc + 11 + ACCUM_COUNT);
 
 	jit_label** label_list = calloc(proc->labels.length, sizeof(jit_label*));
 	patch_wait* label_patch_list = calloc(proc->labels.length, sizeof(patch_wait));
@@ -220,6 +229,7 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 	jit_addi(jit, frame.ObjectType, frame.runtime, offsetof(YRuntime, ObjectType));
 	jit_addi(jit, frame.BooleanType, frame.runtime, offsetof(YRuntime, BooleanType));
 	jit_addi(jit, frame.LambdaType, frame.runtime, offsetof(YRuntime, LambdaType));
+	jit_addi(jit, frame.FloatType, frame.runtime, offsetof(YRuntime, FloatType));
 
 	jit_prepare(jit);
 	jit_putargr(jit, frame.th);
@@ -267,6 +277,15 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 						jit_putargi(jit, cnst->value.i64);
 						jit_putargr(jit, frame.th);
 						jit_call(jit, newInteger);
+						jit_retval(jit, frame.accum[10]);
+						set_reg(args[0], frame.accum[10], &frame);
+					}
+					break;
+					case FloatC: {
+						jit_prepare(jit);
+						jit_fputargi(jit, cnst->value.fp64, sizeof(double));
+						jit_putargr(jit, frame.th);
+						jit_call(jit, newFloat);
 						jit_retval(jit, frame.accum[10]);
 						set_reg(args[0], frame.accum[10], &frame);
 					}
@@ -434,6 +453,86 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 			}
 			break;
 
+			case VM_Increment: {
+				jit_value val = get_reg(args[1], frame);
+
+				jit_value type = frame.accum[10];
+				jit_ldxi(jit, type, val, offsetof(YValue, type), sizeof(void*));
+				jit_op* not_int_jump = jit_bner(jit, (intptr_t) JIT_FORWARD, type, frame.IntType);
+
+				jit_value nval = frame.accum[11];
+				jit_ldxi(jit, nval, val, offsetof(YInteger, value), sizeof(int64_t));
+				jit_addi(jit, nval, nval, 1);
+				jit_prepare(jit);
+				jit_putargr(jit, nval);
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newInteger);
+				jit_retval(jit, nval);
+				set_reg(args[0], nval, &frame);
+				jit_op* int_jump = jit_jmpi(jit, (intptr_t) JIT_FORWARD);
+
+
+				jit_patch(jit, not_int_jump);
+				jit_op* not_float_jump = jit_bner(jit, (intptr_t) JIT_FORWARD, type, frame.FloatType);
+
+				jit_fldxi(jit, FR(0), val, offsetof(YFloat, value), sizeof(double));
+				jit_faddi(jit, FR(0), FR(0), 1.0);
+				jit_prepare(jit);
+				jit_fputargr(jit, FR(0), sizeof(double));
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newFloat);
+				jit_retval(jit, val);
+				set_reg(args[0], val, &frame);
+				jit_op* float_jump = jit_jmpi(jit, (intptr_t) JIT_FORWARD);
+
+				jit_patch(jit, not_float_jump);
+				set_reg(args[0], val, &frame);
+
+				jit_patch(jit, int_jump);
+				jit_patch(jit, float_jump);
+			}
+			break;
+
+			case VM_Decrement: {
+				jit_value val = get_reg(args[1], frame);
+
+				jit_value type = frame.accum[10];
+				jit_ldxi(jit, type, val, offsetof(YValue, type), sizeof(void*));
+				jit_op* not_int_jump = jit_bner(jit, (intptr_t) JIT_FORWARD, type, frame.IntType);
+
+				jit_value nval = frame.accum[11];
+				jit_ldxi(jit, nval, val, offsetof(YInteger, value), sizeof(int64_t));
+				jit_subi(jit, nval, nval, 1);
+				jit_prepare(jit);
+				jit_putargr(jit, nval);
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newInteger);
+				jit_retval(jit, nval);
+				set_reg(args[0], nval, &frame);
+				jit_op* int_jump = jit_jmpi(jit, (intptr_t) JIT_FORWARD);
+
+
+				jit_patch(jit, not_int_jump);
+				jit_op* not_float_jump = jit_bner(jit, (intptr_t) JIT_FORWARD, type, frame.FloatType);
+
+				jit_fldxi(jit, FR(0), val, offsetof(YFloat, value), sizeof(double));
+				jit_fsubi(jit, FR(0), FR(0), 1.0);
+				jit_prepare(jit);
+				jit_fputargr(jit, FR(0), sizeof(double));
+				jit_putargr(jit, frame.th);
+				jit_call(jit, newFloat);
+				jit_retval(jit, val);
+				set_reg(args[0], val, &frame);
+				jit_op* float_jump = jit_jmpi(jit, (intptr_t) JIT_FORWARD);
+
+				jit_patch(jit, not_float_jump);
+				set_reg(args[0], val, &frame);
+
+				jit_patch(jit, int_jump);
+				jit_patch(jit, float_jump);
+			}
+			break;
+
 
 
 			case VM_GetField: {
@@ -534,7 +633,8 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 
 				jit_patch(jit, pop_args_loop);
 
-				jit_value scope;
+				jit_value scope = frame.null_ptr;
+
 				if (args[2] != -1) {
 					scope = get_reg(args[2], frame);
 					jit_value scope_type = frame.accum[14];
@@ -545,25 +645,26 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 					jit_value proc_ptr = frame.accum[15];
 					jit_ldxi(jit, proc_ptr, frame.runtime, offsetof(YRuntime, newObject), sizeof(void*));
 					jit_movr(jit, val, scope);
+
 					jit_prepare(jit);
 					jit_putargi(jit, 0);
 					jit_putargr(jit, frame.th);
-					jit_call(jit, proc_ptr);
+					jit_callr(jit, proc_ptr);
 					jit_retval(jit, scope);
+
 					
 					jit_ldxi(jit, proc_ptr, scope, offsetof(YObject, put), sizeof(void*));
+
 					jit_prepare(jit);
 					jit_putargr(jit, scope);
 					jit_putargi(jit, bc->getSymbolId(bc, L"value"));
 					jit_putargr(jit, val);
 					jit_putargi(jit, (int) true);
 					jit_putargr(jit, frame.th);
-					jit_call(jit, proc_ptr);
+					jit_callr(jit, proc_ptr);
 
 					jit_patch(jit, object_scope);
 				}
-				else
-					scope = frame.null_ptr;
 				
 				jit_value lmbd = get_reg(args[1], frame);
 				jit_value lmbd_type = frame.accum[20];
@@ -619,19 +720,7 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 			break;
 			
 			case VM_Goto: {
-				GenBr(args[0], jit_jmpi(jit, (intptr_t) JIT_FORWARD), jit_jmpi(jit, label_list[index]));
-				/*for (size_t index = 0; index < proc->labels.length; index++) {
-					if (proc->labels.table[index].id == args[0]) {
-						if (label_list[index] != NULL) {
-							jit_jmpi(jit, label_list[index]);
-						} else {
-							label_patch_list[index].ops = realloc(label_patch_list[index].ops, sizeof(jit_op*) *
-								(++label_patch_list[index].sz));
-							label_patch_list[index].ops[label_patch_list[index].sz - 1] = jit_jmpi(jit, (intptr_t) JIT_FORWARD);
-						}
-						break;
-					}
-				}*/
+				GenBr(args[0], jit_jmpi(jit, (intptr_t) JIT_FORWARD), jit_jmpi(jit, label_list[index]));	
 			}
 			break;
 
@@ -688,6 +777,15 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 
 
 		}
+
+		/*jit_prepare(jit);
+		jit_putargi(jit, "%x %x %"PRId64", %"PRId64", %"PRId64"\n");
+		jit_putargi(jit, pc);
+		jit_putargi(jit, opcode);
+		jit_putargi(jit, args[0]);
+		jit_putargi(jit, args[1]);
+		jit_putargi(jit, args[2]);
+		jit_call(jit, printf);*/
 
 		pc += 13;
 
