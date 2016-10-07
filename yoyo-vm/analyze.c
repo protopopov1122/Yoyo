@@ -32,9 +32,17 @@ struct opcode_arg_info get_opcode_arg_info(uint8_t opcode) {
 				modify_arg1 = false;
 				modify_arg2 = false;
 			break;
-			case VM_Not: case VM_LogicalNot: case VM_Negate: case VM_Test: case VM_FastCompare:
+			case VM_NewOverload:
+				modify_arg1 = false;
+			break;
+			case VM_FastCompare:
+				returnsResult = false;
+				modify_arg0 = true;
+				modify_arg2 = false;
+			break;
+			case VM_Not: case VM_LogicalNot: case VM_Negate: case VM_Test:
 			case VM_NewObject: case VM_GetField: case VM_Copy: case VM_Swap: case VM_Iterator:
-			case VM_Iterate: case VM_CheckType:
+			case VM_Iterate: case VM_CheckType: case VM_NewComplexObject:
 			case VM_Increment: case VM_Decrement:
 				modify_arg2 = false;
 			break;
@@ -84,6 +92,7 @@ void analyzer_convert_code(ProcedureStats* stats) {
 	ssa_map[0] = ssa_scope_reg;
 	ssa_scope_reg->first_use = 0;
 	ssa_scope_reg->last_use = 0;
+	ssa_scope_reg->dead = false;
 	stats->ssa_regs[stats->ssa_reg_count - 1] = ssa_scope_reg;
 
 	for (size_t pc = 0; pc + 13 <= stats->proc->code_length; pc += 13) {
@@ -112,6 +121,7 @@ void analyzer_convert_code(ProcedureStats* stats) {
 			ssa_reg->real_reg = args[0];
 			ssa_reg->first_use = -1;
 			ssa_reg->last_use = -1;
+			ssa_reg->dead = false;
 			stats->ssa_regs[ssa_reg->id] = ssa_reg;
 
 			ssa_map[args[0]] = ssa_reg;
@@ -125,6 +135,8 @@ void analyzer_convert_code(ProcedureStats* stats) {
 		stats->code[stats->code_length - 1].args[0] = args[0];
 		stats->code[stats->code_length - 1].args[1] = args[1];
 		stats->code[stats->code_length - 1].args[2] = args[2];
+		stats->code[stats->code_length - 1].real_offset = pc;
+		stats->code[stats->code_length - 1].dead = false;
 	}
 }
 
@@ -156,9 +168,6 @@ void analyze_register_area(ProcedureStats* stats) {
 	for (size_t pc = 0; pc < stats->code_length; pc++) {
 		for (size_t i = 0; i < stats->ssa_reg_count; i++) {
 			if (stats->ssa_regs[i]->first_use == pc) {
-				if (real_regs_size * 8 == real_regc) {
-					real_regs = realloc(real_regs, ++real_regs_size * sizeof(uint8_t));
-				}
 				stats->ssa_regs[i]->real_reg = -1;
 				if (stats->ssa_regs[i]->last_use == -1)
 					continue;
@@ -170,11 +179,17 @@ void analyze_register_area(ProcedureStats* stats) {
 						if (bit == 0) {
 							stats->ssa_regs[i]->real_reg = j * 8 + k;
 							real_regs[j] |= 1 << k;
-							real_regc++;
 							break;
 						}
 					}
 				}
+				if (stats->ssa_regs[i]->real_reg == -1) {
+					real_regs = realloc(real_regs, ++real_regs_size * sizeof(uint8_t));
+					real_regs[real_regs_size - 1] = 1;
+					stats->ssa_regs[i]->real_reg = (real_regs_size - 1) * 8;
+				}
+				if (stats->ssa_regs[i]->real_reg >= real_regc)
+					real_regc = stats->ssa_regs[i]->real_reg + 1;
 			}
 			else if (stats->ssa_regs[i]->last_use == pc) {
 				real_regs[stats->ssa_regs[i]->real_reg / 8] =
@@ -183,6 +198,7 @@ void analyze_register_area(ProcedureStats* stats) {
 			}
 		}
 	}
+	stats->real_regc = real_regc;
 	free(real_regs);
 }
 
@@ -225,7 +241,7 @@ void analyzer_convert_block(ProcedureStats* stats) {
 }
 
 void analyzer_raw_call_transform(ProcedureStats* stats) {
-	int32_t* push_regs = NULL;
+	ProcInstr* push_regs = NULL;
 	size_t push_regc = 0;
 
 	ProcInstr* new_code = NULL;
@@ -234,8 +250,8 @@ void analyzer_raw_call_transform(ProcedureStats* stats) {
 		ProcInstr* instr = &stats->code[i];
 
 		if (instr->opcode == VM_Push) {
-			push_regs = realloc(push_regs, ++push_regc * sizeof(int32_t));
-			push_regs[push_regc - 1] = instr->args[0];
+			push_regs = realloc(push_regs, ++push_regc * sizeof(ProcInstr));
+			memcpy(&push_regs[push_regc - 1], instr, sizeof(ProcInstr));
 			continue;
 		}
 
@@ -245,10 +261,7 @@ void analyzer_raw_call_transform(ProcedureStats* stats) {
 			for (size_t j = 0; j < push_regc; j++) {
 				new_code = realloc(new_code, ++new_code_len * sizeof(ProcInstr));
 				ProcInstr* ninstr = &new_code[new_code_len - 1];
-				ninstr->opcode = VM_Push;
-				ninstr->args[0] = push_regs[j];
-				ninstr->args[1] = -1;
-				ninstr->args[2] = -1;
+				memcpy(ninstr, &push_regs[j], sizeof(ProcInstr));	
 			}
 			free(push_regs);
 			push_regc = 0;
@@ -257,15 +270,32 @@ void analyzer_raw_call_transform(ProcedureStats* stats) {
 		
 		new_code = realloc(new_code, ++new_code_len * sizeof(ProcInstr));
 		ProcInstr* ninstr = &new_code[new_code_len - 1];
-		ninstr->opcode = instr->opcode;
-		ninstr->args[0] = instr->args[0];
-		ninstr->args[1] = instr->args[1];
-		ninstr->args[2] = instr->args[2];
+		memcpy(ninstr, instr, sizeof(ProcInstr));	
 	}
 
 	free(stats->code);
 	stats->code = new_code;
 	stats->code_length = new_code_len;
+}
+
+void analyze_mark_dead(ProcedureStats* stats) {
+	for (size_t i = 0; i < stats->ssa_reg_count; i++)
+		if (stats->ssa_regs[i]->last_use == -1)
+			stats->ssa_regs[i]->dead = true;
+	for (ssize_t i = stats->code_length - 1; i >= 0; i--) {
+		struct opcode_arg_info info = get_opcode_arg_info(stats->code[i].opcode);
+		if (stats->code[i].opcode == VM_Call)
+			continue;
+		if (info.returns_result && stats->code[i].args[0] != -1) {
+			if (stats->ssa_regs[stats->code[i].args[0]]->dead) {
+				stats->code[i].dead = true;
+				if (info.mod_args[1] && stats->code[i].args[1] != -1)
+					stats->ssa_regs[stats->code[i].args[1]]->dead = true;
+				if (info.mod_args[2] && stats->code[i].args[2] != -1)
+					stats->ssa_regs[stats->code[i].args[2]]->dead = true;
+			}
+		}
+	}
 }
 
 ProcedureStats* analyze(ILProcedure* proc, ILBytecode* bc) {
@@ -274,6 +304,7 @@ ProcedureStats* analyze(ILProcedure* proc, ILBytecode* bc) {
 	analyzer_convert_code(stats);
 	analyzer_raw_call_transform(stats);
 	analyze_register_area(stats);
+	analyze_mark_dead(stats);
 	analyzer_convert_block(stats);
 
 	printf("Procedure %"PRId32":\n", proc->id);
@@ -289,12 +320,13 @@ ProcedureStats* analyze(ILProcedure* proc, ILBytecode* bc) {
 					break;
 				}
 			if (mnem != NULL)
-				printf("\t%zu:\t%ls %"PRId32", %"PRId32", %"PRId32"\n", pc, mnem, block->block[j].args[0],
-					block->block[j].args[1], block->block[j].args[2]);
+				printf("\t%zu:\t%ls %"PRId32", %"PRId32", %"PRId32"\t; %sreal offset: %zu\n", pc, mnem, block->block[j].args[0],
+					block->block[j].args[1], block->block[j].args[2],
+					block->block[j].dead ? "(dead) " : "",  block->block[j].real_offset);
 			pc++;
 		}
 	}
-	printf("\n\tRegisters:\n");
+	printf("\n\tRegisters(%zu):\n", stats->real_regc);
 	for (size_t i = 0; i < stats->ssa_reg_count; i++) {
 		SSARegister* reg = stats->ssa_regs[i];
 		printf("\t\t%zu used from %zi to %zi mapped to %zi\n", reg->id, reg->first_use, reg->last_use, reg->real_reg);

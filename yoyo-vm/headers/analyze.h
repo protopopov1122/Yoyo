@@ -9,12 +9,16 @@ typedef struct SSARegister {
 
 	ssize_t first_use;
 	ssize_t last_use;
+	bool dead;
 } SSARegister;
 
 typedef struct ProcInstr {
 	uint8_t opcode;
 
 	int32_t args[3];
+
+	size_t real_offset;
+	bool dead;
 } ProcInstr;
 
 typedef struct InstrBlock {
