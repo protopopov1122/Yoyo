@@ -252,6 +252,7 @@ int main(int argc, char** argv) {
 	YRuntime* runtime = newRuntime(env, NULL);
 	ycenv->bytecode = newBytecode(&runtime->symbols);
 	ycenv->preprocess_bytecode = true;
+	ycenv->analyze_bytecode = true;
 
 	if (dbg)
 		debug = newDefaultDebugger(ycenv->bytecode);
@@ -263,7 +264,7 @@ int main(int argc, char** argv) {
 	/* Executes specified file only if 'core.yoyo' is found and valid */
 	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {
 		runtime->debugger = debug;
-        ycenv->jit = jit;
+    ycenv->jit = jit;
 		if (file != NULL) {
 			Yoyo_interpret_file(ycenv->bytecode, runtime, file);
 			free(file);

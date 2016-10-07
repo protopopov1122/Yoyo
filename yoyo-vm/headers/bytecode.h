@@ -79,6 +79,7 @@ typedef struct ILProcedure {
 	CodeTableEntry* (*getCodeTableEntry)(struct ILProcedure*, uint32_t);
 	void (*free)(struct ILProcedure*, struct ILBytecode*);
 
+	struct ProcedureStats* stats;
 	struct ILBytecode* bytecode;
 
 	CompiledProcedure* compiled;

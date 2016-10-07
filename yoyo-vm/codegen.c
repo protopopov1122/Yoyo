@@ -17,6 +17,7 @@
 #include "yoyoc.h"
 #include "codegen.h"
 #include "opcodes.h"
+#include "analyze.h"
 
 #define GET_BIT(n, offset) ((n>>offset)&1)
 
@@ -195,8 +196,10 @@ void Procedure_preprocess(ProcedureBuilder *proc) {
 void YCodeGen_endProcedure(YCodeGen* builder) {
 	if (builder->proc != NULL) {
 		optimize_procedure(builder->proc->proc);
-			if (builder->preprocess && builder->jit == NULL)
-				Procedure_preprocess(builder->proc);
+		if (builder->preprocess && builder->jit == NULL)
+			Procedure_preprocess(builder->proc);
+		if (builder->analyze)
+			builder->proc->proc->stats = analyze(builder->proc->proc, builder->bc);	
 		if (builder->jit != NULL)
   		builder->proc->proc->compiled =
     		builder->jit->compile(builder->jit, builder->proc->proc, builder->bc);
@@ -1465,6 +1468,7 @@ int32_t ycompile(YoyoCEnvironment* env, YNode* root, FILE* err_stream) {
 	builder.endProcedure = YCodeGen_endProcedure;
 	builder.err_stream = err_stream;
 	builder.preprocess = env->preprocess_bytecode;
+	builder.analyze = env->analyze_bytecode;
 
 	ProcedureBuilder* proc = builder.newProcedure(&builder);
 	int32_t pid = proc->proc->id;

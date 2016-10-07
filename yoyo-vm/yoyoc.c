@@ -133,6 +133,8 @@ YoyoCEnvironment* newYoyoCEnvironment(ILBytecode* bc) {
 	env->files[0] = NULL;
 	env->files_size = 1;
 	env->jit = NULL;
+	env->preprocess_bytecode = true;
+	env->analyze_bytecode = false;
 	return env;
 }
 
