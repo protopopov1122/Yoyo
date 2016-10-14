@@ -3,6 +3,13 @@
 
 #include "bytecode.h"
 
+typedef enum RegisterRuntimeType {
+	Int64RT = 0, Fp64RT = 1,
+	BoolRT = 2, StringRT = 3,
+	ArrayRT = 4, ObjectRT = 5,
+	LambdaRT =  6, NullRT = 7
+} RegisterRuntimeType;
+
 typedef struct SSARegister {
 	size_t id;
 	ssize_t real_reg;
@@ -10,6 +17,21 @@ typedef struct SSARegister {
 	ssize_t first_use;
 	ssize_t last_use;
 	bool dead;
+
+	enum {
+		DynamicRegister, StaticI64,
+		StaticFp64, StaticBool,
+		StaticNullPtr
+	} type;
+	union {
+		int64_t i64;
+		double fp64;
+		bool boolean;
+	} value;
+
+	struct {
+		uint32_t type[7];
+	} runtime;
 } SSARegister;
 
 typedef struct ProcInstr {
@@ -18,7 +40,9 @@ typedef struct ProcInstr {
 	int32_t args[3];
 
 	size_t real_offset;
+	size_t offset;
 	bool dead;
+	SSARegister* affects;
 } ProcInstr;
 
 typedef struct InstrBlock {
@@ -28,6 +52,7 @@ typedef struct InstrBlock {
 
 typedef struct ProcedureStats {
 	ILProcedure* proc;
+	ILBytecode* bytecode;
 
 	size_t ssa_reg_count;
 	SSARegister** ssa_regs;
@@ -42,5 +67,7 @@ typedef struct ProcedureStats {
 } ProcedureStats;
 
 ProcedureStats* analyze(ILProcedure*, ILBytecode*);
+void procedure_stats_free(ProcedureStats*);
+void print_stats(ProcedureStats*);
 
 #endif

@@ -16,6 +16,7 @@
 
 #include "jit.h"
 #include "bytecode.h"
+#include "analyze.h"
 
 /* File contains methods to build bytecode and get access to it.
  * Work with bytecode internal structures like
@@ -33,6 +34,7 @@ void freeBytecode(ILBytecode* bc) {
 		ILProcedure* proc = bc->procedures[i];
 		if (proc == NULL)
 			continue;
+		procedure_stats_free(proc->stats);
 		free(proc->code);
 		free(proc->labels.table);
 		free(proc->codeTable.table);
@@ -101,6 +103,17 @@ void Procedure_free(struct ILProcedure* proc, struct ILBytecode* bc) {
 	MUTEX_UNLOCK(&bc->access_mutex);
 }
 
+void Procedure_mark(YoyoObject* ptr) {
+	ptr->marked = true;
+	ILProcedure* proc = (ILProcedure*) ptr;
+	MARK(proc->bytecode);
+}
+
+void ILProcedure_free(YoyoObject* ptr) {
+	ILProcedure* proc = (ILProcedure*) ptr;
+	proc->free(proc, proc->bytecode);	
+}
+
 ILProcedure* Bytecode_newProcedure(ILBytecode* bc) {
 	ILProcedure* proc = malloc(sizeof(ILProcedure));
 	MUTEX_LOCK(&bc->access_mutex);
@@ -139,6 +152,9 @@ ILProcedure* Bytecode_newProcedure(ILBytecode* bc) {
 	proc->bytecode = bc;
 
 	proc->compiled = NULL;
+	proc->stats = NULL;
+
+	initYoyoObject((YoyoObject*) proc, Procedure_mark, ILProcedure_free);
 
 	MUTEX_UNLOCK(&bc->access_mutex);
 	return proc;
@@ -237,6 +253,13 @@ Constant* Bytecode_getConstant(ILBytecode* bc, int32_t id) {
 	return NULL;
 }
 
+void Bytecode_mark(YoyoObject* ptr) {
+	ptr->marked = true;
+	ILBytecode* bc = (ILBytecode*) ptr;
+	for (size_t i = 0; i < bc->procedure_count; i++)
+		MARK(bc->procedures[i]);
+}
+
 ILBytecode* newBytecode(SymbolMap* sym) {
 	ILBytecode* bc = malloc(sizeof(ILBytecode));
 
@@ -258,6 +281,8 @@ ILBytecode* newBytecode(SymbolMap* sym) {
 	bc->addStringConstant = Bytecode_addStringConstant;
 	bc->getNullConstant = Bytecode_getNullConstant;
 	bc->getConstant = Bytecode_getConstant;
+
+	initYoyoObject((YoyoObject*) bc, Bytecode_mark, (void (*)(YoyoObject*)) freeBytecode);
 
 	NEW_MUTEX(&bc->access_mutex);
 	return bc;

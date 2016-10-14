@@ -86,13 +86,15 @@ void analyzer_convert_code(ProcedureStats* stats) {
 	SSARegister** ssa_map = calloc(stats->proc->regc, sizeof(SSARegister*));
 
 	stats->ssa_regs = realloc(stats->ssa_regs, sizeof(SSARegister) * (++stats->ssa_reg_count));
-	SSARegister* ssa_scope_reg = malloc(sizeof(SSARegister));
+	SSARegister* ssa_scope_reg = calloc(1, sizeof(SSARegister));
 	ssa_scope_reg->real_reg = 0;
 	ssa_scope_reg->id = stats->ssa_reg_count -1;
 	ssa_map[0] = ssa_scope_reg;
 	ssa_scope_reg->first_use = 0;
 	ssa_scope_reg->last_use = 0;
 	ssa_scope_reg->dead = false;
+	ssa_scope_reg->type = DynamicRegister;
+	ssa_scope_reg->runtime.type[ObjectRT]++;
 	stats->ssa_regs[stats->ssa_reg_count - 1] = ssa_scope_reg;
 
 	for (size_t pc = 0; pc + 13 <= stats->proc->code_length; pc += 13) {
@@ -116,12 +118,13 @@ void analyzer_convert_code(ProcedureStats* stats) {
 		}
 		if (returnsResult) {
 			stats->ssa_regs = realloc(stats->ssa_regs, sizeof(SSARegister*) * (++stats->ssa_reg_count));
-			SSARegister* ssa_reg = malloc(sizeof(SSARegister));
+			SSARegister* ssa_reg = calloc(1, sizeof(SSARegister));
 			ssa_reg->id = stats->ssa_reg_count - 1;
 			ssa_reg->real_reg = args[0];
 			ssa_reg->first_use = -1;
 			ssa_reg->last_use = -1;
 			ssa_reg->dead = false;
+			ssa_reg->type = DynamicRegister;
 			stats->ssa_regs[ssa_reg->id] = ssa_reg;
 
 			ssa_map[args[0]] = ssa_reg;
@@ -137,6 +140,7 @@ void analyzer_convert_code(ProcedureStats* stats) {
 		stats->code[stats->code_length - 1].args[2] = args[2];
 		stats->code[stats->code_length - 1].real_offset = pc;
 		stats->code[stats->code_length - 1].dead = false;
+		stats->code[stats->code_length - 1].affects = returnsResult ? stats->ssa_regs[args[0]] : NULL;
 	}
 }
 
@@ -207,6 +211,7 @@ void analyzer_convert_block(ProcedureStats* stats) {
 	InstrBlock* current = &stats->blocks[stats->block_count - 1];
 	current->block = &stats->code[0];
 	for (size_t i = 0; i < stats->code_length; i++) {
+		stats->code[i].offset = i;
 		size_t pc = i * 13;
 		for (size_t j = 0; j < stats->proc->labels.length; j++)
 			if (stats->proc->labels.table[j].value == pc) {
@@ -238,6 +243,7 @@ void analyzer_convert_block(ProcedureStats* stats) {
 
 		}
 	}
+
 }
 
 void analyzer_raw_call_transform(ProcedureStats* stats) {
@@ -298,16 +304,67 @@ void analyze_mark_dead(ProcedureStats* stats) {
 	}
 }
 
+void analyze_calculate_static(ProcedureStats* stats) {
+	for (size_t pc = 0; pc < stats->code_length; pc++) {
+		ProcInstr* instr = &stats->code[pc];
+
+		if (instr->opcode == VM_LoadInteger) {
+			stats->ssa_regs[instr->args[0]]->type = StaticI64;
+			stats->ssa_regs[instr->args[0]]->value.i64 = instr->args[1];
+		}
+		if (instr->opcode == VM_LoadConstant) {
+			Constant* cnst = stats->bytecode->getConstant(stats->bytecode, instr->args[1]);
+			if (cnst->type == IntegerC) {
+				stats->ssa_regs[instr->args[0]]->type = StaticI64;
+				stats->ssa_regs[instr->args[0]]->value.i64 = cnst->value.i64;
+			} else if (cnst->type == FloatC) {
+				stats->ssa_regs[instr->args[0]]->type = StaticFp64;
+				stats->ssa_regs[instr->args[0]]->value.i64 = cnst->value.fp64;
+			} else if (cnst->type == BooleanC) {
+				stats->ssa_regs[instr->args[0]]->type = StaticBool;
+				stats->ssa_regs[instr->args[0]]->value.i64 = cnst->value.boolean;
+			}
+		}
+	}
+
+}
+
+void analyze_calculate_jumps(ProcedureStats* stats) {
+	for (size_t pc = 0; pc < stats->code_length; pc++) {
+		uint8_t opcode = stats->code[pc].opcode;
+		if (opcode == VM_Jump || opcode == VM_JumpIfTrue || opcode == VM_JumpIfFalse ||
+				opcode == VM_JumpIfEquals || opcode == VM_JumpIfLesser || opcode == VM_JumpIfGreater ||
+				opcode == VM_JumpIfNotEquals || opcode == VM_JumpIfNotLesser || opcode == VM_JumpIfNotGreater) {
+			size_t addr = (size_t) stats->code[pc].args[0];
+			for (size_t bl = 0; bl < stats->block_count; bl++) {
+				if (stats->blocks[bl].block->real_offset == addr) {
+					stats->code[pc].args[0] = stats->blocks[bl].block->offset;
+						break;
+				}
+			}
+		}
+	}
+}
+
+
 ProcedureStats* analyze(ILProcedure* proc, ILBytecode* bc) {
 	ProcedureStats* stats = calloc(1, sizeof(ProcedureStats));
 	stats->proc = proc;
+	stats->bytecode = bc;
 	analyzer_convert_code(stats);
 	analyzer_raw_call_transform(stats);
+	analyze_calculate_static(stats);
 	analyze_register_area(stats);
 	analyze_mark_dead(stats);
 	analyzer_convert_block(stats);
+	analyze_calculate_jumps(stats);
 
-	printf("Procedure %"PRId32":\n", proc->id);
+
+	return stats;
+}
+
+void print_stats(ProcedureStats* stats) {
+	printf("Procedure %"PRId32":\n", stats->proc->id);
 	size_t pc = 0;
 	for (size_t i = 0; i < stats->block_count; i++) {
 		printf("\tblock%zu:\n", i);
@@ -322,15 +379,52 @@ ProcedureStats* analyze(ILProcedure* proc, ILBytecode* bc) {
 			if (mnem != NULL)
 				printf("\t%zu:\t%ls %"PRId32", %"PRId32", %"PRId32"\t; %sreal offset: %zu\n", pc, mnem, block->block[j].args[0],
 					block->block[j].args[1], block->block[j].args[2],
-					block->block[j].dead ? "(dead) " : "",  block->block[j].real_offset);
+					block->block[j].dead ? "(dead)" : "", block->block[j].real_offset);
 			pc++;
 		}
 	}
-	printf("\n\tRegisters(%zu):\n", stats->real_regc);
+	printf("\n\tRegisters(%zu):\n", stats->ssa_reg_count);
 	for (size_t i = 0; i < stats->ssa_reg_count; i++) {
 		SSARegister* reg = stats->ssa_regs[i];
-		printf("\t\t%zu used from %zi to %zi mapped to %zi\n", reg->id, reg->first_use, reg->last_use, reg->real_reg);
+		printf("\t\t%zu used from %zi to %zi mapped to %zi", reg->id, reg->first_use, reg->last_use, reg->real_reg);
+		if (reg->type == DynamicRegister) {
+			char* types[] = {"int", "float", "bool", "string", "array", "object", "lambda", "null"};
+			int regt = Int64RT;
+			uint32_t max = reg->runtime.type[0];
+			for (size_t i = 0; i <= sizeof(reg->runtime.type) / sizeof(uint32_t); i++) {
+				if (reg->runtime.type[i] > max) {
+					regt = i;
+					max = reg->runtime.type[i];
+				}
+			}
+			printf("; type = %s\n", types[regt]);			
+		}
+		else switch (reg->type) {
+			case StaticI64:
+				printf("; value(i64) = %"PRId64"\n", reg->value.i64);
+			break;
+			case StaticFp64:
+				printf("; value(double) = %lf\n", reg->value.fp64);
+			break;
+			case StaticBool:
+			printf("; value(bool) = %s\n", reg->value.i64 ? "true" : " false");
+			break;
+			case StaticNullPtr:
+				printf("; value = null\n");
+			break;
+			default:
+			break;
+		}
 	}
+}
 
-	return stats;
+void procedure_stats_free(ProcedureStats* proc) {
+	if (proc == NULL)
+		return;
+	for (size_t reg = 0; reg < proc->ssa_reg_count; reg++)
+		free(proc->ssa_regs[reg]);
+	free(proc->ssa_regs);
+	free(proc->code);
+	free(proc->blocks);
+	free(proc);
 }

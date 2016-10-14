@@ -41,6 +41,7 @@ void ProcedureLambda_mark(YoyoObject* ptr) {
 	ProcedureLambda* lmbd = (ProcedureLambda*) ptr;
 	MARK(lmbd->scope);
 	MARK(lmbd->lambda.sig);
+	MARK(lmbd->bytecode);
 }
 
 void ProcedureLambda_free(YoyoObject* ptr) {

@@ -20,6 +20,7 @@
 #include "yoyo-runtime.h"
 #include "interpreter.h"
 #include "jit.h"
+#include "analyze.h"
 
 typedef struct EnvEntry {
 	wchar_t* key;

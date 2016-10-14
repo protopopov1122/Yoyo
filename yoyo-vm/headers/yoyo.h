@@ -43,7 +43,7 @@ extern "C" {
 #include "yoyoc.h"
 
 
-bool Yoyo_interpret_file(ILBytecode*, YRuntime*, wchar_t*);
+int32_t Yoyo_interpret_file(ILBytecode*, YRuntime*, wchar_t*);
 void Yoyo_main(char** argv, int argc);
 
 #ifdef __cplusplus

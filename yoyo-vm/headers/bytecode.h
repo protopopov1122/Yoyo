@@ -63,6 +63,7 @@ typedef struct CodeTable {
 } CodeTable;
 
 typedef struct ILProcedure {
+	YoyoObject o;
 	int32_t id;
 	uint32_t regc;
 	size_t code_length;
@@ -86,6 +87,7 @@ typedef struct ILProcedure {
 } ILProcedure;
 
 typedef struct ILBytecode {
+	YoyoObject o;
 
 	SymbolMap* symbols;
 	ConstantPool constants;

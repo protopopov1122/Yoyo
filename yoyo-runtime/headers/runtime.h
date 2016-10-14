@@ -88,6 +88,7 @@ typedef struct SourceIdentifier {
 	uint32_t line;
 	uint32_t charPosition;
 } SourceIdentifier;
+
 typedef struct LocalFrame {
 	void (*mark)(struct LocalFrame*);
 	SourceIdentifier (*get_source_id)(struct LocalFrame*);

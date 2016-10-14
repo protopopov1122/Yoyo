@@ -49,7 +49,7 @@ void Signal_handler(int sig) {
  * execute bytecode by current runtime. Return boolean
  * indicating if translation was sucessful.
  * */
-bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
+int32_t Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 	Environment* env = runtime->env;
 	FILE* file = env->getFile(env, wpath);
 	if (file == NULL) {
@@ -61,8 +61,8 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 			file_input_stream(env->getFile(env, wpath)), wpath);
 		if (res.pid != -1) {
 			invoke(res.pid, bc, runtime->global_scope, NULL, th);
-			ILProcedure* proc = bc->procedures[res.pid];
-			proc->free(proc, bc);
+//			ILProcedure* proc = bc->procedures[res.pid];
+//			proc->free(proc, bc);
 			if (th->exception != NULL) {
 				YValue* e = th->exception;
 				th->exception = NULL;
@@ -78,14 +78,14 @@ bool Yoyo_interpret_file(ILBytecode* bc, YRuntime* runtime, wchar_t* wpath) {
 					}
 				}
 				free(wstr);
-				return false;
+				return -1;
 			}
-			return true;
+			return res.pid;
 		}
 		fprintf(runtime->env->out_stream, "%ls\n", res.log);
 		free(res.log);
 	}
-	return false;
+	return -1;
 }
 
 int32_t Yoyo_compile(ILBytecode* bc, Environment* env, wchar_t* wpath) {
@@ -261,16 +261,29 @@ int main(int argc, char** argv) {
 			Yoyo_SystemObject(ycenv->bytecode, yoyo_thread(runtime)),
 			yoyo_thread(runtime));
 
+	int32_t pid = -1;
 	/* Executes specified file only if 'core.yoyo' is found and valid */
-	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo")) {
+	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo") != -1) {
 		runtime->debugger = debug;
-    ycenv->jit = jit;
 		if (file != NULL) {
-			Yoyo_interpret_file(ycenv->bytecode, runtime, file);
+			pid = Yoyo_interpret_file(ycenv->bytecode, runtime, file);
 			free(file);
 		} else {
 			Yoyo_interpret_file(ycenv->bytecode, runtime, L"repl.yoyo");
 		}
+	}
+
+	for (size_t i = 0; i < ycenv->bytecode->procedure_count; i++) {
+		if (ycenv->bytecode->procedures[i] == NULL)
+			continue;
+		ProcedureStats* stats = ycenv->bytecode->procedures[i]->stats;
+		if (stats != NULL)
+			print_stats(stats);
+	}
+	if (pid != -1 && jit != NULL) {
+		ycenv->bytecode->procedures[pid]->compiled = jit->compile(jit,
+			ycenv->bytecode->procedures[pid], ycenv->bytecode);
+		invoke(pid, ycenv->bytecode, runtime->global_scope, NULL, yoyo_thread(runtime));
 	}
 
 	/* Waits all threads to finish and frees resources */
