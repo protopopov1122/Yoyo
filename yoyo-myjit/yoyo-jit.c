@@ -369,7 +369,7 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 			case VM_Xor: BinOp(xor_operation) break;
 			case VM_Negate: UnOp(negate_operation) break;
 			case VM_Not: UnOp(not_operation) break;
-			
+
 			case VM_Compare: {
 				jit_value a1 = get_reg(args[1], frame);
 				jit_value a2 = get_reg(args[2], frame);
@@ -381,37 +381,29 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 				jit_putargr(jit, a2);
 				jit_putargr(jit, frame.th);
 				jit_callr(jit, frame.accum[10]);
-				jit_retval(jit, frame.accum[10]);
+				jit_retval(jit, frame.accum[11]);
 
 				jit_prepare(jit);
-				jit_putargi(jit, frame.accum[10]);
+				jit_putargr(jit, frame.accum[11]);
 				jit_putargr(jit, frame.th);
 				jit_call(jit, newInteger);
-				jit_retval(jit, frame.accum[10]);
-				set_reg(args[0], frame.accum[10], &frame);
+				jit_retval(jit, frame.accum[11]);
+
+				set_reg(args[0], frame.accum[11], &frame);
 			}
 			break;
-
 			case VM_Test: {
 				jit_value arg = get_reg(args[1], frame);
-
-				jit_ldxi(jit, frame.accum[10], arg, offsetof(YValue, type), sizeof(void*));
-				jit_op* false_jump1 = jit_bner(jit, 0, frame.accum[0], frame.IntType);
-				
-				jit_ldxi(jit, frame.accum[10], frame.accum[10], offsetof(YInteger, value), sizeof(int64_t));
-				jit_andi(jit, frame.accum[10], frame.accum[10], args[2]);
-				jit_op* false_jump2 = jit_beqi(jit, JIT_FORWARD, frame.accum[10], 0);
-
+				jit_movi(jit, frame.accum[10], (int) false);
+				jit_ldxi(jit, frame.accum[11], arg, offsetof(YValue, type), sizeof(void*));
+				jit_op* false_jump1 = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[11], frame.IntType);
+				jit_ldxi(jit, frame.accum[11], arg, offsetof(YInteger, value), sizeof(int64_t));
+				jit_andi(jit, frame.accum[11], frame.accum[11], args[2]);
+				jit_op* false_jump2 = jit_beqi(jit, (intptr_t) JIT_FORWARD, frame.accum[11], 0);
 				jit_movi(jit, frame.accum[10], (int) true);
-				jit_op* true_jump = jit_jmpi(jit, JIT_FORWARD);
 
 				jit_patch(jit, false_jump1);
 				jit_patch(jit, false_jump2);
-
-				jit_movi(jit, frame.accum[10], (int) false);
-
-				jit_patch(jit, true_jump);
-
 				jit_prepare(jit);
 				jit_putargr(jit, frame.accum[10]);
 				jit_putargr(jit, frame.th);

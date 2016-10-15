@@ -3,6 +3,7 @@
 
 #include "bytecode.h"
 
+
 typedef enum RegisterRuntimeType {
 	Int64RT = 0, Fp64RT = 1,
 	BoolRT = 2, StringRT = 3,
@@ -16,6 +17,9 @@ typedef struct SSARegister {
 
 	ssize_t first_use;
 	ssize_t last_use;
+	ssize_t first_read;
+	struct ProcInstr* cmd;
+	size_t use_count;
 	bool dead;
 
 	enum {
@@ -43,6 +47,13 @@ typedef struct ProcInstr {
 	size_t offset;
 	bool dead;
 	SSARegister* affects;
+	ssize_t max_delay;
+
+	struct {
+		struct ProcInstr* instr1;
+		struct ProcInstr* instr2;
+		struct ProcInstr* instr3;
+	} dependencies;
 } ProcInstr;
 
 typedef struct InstrBlock {

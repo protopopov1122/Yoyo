@@ -273,17 +273,19 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	for (size_t i = 0; i < ycenv->bytecode->procedure_count; i++) {
-		if (ycenv->bytecode->procedures[i] == NULL)
-			continue;
-		ProcedureStats* stats = ycenv->bytecode->procedures[i]->stats;
-		if (stats != NULL)
-			print_stats(stats);
-	}
-	if (pid != -1 && jit != NULL) {
-		ycenv->bytecode->procedures[pid]->compiled = jit->compile(jit,
-			ycenv->bytecode->procedures[pid], ycenv->bytecode);
-		invoke(pid, ycenv->bytecode, runtime->global_scope, NULL, yoyo_thread(runtime));
+	if (env->getDefined(env, L"test") != NULL) {
+		for (size_t i = 0; i < ycenv->bytecode->procedure_count; i++) {
+			if (ycenv->bytecode->procedures[i] == NULL)
+				continue;
+			ProcedureStats* stats = ycenv->bytecode->procedures[i]->stats;
+			if (stats != NULL)
+				print_stats(stats);
+		}
+		if (pid != -1 && jit != NULL) {
+			ycenv->bytecode->procedures[pid]->compiled = jit->compile(jit,
+				ycenv->bytecode->procedures[pid], ycenv->bytecode);
+			invoke(pid, ycenv->bytecode, runtime->global_scope, NULL, yoyo_thread(runtime));
+		}	
 	}
 
 	/* Waits all threads to finish and frees resources */
