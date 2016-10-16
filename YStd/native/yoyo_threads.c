@@ -38,7 +38,9 @@ void YoyoMutex_free(void* ptr) {
 YOYO_FUNCTION(YSTD_THREADS_MUTEX_LOCK) {
 	MUTEX* mutex =
 			(MUTEX*) ((YRawPointer*) ((NativeLambda*) lambda)->object)->ptr;
+	th->state = ThreadPaused;
 	MUTEX_LOCK(mutex);
+	th->state = ThreadWorking;
 	return getNull(th);
 }
 

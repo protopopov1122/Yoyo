@@ -32,7 +32,7 @@ struct opcode_arg_info get_opcode_arg_info(uint8_t opcode) {
 				modify_arg1 = false;
 				modify_arg2 = false;
 			break;
-			case VM_NewOverload:
+			case VM_NewOverload: case VM_NewLambda:
 				modify_arg1 = false;
 			break;
 			case VM_FastCompare:
@@ -169,7 +169,7 @@ void analyzer_convert_code(ProcedureStats* stats) {
 void analyze_register_area(ProcedureStats* stats) {
 	for (size_t i = 0; i < stats->code_length; i++) {
 		ProcInstr* instr = stats->code[i];
-		if (instr->opcode == VM_Copy) {
+		if (instr->opcode == VM_Copy && instr->args[1] > -1) {
 			stats->ssa_regs[instr->args[0]]->link = stats->ssa_regs[instr->args[1]];
 		}
 		struct opcode_arg_info arg_info = get_opcode_arg_info(instr->opcode);

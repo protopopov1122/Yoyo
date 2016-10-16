@@ -252,7 +252,8 @@ int main(int argc, char** argv) {
 	YRuntime* runtime = newRuntime(env, NULL);
 	ycenv->bytecode = newBytecode(&runtime->symbols);
 	ycenv->preprocess_bytecode = true;
-	ycenv->analyze_bytecode = true;
+	bool dumpcode = env->getDefined(env, L"dumpcode");
+	ycenv->analyze_bytecode = dumpcode || jit != NULL;
 
 	if (dbg)
 		debug = newDefaultDebugger(ycenv->bytecode);
@@ -277,7 +278,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	if (env->getDefined(env, L"dumpcode") != NULL) {
+	if (dumpcode) {
 		for (size_t i = 0; i < ycenv->bytecode->procedure_count; i++) {
 			if (ycenv->bytecode->procedures[i] == NULL)
 				continue;
