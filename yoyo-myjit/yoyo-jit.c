@@ -35,7 +35,6 @@ typedef struct Frame {
 } Frame;
 
 void test_value(YValue* v, YThread* th) {
-printf("%p\n", (void*) v);
  wchar_t* wcs = toString(v, th);
  printf("%ls\n", wcs);
  free(wcs);
@@ -143,7 +142,7 @@ jit_value pop_int(Frame* frame) {
 }
 #define JITREG(name, num) jit_value name = R(num);
 #define GenBr(iid, cmd, cmd2) for (size_t index = 0; index < proc->stats->block_count; index++) {\
-					if (proc->stats->blocks[index].block->offset == iid) {\
+					if (proc->stats->blocks[index].block[0]->offset == iid) {\
 						if (label_list[index] != NULL) {\
 							cmd2;\
 						} else {\
@@ -252,11 +251,11 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 		jit_movi(jit, thread_state, ThreadPaused);
 		jit_stxi(jit, offsetof(YThread, state), frame.th, thread_state, sizeof(int));
 
-		uint8_t opcode = proc->stats->code[pc].opcode;
-		int32_t* args = proc->stats->code[pc].args;
+		uint8_t opcode = proc->stats->code[pc]->opcode;
+		int32_t* args = proc->stats->code[pc]->args;
 
 		for (size_t i = 0; i < proc->stats->block_count; i++) {
-			if (proc->stats->blocks[i].block->offset == pc) {
+			if (proc->stats->blocks[i].block[0]->offset == pc) {
 				label_list[i] = jit_get_label(jit);
 				for (size_t j = 0; j < label_patch_list[i].sz; j++)
 						jit_patch(jit, label_patch_list[i].ops[j]);
@@ -580,7 +579,7 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 				jit_putargr(jit, get_reg(args[2], frame));
 				jit_putargi(jit, true);
 				jit_putargr(jit, frame.th);
-				jit_callr(jit, frame.accum[0]);
+				jit_callr(jit, frame.accum[10]);
 
 				jit_patch(jit, not_obj_label);
 			}
@@ -723,18 +722,18 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 				jit_value a1 = get_reg(args[1], frame);\
 				jit_value a2 = get_reg(args[2], frame);\
 \
-				jit_ldxi(jit, frame.accum[0], a1, offsetof(YValue, type), sizeof(void*));\
-				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YType, oper) + offsetof(Operations, compare), sizeof(void*));\
+				jit_ldxi(jit, frame.accum[10], a1, offsetof(YValue, type), sizeof(void*));\
+				jit_ldxi(jit, frame.accum[10], frame.accum[10], offsetof(YType, oper) + offsetof(Operations, compare), sizeof(void*));\
 				jit_prepare(jit);\
 				jit_putargr(jit, a1);\
 				jit_putargr(jit, a2);\
 				jit_putargr(jit, frame.th);\
-				jit_callr(jit, frame.accum[0]);\
-				jit_retval(jit, frame.accum[0]);\
+				jit_callr(jit, frame.accum[10]);\
+				jit_retval(jit, frame.accum[10]);\
 \
-				jit_andi(jit, frame.accum[0], frame.accum[0], cnd);\
-				GenBr(args[0], jit_bnei(jit, (intptr_t) JIT_FORWARD, frame.accum[0], 0),\
-												jit_bnei(jit, (intptr_t) label_list[index], frame.accum[0], 0));\
+				jit_andi(jit, frame.accum[10], frame.accum[10], cnd);\
+				GenBr(args[0], jit_bnei(jit, (intptr_t) JIT_FORWARD, frame.accum[10], 0),\
+												jit_bnei(jit, (intptr_t) label_list[index], frame.accum[10], 0));\
 			}
 			
 			case VM_JumpIfEquals: CondGoto(COMPARE_EQUALS) break;
@@ -746,12 +745,12 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 			case VM_JumpIfTrue: {
 				jit_value arg = get_reg(args[1], frame);
 
-				jit_ldxi(jit, frame.accum[0], arg, offsetof(YValue, type), sizeof(void*));
-				jit_op* false_jump1 = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[0], frame.BooleanType);
+				jit_ldxi(jit, frame.accum[10], arg, offsetof(YValue, type), sizeof(void*));
+				jit_op* false_jump1 = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[10], frame.BooleanType);
 				
-				jit_ldxi(jit, frame.accum[0], frame.accum[0], offsetof(YBoolean, value), sizeof(bool));
-				GenBr(args[0], jit_beqi(jit, (intptr_t) JIT_FORWARD, frame.accum[0], (int) true),
-											jit_beqi(jit, (intptr_t) label_list[index], frame.accum[0], true));
+				jit_ldxi(jit, frame.accum[10], frame.accum[10], offsetof(YBoolean, value), sizeof(bool));
+				GenBr(args[0], jit_beqi(jit, (intptr_t) JIT_FORWARD, frame.accum[10], (int) true),
+											jit_beqi(jit, (intptr_t) label_list[index], frame.accum[10], true));
 
 				jit_patch(jit, false_jump1);
 			}
@@ -759,12 +758,12 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 			case VM_JumpIfFalse: {
 				jit_value arg = get_reg(args[1], frame);
 
-				jit_ldxi(jit, frame.accum[0], arg, offsetof(YValue, type), sizeof(void*));
-				jit_op* false_jump1 = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[0], frame.BooleanType);
+				jit_ldxi(jit, frame.accum[10], arg, offsetof(YValue, type), sizeof(void*));
+				jit_op* false_jump1 = jit_bner(jit, (intptr_t) JIT_FORWARD, frame.accum[10], frame.BooleanType);
 				
-				jit_ldxi(jit, frame.accum[0], arg, offsetof(YBoolean, value), sizeof(bool));
-				GenBr(args[0], jit_beqi(jit, (intptr_t) JIT_FORWARD, frame.accum[0], (int) false),
-											jit_beqi(jit, (intptr_t) label_list[index], frame.accum[0], false));
+				jit_ldxi(jit, frame.accum[10], arg, offsetof(YBoolean, value), sizeof(bool));
+				GenBr(args[0], jit_beqi(jit, (intptr_t) JIT_FORWARD, frame.accum[10], (int) false),
+											jit_beqi(jit, (intptr_t) label_list[index], frame.accum[10], false));
 
 				jit_patch(jit, false_jump1);
 			}
@@ -805,7 +804,7 @@ CompiledProcedure* YoyoJit_compile(JitCompiler* jitcmp, ILProcedure* proc, ILByt
 }
 
 
-CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBytecode* bc) {
+/*CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBytecode* bc) {
 	struct jit* jit = ((YoyoJitCompiler*) jitcmp)->jit;
 	CompiledProcedure* cproc = malloc(sizeof(CompiledProcedure));
 	cproc->free = (void (*)(CompiledProcedure*)) free;
@@ -903,19 +902,10 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 		jit_movi(jit, thread_state, ThreadPaused);
 		jit_stxi(jit, offsetof(YThread, state), frame.th, thread_state, sizeof(int));
 		
-   	uint8_t opcode = proc->stats->code[pc].opcode;
-   	int32_t* args = (int32_t*) proc->stats->code[pc].args;
+   	uint8_t opcode = proc->stats->code[pc]->opcode;
+   	int32_t* args = (int32_t*) proc->stats->code[pc]->args;
 
-		/*jit_prepare(jit);
-		jit_putargi(jit, "%lu: %x %"PRId32", %"PRId32", %"PRId32"\n");
-		jit_putargi(jit, pc);
-		jit_putargi(jit, opcode);
-		jit_putargi(jit, args[0]);
-		jit_putargi(jit, args[1]);
-		jit_putargi(jit, args[2]);
-		jit_call(jit, printf);*/
-
-		switch (opcode) {
+	switch (opcode) {
 			case VM_LoadConstant: {
 				Constant* cnst = bc->getConstant(bc, args[1]);
 				switch (cnst->type) {
@@ -1425,16 +1415,7 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 
 		}
 
-		/*jit_prepare(jit);
-		jit_putargi(jit, "%x %x %"PRId64", %"PRId64", %"PRId64"\n");
-		jit_putargi(jit, pc);
-		jit_putargi(jit, opcode);
-		jit_putargi(jit, args[0]);
-		jit_putargi(jit, args[1]);
-		jit_putargi(jit, args[2]);
-		jit_call(jit, printf);*/
-
-	}
+		}
 
 
 	jit_prepare(jit);
@@ -1466,7 +1447,7 @@ CompiledProcedure* YoyoJit_compile2(JitCompiler* jitcmp, ILProcedure* proc, ILBy
 	return cproc;
 
 }
-
+*/
 void YoyoJit_free(JitCompiler* cmp) {
 	YoyoJitCompiler* jitcmp = (YoyoJitCompiler*) cmp;
 	jit_free(jitcmp->jit);

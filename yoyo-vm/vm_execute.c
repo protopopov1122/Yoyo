@@ -20,8 +20,8 @@ void track_register_assignment(YValue* value, int32_t reg, YThread* th) {
 		return;
 	ProcInstr* instr = NULL;
 	for (size_t i = 0; i < stats->code_length; i++) {
-		if (stats->code[i].real_offset == frame->pc) {
-			instr = &stats->code[i];
+		if (stats->code[i]->real_offset == frame->pc) {
+			instr = stats->code[i];
 			break;
 		}
 	}

@@ -18,6 +18,7 @@ typedef struct SSARegister {
 	ssize_t first_use;
 	ssize_t last_use;
 	ssize_t first_read;
+	struct SSARegister* link;
 	struct ProcInstr* cmd;
 	size_t use_count;
 	bool dead;
@@ -57,7 +58,7 @@ typedef struct ProcInstr {
 } ProcInstr;
 
 typedef struct InstrBlock {
-	ProcInstr* block;
+	ProcInstr** block;
 	size_t block_length;
 } InstrBlock;
 
@@ -69,7 +70,7 @@ typedef struct ProcedureStats {
 	SSARegister** ssa_regs;
 
 	size_t code_length;
-	ProcInstr* code;
+	ProcInstr** code;
 
 	InstrBlock* blocks;
 	size_t block_count;

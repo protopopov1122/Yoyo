@@ -262,18 +262,22 @@ int main(int argc, char** argv) {
 			yoyo_thread(runtime));
 
 	int32_t pid = -1;
+	bool exectime = env->getDefined(env, L"exectime") != NULL;
 	/* Executes specified file only if 'core.yoyo' is found and valid */
 	if (Yoyo_interpret_file(ycenv->bytecode, runtime, L"core.yoyo") != -1) {
 		runtime->debugger = debug;
 		if (file != NULL) {
+			clock_t start = clock();
 			pid = Yoyo_interpret_file(ycenv->bytecode, runtime, file);
+			if (exectime)
+				printf("Execution time: %lf\n", (double) (clock() - start) / CLOCKS_PER_SEC);
 			free(file);
 		} else {
 			Yoyo_interpret_file(ycenv->bytecode, runtime, L"repl.yoyo");
 		}
 	}
 
-	if (env->getDefined(env, L"test") != NULL) {
+	if (env->getDefined(env, L"dumpcode") != NULL) {
 		for (size_t i = 0; i < ycenv->bytecode->procedure_count; i++) {
 			if (ycenv->bytecode->procedures[i] == NULL)
 				continue;
@@ -281,10 +285,15 @@ int main(int argc, char** argv) {
 			if (stats != NULL)
 				print_stats(stats);
 		}
+	}
+	if (env->getDefined(env, L"testjit") != NULL) {
 		if (pid != -1 && jit != NULL) {
 			ycenv->bytecode->procedures[pid]->compiled = jit->compile(jit,
 				ycenv->bytecode->procedures[pid], ycenv->bytecode);
+			clock_t start = clock();
 			invoke(pid, ycenv->bytecode, runtime->global_scope, NULL, yoyo_thread(runtime));
+			if (exectime)
+				printf("Execution time: %lf\n", (double) (clock() - start) / CLOCKS_PER_SEC);
 		}	
 	}
 
