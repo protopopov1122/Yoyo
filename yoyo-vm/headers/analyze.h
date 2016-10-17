@@ -35,7 +35,7 @@ typedef struct SSARegister {
 	} value;
 
 	struct {
-		uint32_t type[7];
+		uint32_t type[8];
 	} runtime;
 } SSARegister;
 

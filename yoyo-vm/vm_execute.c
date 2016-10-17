@@ -29,7 +29,7 @@ void track_register_assignment(YValue* value, int32_t reg, YThread* th) {
 	if (instr == NULL || instr->affects == NULL)
 		return;
 	SSARegister* ssa_reg = instr->affects;
-//	printf("%zu = %ls;\t", ssa_reg->id, toString(value, th));
+//	printf(""SIZE_T" = %ls;\t", ssa_reg->id, toString(value, th));
 	if (value->type == &th->runtime->IntType) {
 		ssa_reg->runtime.type[Int64RT]++;
 	} else if (value->type == &th->runtime->FloatType) {
@@ -292,9 +292,11 @@ YValue* EXECUTE_PROC(YObject* scope, YThread* th) {
 			 * Arguments stored in stack.
 			 * Argument count passed as argument*/
 			size_t argc = (size_t) popInt(th);
-			YValue** args = malloc(sizeof(YValue*) * argc);
+/*			YValue** args = malloc(sizeof(YValue*) * argc);
 			for (size_t i = argc - 1; i < argc; i--)
-				args[i] = pop(th);
+				args[i] = pop(th);*/
+			YValue** args = &((ExecutionFrame*) th->frame)->stack[((ExecutionFrame*) th->frame)->stack_offset] - argc;
+			((ExecutionFrame*) th->frame)->stack_offset -= argc;
 			YValue* val = getRegister(iarg1, th);
 			YObject* scope = NULL;
 			if (iarg2 != -1) {
@@ -314,7 +316,7 @@ YValue* EXECUTE_PROC(YObject* scope, YThread* th) {
 				throwException(L"CallingNotALambda", NULL, 0, th);
 				SET_REGISTER(getNull(th), iarg0, th);
 			}
-			free(args);
+			//free(args);
 		}
 			break;
 		case VM_Return: {

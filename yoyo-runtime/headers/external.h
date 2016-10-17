@@ -26,6 +26,7 @@
 
 #define PLATFORM L"windows"
 #define SIZE_T "%Iu"
+#define SSIZE_T "%Ix"
 #define WCSTOK(str, del, st) wcstok(str, del)
 #define WCSTOK_STATE(state)
 #define OS_WIN
@@ -42,6 +43,7 @@
 #endif
 
 #define SIZE_T "%zu"
+#define SSIZE_T "%zi"
 #define WCSTOK(str, del, st) wcstok(str, del, st)
 #define WCSTOK_STATE(state) wchar_t* state = NULL;
 

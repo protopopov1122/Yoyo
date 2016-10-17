@@ -466,7 +466,7 @@ void print_stats(ProcedureStats* stats) {
 	printf("Procedure %"PRId32":\n", stats->proc->id);
 	size_t pc = 0;
 	for (size_t i = 0; i < stats->block_count; i++) {
-		printf("\tblock%zu:\n", i);
+		printf("\tblock"SIZE_T":\n", i);
 		InstrBlock* block = &stats->blocks[i];
 		for (size_t j = 0; j < block->block_length; j++) {
 			wchar_t* mnem = NULL;
@@ -476,37 +476,37 @@ void print_stats(ProcedureStats* stats) {
 					break;
 				}
 			if (mnem != NULL) {
-				printf("\t%zu:\t%ls %"PRId32", %"PRId32", %"PRId32"\t", pc, mnem, block->block[j]->args[0],
+				printf("\t"SIZE_T":\t%ls %"PRId32", %"PRId32", %"PRId32"\t", pc, mnem, block->block[j]->args[0],
 					block->block[j]->args[1], block->block[j]->args[2]);
 				ProcInstr* instr = block->block[j];
-				printf("; real offset: %zu", instr->real_offset);
+				printf("; real offset: "SIZE_T"", instr->real_offset);
 				if (instr->max_delay > -1)
-					printf("; may be delayed until %zu", instr->max_delay);
+					printf("; may be delayed until "SIZE_T"", instr->max_delay);
 				if (instr->dependencies.instr1 != NULL ||
 					instr->dependencies.instr2 != NULL ||
 					instr->dependencies.instr3 != NULL) {
 					printf("; depends: ");
 					if (instr->dependencies.instr1 != NULL)
-						printf("%zu ", instr->dependencies.instr1->offset);
+						printf(""SIZE_T" ", instr->dependencies.instr1->offset);
 					if (instr->dependencies.instr2 != NULL)
-						printf("%zu ", instr->dependencies.instr2->offset);
+						printf(""SIZE_T" ", instr->dependencies.instr2->offset);
 					if (instr->dependencies.instr3 != NULL)
-						printf("%zu ", instr->dependencies.instr3->offset);
+						printf(""SIZE_T" ", instr->dependencies.instr3->offset);
 				}
 				printf("\n");
 			}
 			pc++;
 		}
 	}
-	printf("\n\tRegisters(%zu):\n", stats->ssa_reg_count);
+	printf("\n\tRegisters("SIZE_T"):\n", stats->ssa_reg_count);
 	for (size_t i = 0; i < stats->ssa_reg_count; i++) {
 		SSARegister* reg = stats->ssa_regs[i];
-		printf("\t\t%zu used from %zi to %zi mapped to %zi", reg->id, reg->first_use, reg->last_use, reg->real_reg);
-		printf("; used %zu times", reg->use_count);
+		printf("\t\t"SIZE_T" used from "SSIZE_T" to "SSIZE_T" mapped to "SSIZE_T"", reg->id, reg->first_use, reg->last_use, reg->real_reg);
+		printf("; used "SIZE_T" times", reg->use_count);
 		if (reg->cmd != NULL)
-			printf("; command: %zu", reg->cmd->offset);
+			printf("; command: "SIZE_T"", reg->cmd->offset);
 		if (reg->link != NULL)
-			printf("; linked to %zu", reg->link->id);
+			printf("; linked to "SIZE_T"", reg->link->id);
 		if (reg->type == DynamicRegister) {
 			char* types[] = {"int", "float", "bool", "string", "array", "object", "lambda", "null"};
 			int regt = Int64RT;
