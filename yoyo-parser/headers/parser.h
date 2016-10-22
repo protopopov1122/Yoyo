@@ -107,6 +107,7 @@ typedef struct Grammar {
 	GrammarRule overload;
 	GrammarRule lambda;
 	GrammarRule object;
+	GrammarRule block;
 	GrammarRule interface;
 	GrammarRule factor;
 	GrammarRule reference;

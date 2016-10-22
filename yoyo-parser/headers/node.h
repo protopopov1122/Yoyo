@@ -25,6 +25,7 @@ typedef struct YNode {
 		ConstantN,
 		LambdaN,
 		ObjectN,
+		ObjectScopeN,
 		InterfaceN,
 		IdentifierReferenceN,
 		ArrayReferenceN,
@@ -337,6 +338,12 @@ typedef struct YBlockNode {
 	size_t funcs_count;
 } YBlockNode;
 
+typedef struct YObjectScopeNode {
+	YNode node;
+	YNode* super;
+	YBlockNode* block;
+} YObjectScopeNode;
+
 YNode* newNullNode();
 YNode* newConstantNode(yconstant_t);
 YNode* newIdentifierReferenceNode(wchar_t*);
@@ -371,6 +378,7 @@ YNode* newUsingNode(YNode**, size_t, YNode*);
 YNode* newWithNode(YNode*, YNode*);
 YNode* newFunctionNode(wchar_t*, YLambdaNode*);
 YNode* newBlockNode(YNode**, size_t, YFunctionBlock*, size_t);
+YNode* newObjectScopeNode(YNode*, YBlockNode*);
 
 #define NewNode(ptr, nodeStruct, nodeType, freePtr) *(ptr) = malloc(sizeof(nodeStruct));\
                                                     (*(ptr))->node.type = nodeType;\

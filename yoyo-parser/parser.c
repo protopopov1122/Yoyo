@@ -254,9 +254,9 @@ NewReduce(Object_reduce) {
 }
 
 NewValidate(Lambda_validate) {
-	return AssertOperator(handle->tokens[0], DollarSignOperator) ||
-					(AssertKeyword(handle->tokens[0], MethodKeyword) &&
-						AssertOperator(handle->tokens[1], OpeningParentheseOperator));
+	return (AssertOperator(handle->tokens[0], DollarSignOperator) ||
+					AssertKeyword(handle->tokens[0], MethodKeyword)) &&
+						AssertOperator(handle->tokens[1], OpeningParentheseOperator);
 }
 NewReduce(Lambda_reduce) {
 	ExtractCoords(file, line, charPos, handle);
@@ -471,38 +471,10 @@ NewReduce(Interface_reduce) {
 	return inode;
 }
 
-NewValidate(Factor_validate) {
-	return Validate(identifier, handle) || Validate(constant, handle)
-			|| Validate(object, handle) || Validate(lambda, handle)
-			|| Validate(overload, handle) || Validate(array, handle)
-			|| Validate(interface, handle)
-			|| AssertOperator(handle->tokens[0], OpeningParentheseOperator)
-			|| AssertOperator(handle->tokens[0], OpeningBraceOperator);
+NewValidate(Block_validate) {
+	return AssertOperator(handle->tokens[0], OpeningBraceOperator);
 }
-NewReduce(Factor_reduce) {
-	YNode* out = NULL;
-	ExtractCoords(file, line, charPos, handle);
-	if (Validate(identifier, handle))
-		out = handle->grammar.identifier.reduce(handle);
-	else if (Validate(constant, handle))
-		out = handle->grammar.constant.reduce(handle);
-	else if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
-		shift(handle);
-		ExpectReduce(&out, expression, L"Expected expression", ;, handle);
-		ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
-				L"Expected ')'", ;, handle);
-		shift(handle);
-	} else if (Validate(object, handle))
-		return handle->grammar.object.reduce(handle);
-	else if (Validate(lambda, handle))
-		return handle->grammar.lambda.reduce(handle);
-	else if (Validate(overload, handle))
-		return handle->grammar.overload.reduce(handle);
-	else if (Validate(array, handle))
-		return handle->grammar.array.reduce(handle);
-	else if (Validate(interface, handle))
-		return handle->grammar.interface.reduce(handle);
-	else if (AssertOperator(handle->tokens[0], OpeningBraceOperator)) {
+NewReduce(Block_reduce) {
 		/*It's block: '{' ... '}'
 		 * Block may contain statements and function definitions*/
 		YFunctionBlock* funcs = NULL;
@@ -562,8 +534,55 @@ NewReduce(Factor_reduce) {
 #undef freestmt
 		shift(handle);
 		/*Build block node*/
-		out = newBlockNode(block, length, funcs, funcs_c);
-	} else
+		return newBlockNode(block, length, funcs, funcs_c);
+}
+
+NewValidate(Factor_validate) {
+	return Validate(identifier, handle) || Validate(constant, handle)
+			|| Validate(object, handle) || Validate(lambda, handle)
+			|| Validate(overload, handle) || Validate(array, handle)
+			|| Validate(interface, handle)
+			|| AssertOperator(handle->tokens[0], DollarSignOperator)
+			|| AssertOperator(handle->tokens[0], OpeningParentheseOperator)
+			|| Validate(block, handle);
+}
+NewReduce(Factor_reduce) {
+	YNode* out = NULL;
+	ExtractCoords(file, line, charPos, handle);
+	if (Validate(identifier, handle))
+		out = handle->grammar.identifier.reduce(handle);
+	else if (Validate(constant, handle))
+		out = handle->grammar.constant.reduce(handle);
+	else if (AssertOperator(handle->tokens[0], OpeningParentheseOperator)) {
+		shift(handle);
+		ExpectReduce(&out, expression, L"Expected expression", ;, handle);
+		ExpectOperator(handle->tokens[0], ClosingParentheseOperator,
+				L"Expected ')'", ;, handle);
+		shift(handle);
+	} else if (Validate(object, handle))
+		return handle->grammar.object.reduce(handle);
+	else if (Validate(lambda, handle))
+		return handle->grammar.lambda.reduce(handle);
+	else if (Validate(overload, handle))
+		return handle->grammar.overload.reduce(handle);
+	else if (Validate(array, handle))
+		return handle->grammar.array.reduce(handle);
+	else if (Validate(interface, handle))
+		return handle->grammar.interface.reduce(handle);
+	else if (Validate(block, handle))
+		return handle->grammar.block.reduce(handle);
+	else if (AssertOperator(handle->tokens[0], DollarSignOperator)) {
+		shift(handle);
+		YNode* super = NULL;
+		if (AssertOperator(handle->tokens[0], ColonOperator)) {
+			shift(handle);
+			ExpectReduce(&super, reference, L"Expected reference", ;, handle);
+		}
+		YNode* bl;
+		ExpectReduce(&bl, block, L"Expected code block", if (super!=NULL) super->free(super);, handle);
+		out = newObjectScopeNode(super, (YBlockNode*) bl);
+	}
+	else
 		ParseError(L"Expected expression", ;, handle);
 	SetCoords(out, file, line, charPos);
 	return out;
@@ -1752,6 +1771,7 @@ void initGrammar(Grammar* g) {
 	NewRule(g, object, Object_validate, Object_reduce);
 	NewRule(g, array, Parser_Array_validate, Parser_Array_reduce);
 	NewRule(g, overload, Overload_validate, Overload_reduce);
+	NewRule(g, block, Block_validate, Block_reduce);
 	NewRule(g, interface, Interface_validate, Interface_reduce);
 	NewRule(g, factor, Factor_validate, Factor_reduce);
 	NewRule(g, reference, Reference_validate, Reference_reduce);

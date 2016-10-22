@@ -230,6 +230,11 @@ void Block_free(YNode* n) {
 	free(node->funcs);
 	free(node);
 }
+void ObjectScope_free(YNode* n) {
+	YObjectScopeNode* node = (YObjectScopeNode*) n;
+	node->block->node.free((YNode*) node->block);
+	free(node);
+}
 void Function_free(YNode* n) {
 	YFunctionNode* node = (YFunctionNode*) n;
 	((YNode*) node->lambda)->free((YNode*) node->lambda);
@@ -506,6 +511,14 @@ YNode* newBlockNode(YNode** bl, size_t len, YFunctionBlock* fcs, size_t fcc) {
 	block->funcs = fcs;
 	block->funcs_count = fcc;
 	return (YNode*) block;
+}
+
+YNode* newObjectScopeNode(YNode* super, YBlockNode* bl) {
+	YObjectScopeNode* node;
+	NewNode(&node, YObjectScopeNode, ObjectScopeN, ObjectScope_free);
+	node->super = super;
+	node->block = bl;
+	return (YNode*) node;
 }
 
 

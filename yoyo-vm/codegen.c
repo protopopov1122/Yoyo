@@ -1422,6 +1422,44 @@ int32_t ytranslate(YCodeGen* builder, YoyoCEnvironment* env, YNode* node) {
 		output = out;
 	}
 		break;
+	case ObjectScopeN: {
+		YObjectScopeNode* osn = (YObjectScopeNode*) node;
+		YBlockNode* block = osn->block;
+		int32_t parent = osn->super != NULL ? ytranslate(builder, env, osn->super) : -1;
+		int32_t objReg = proc->nextRegister(proc);
+		int32_t oldScope = proc->nextRegister(proc);
+		proc->append(proc, VM_NewObject, objReg, parent, -1);
+		proc->append(proc, VM_NewField, objReg, env->bytecode->getSymbolId(env->bytecode, L"this"), objReg);
+		proc->append(proc, VM_NewField, objReg, env->bytecode->getSymbolId(env->bytecode, L"outer"), 0);
+		if (parent != -1)
+			proc->append(proc, VM_NewField, objReg, env->bytecode->getSymbolId(env->bytecode, L"super"), parent);
+		proc->append(proc, VM_Copy, oldScope, 0, -1);
+		proc->append(proc, VM_Push, 0, -1, -1);
+		proc->append(proc, VM_NewComplexObject, 0, objReg, 1); 
+		for (size_t i = 0; i < block->funcs_count; i++) {
+			for (size_t j = 0; j < block->funcs[i].count; j++) {
+				int32_t reg = ytranslate(builder, env,
+						(YNode*) block->funcs[i].lambda[j]);
+				proc->append(proc, VM_Push, reg, -1, -1);
+				proc->unuse(proc, reg);
+			}
+			int32_t reg = proc->nextRegister(proc);
+			proc->append(proc, VM_NewOverload, reg, block->funcs[i].count, -1);
+			proc->append(proc, VM_SetField, 0,
+					builder->bc->getSymbolId(builder->bc, block->funcs[i].id),
+					reg);
+			proc->unuse(proc, reg);
+		}
+		for (size_t i = 0; i < block->length; i++) {
+			proc->unuse(proc, ytranslate(builder, env, block->block[i]));
+		}
+
+		proc->append(proc, VM_Copy, 0, oldScope, -1);
+		proc->unuse(proc, oldScope);
+		proc->unuse(proc, parent);
+		output = objReg;
+	}
+	break;
 	case RootN: {
 		YBlockNode* root = (YBlockNode*) node;
 		for (size_t i = 0; i < root->funcs_count; i++) {
