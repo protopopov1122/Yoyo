@@ -46,8 +46,8 @@ print("String: \"Hello, "+name+"\"");
 print("Null pointer: "+null);
 input("Hit enter. Now I'll show basic variables");
 
-print("\nVariables are defined simply: a = 2. This statements assigns 2 to a variable or defines it in local scope, if it isn't defined.");
-print("Or var a = 2. This defines a in  local scope even if it is already defined in other scope");
+print("\nVariables are defined simply: a = 2. This statements assigns 2 to a variable or defines it in local scp, if it isn't defined.");
+print("Or var a = 2. This defines a in  local scp even if it is already defined in other scp");
 print("You also can do this: a,b = b,a or a,b,c = 2");
 
 print("\nNow test it with REPL and type 'exit' to go to next steps");
@@ -55,7 +55,7 @@ print("Use '\' symbol at the end to enter multiline expressions. Yoyo is insensi
 
 def repl(word) {
 	in = "\\";
-	scope = object;
+	scp = object;
 	do {
 		console.print(">>>");
 		while in.endsWith("\\") {
@@ -66,7 +66,7 @@ def repl(word) {
 		if in.equals(word)
 			break;
 		print({
-			out = with scope eval(in);
+			out = with scp eval(in);
 			if out != null
 				out
 			else
@@ -110,7 +110,7 @@ print("You can inherit objects:\n\ta = object {\n\t\ta: 100\n\t}\n\tb = object :
 print("In Yoyo lambdas are first-class objects, so they can be object fields.");
 read();
 print("You can access object field: a.b; and call object method: a.c()");
-print("Moreover objects are used in runtime to emulate proper scopes. It makes runtime more consistent. Now some REPL.");
+print("Moreover objects are used in runtime to emulate proper scps. It makes runtime more consistent. Now some REPL.");
 repl("exit");
 print("Unfortunately, I haven't finished this tutorial, but I'll do it soon. Try to see other examples");
 /* This source isn't very interesting. Implementation of REPL you can see in 'examples/repl.yoyo'

@@ -23,6 +23,8 @@ Object = object {
 	treeObject: overload(sys.native("YSTD_TYPES_TREE_OBJECT",
 		sys.types.signature(sys.types.struct, sys.types.struct), null)
 		$() treeObject(null))
+	complex: sys.native("YSTD_UTIL_OBJECT_COMPLEX",
+		null, null)
 }
 
 Float = object {

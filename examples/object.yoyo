@@ -32,14 +32,14 @@ son = object : father {
     age: 18
 }
 /*Both methods and functions may
-be overloaded and use object scope
-and outer scope.
+be overloaded and use object scp
+and outer scp.
 Object fields can specify type.(name -> type : value)*/
 
 /*Methods are polymorph so they can use
-scope where they are defined and
-scope from where they are called(this
-scope passed as self variable).*/
+scp where they are defined and
+scp from where they are called(this
+scp passed as self variable).*/
 
 print(son.getAge());
 print(father.getFullName());
@@ -53,7 +53,7 @@ getAge = grandfather.getAge;
 print(getAge(son));
 print(getAge(grandfather));
 
-/*Functions use only scope where they are
+/*Functions use only scp where they are
 defined*/
 print(son.getHobby());		// Will return the same
 print(father.getHobby());

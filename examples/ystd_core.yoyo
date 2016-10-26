@@ -17,14 +17,14 @@ print("Hello, "+read());
 // Core system functions
 
 // To execute external code
-// sys.eval - evaluate string in current scope and return result
+// sys.eval - evaluate string in current scp and return result
 // eval - alias for sys.eval
 a, b = "Hey, ", "ho"
 print(eval("a+b"));
 // sys.loadLibrary - load .yoyo file execute it
-// in separate scope and return this scope as an object
+// in separate scp and return this scp as an object
 // sys.load  - load .yoyo file and execute it in current
-// scope(works like eval with files)
+// scp(works like eval with files)
 // sys.import - if file isn't imported yet
 // then use loadLibrary method, save result and return it
 // else return saved result
@@ -68,7 +68,7 @@ print(sys.args())
 // ATTENTION: in for loops recomended to
 // define variables with 'var' keyword
 // because otherwise they may affect on the variables
-// from parent scopes
+// from parent scps
 def newTh(n) {
 	$() {
 			for var i=0;i<1000;i++

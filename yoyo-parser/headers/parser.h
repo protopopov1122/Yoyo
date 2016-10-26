@@ -61,6 +61,7 @@ typedef enum {
 	ContinueKeyword,
 	PassKeyword,
 	ObjectKeyword,
+	ScopeKeyword,
 	VarKeyword,
 	DelKeyword,
 	ReturnKeyword,

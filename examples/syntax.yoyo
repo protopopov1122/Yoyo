@@ -66,8 +66,8 @@ var a=5;
 var->sys.types.boolean c = true;
 ->sys.types.string str = "test";
 m,e = 1,10;
-/*'var' keyword is used to define variable in current scope.
-Without 'var' variable will be defined in current scope only
+/*'var' keyword is used to define variable in current scp.
+Without 'var' variable will be defined in current scp only
 if others doesn't contain variable with this name,
 otherwise value will be assigned to existing variable.
 Assignment may contain list of variables and values:
@@ -123,13 +123,13 @@ try { 	// The main part
 else {} // Block is executed if there wasn't any exceptions.
 fianally {} // Block is executed in any case
 /*'using' and 'with' blocks*/
-using sys, sys.types {} /*Using block may contain list of scopes or
-			only one scope. All these scope members in
-			using block may be used as local scope members
+using sys, sys.types {} /*Using block may contain list of scps or
+			only one scp. All these scp members in
+			using block may be used as local scp members
 			but only in read-only mode*/
-with sys {}		/*'with' block accepts only one scope.
-			This scope is used as local scope, but
-			local scope is accessible only in read-only
+with sys {}		/*'with' block accepts only one scp.
+			This scp is used as local scp, but
+			local scp is accessible only in read-only
 			mode.*/
 /*Control-structures that return values:
     * if-else
@@ -193,14 +193,14 @@ References may be recursize:
 	    method method1() self.field++
 	}
 	/*
-	lambda1() - simple lambda. It can be called only with scope where
+	lambda1() - simple lambda. It can be called only with scp where
 	    it's defined. (e.g. o3.lambda1() and o4.lambda1() will be called in
-	    the same scope)
-	method1() - method. It is polymorph and can be called with scope
+	    the same scp)
+	method1() - method. It is polymorph and can be called with scp
 	    of any object(e.g. o3.method1() and o4.method1() will be called in
-	    different scopes(o3.method1() will return 1,2,3,etc. but o4.method1()
+	    different scps(o3.method1() will return 1,2,3,etc. but o4.method1()
 	    will return 2,3,4,etc.). This method also may be called independently
-	    with scope specifying(m = o3.method1; m(o3))
+	    with scp specifying(m = o3.method1; m(o3))
 	*/
 	o4 = object : o3 {
 	    test: 0

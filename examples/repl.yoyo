@@ -1,7 +1,7 @@
 print("Yoyo REPL");
 print("Use '\\' at the and of line to write multiline code. Type 'exit()' to stop.");
 local in = "\\";
-local scope = object;
+local scp = object;
 do {
 	console.print(">>>");
 	while in.endsWith("\\") {
@@ -11,7 +11,7 @@ do {
 	}
 	print({
 		local out = null;
-		try out = with scope eval(in);
+		try out = with scp eval(in);
 		catch e e.toString()+(if e.log.length>0 "\n"+e.log else "")+"\n"+e.trace
 		else if out != null
 			out

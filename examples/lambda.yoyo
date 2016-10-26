@@ -45,7 +45,7 @@ def test(l) print(l(11));
 test($(x) x*100);
 
 /*There are methods. It's special type of lambdas.
-Their zero argument is scope(self).
+Their zero argument is scp(self).
 See 'object.yoyo' example.*/
 
 // Functions can be defined in nested blocks

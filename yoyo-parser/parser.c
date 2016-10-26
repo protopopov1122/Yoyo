@@ -542,7 +542,7 @@ NewValidate(Factor_validate) {
 			|| Validate(object, handle) || Validate(lambda, handle)
 			|| Validate(overload, handle) || Validate(array, handle)
 			|| Validate(interface, handle)
-			|| AssertOperator(handle->tokens[0], DollarSignOperator)
+			|| AssertKeyword(handle->tokens[0], ScopeKeyword)
 			|| AssertOperator(handle->tokens[0], OpeningParentheseOperator)
 			|| Validate(block, handle);
 }
@@ -571,7 +571,7 @@ NewReduce(Factor_reduce) {
 		return handle->grammar.interface.reduce(handle);
 	else if (Validate(block, handle))
 		return handle->grammar.block.reduce(handle);
-	else if (AssertOperator(handle->tokens[0], DollarSignOperator)) {
+	else if (AssertKeyword(handle->tokens[0], ScopeKeyword)) {
 		shift(handle);
 		YNode* super = NULL;
 		if (AssertOperator(handle->tokens[0], ColonOperator)) {
