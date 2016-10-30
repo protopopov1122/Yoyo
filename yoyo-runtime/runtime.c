@@ -393,7 +393,7 @@ wchar_t* toString(YValue* v, YThread* th) {
 			YValue* val = obj->get(obj, id, th);
 			if (val->type == &th->runtime->LambdaType) {
 				YLambda* exec = (YLambda*) val;
-				YValue* ret = invokeLambda(exec, NULL, NULL, 0, th);
+				YValue* ret = invokeLambda(exec, v->type == &th->runtime->ObjectType ? (YObject*) v : NULL, NULL, 0, th);
 				wchar_t* out = toString(ret, th);
 				return out;
 			}

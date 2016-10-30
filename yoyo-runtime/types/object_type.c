@@ -24,7 +24,7 @@ uint64_t Object_hashCode(YValue* vobj, YThread* th) {
 		YValue* val = obj->get(obj, mid, th);
 		if (val->type == &th->runtime->LambdaType) {
 			YLambda* lmbd = (YLambda*) val;
-			YValue* out = invokeLambda(lmbd, NULL, NULL, 0, th);
+			YValue* out = invokeLambda(lmbd, obj, NULL, 0, th);
 			if (out->type == &th->runtime->IntType)
 				return (uint64_t) ((YInteger*) out)->value;
 		}
@@ -39,7 +39,7 @@ YValue* Object_readIndex(YValue* o, YValue* index, YThread* th) {
 		READ_INDEX), th);
 		if (val->type == &th->runtime->LambdaType) {
 			YLambda* lambda = (YLambda*) val;
-			return invokeLambda(lambda, NULL, &index, 1, th);
+			return invokeLambda(lambda, obj, &index, 1, th);
 		}
 	} else {
 		wchar_t* wcs = toString(index, th);
@@ -58,7 +58,7 @@ YValue* Object_writeIndex(YValue* o, YValue* index, YValue* value, YThread* th) 
 		if (val->type == &th->runtime->LambdaType) {
 			YLambda* lambda = (YLambda*) val;
 			YValue* args[] = { index, value };
-			return invokeLambda(lambda, NULL, args, 2, th);
+			return invokeLambda(lambda, obj, args, 2, th);
 		}
 	} else {
 		wchar_t* wcs = toString(index, th);
@@ -76,7 +76,7 @@ YValue* Object_removeIndex(YValue* o, YValue* index, YThread* th) {
 		REMOVE_INDEX), th);
 		if (val->type == &th->runtime->LambdaType) {
 			YLambda* lambda = (YLambda*) val;
-			return invokeLambda(lambda, NULL, &index, 1, th);
+			return invokeLambda(lambda, obj, &index, 1, th);
 		}
 	} else {
 		wchar_t* wcs = toString(index, th);
@@ -94,7 +94,7 @@ YoyoIterator* Object_iterator(YValue* v, YThread* th) {
 		YValue* val = obj->get(obj, id, th);
 		if (val->type == &th->runtime->LambdaType) {
 			YLambda* exec = (YLambda*) val;
-			YValue* out = invokeLambda(exec, NULL, NULL, 0, th);
+			YValue* out = invokeLambda(exec, obj, NULL, 0, th);
 			if (out->type == &th->runtime->ObjectType)
 				iter = newYoyoIterator((YObject*) out, th);
 			else if (out->type == IteratorType)
