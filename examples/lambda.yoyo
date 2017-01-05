@@ -1,14 +1,14 @@
-/*This example shows use of lambdas and functions*/
+/*This example shows the use of lambdas and functions*/
 
 /*All functions are lambdas and are first-class objects*/
 /*There are few types of lambdas*/
 
-quad=$(x) x*x;		// Standart
+quad=$(x) x*x;		// Standard
 print(quad(2));
 
 add=overload($(x, y) x+y;
 	    $(x) x+1;
-	    default arr arr.size());	// Overloaded may contain few lambdas
+	    default arr arr.size());	// Overloads may contain few lambdas
 					// That are called depending on argument
 					// count or default lambda that is called
 					// if nothing fits
@@ -16,7 +16,7 @@ print(add(1,2));
 print(add(100));
 print(add(1,2,3,4,5,100));
 
-// Native lambda calls C function. Used in standart library or ffi
+// Native lambda calls C function. It's used in standard library or ffi module
 
 /*All lambdas can have vararg*/
 lmbd=$(x, ?arr) print(x+" "+arr);
@@ -25,7 +25,7 @@ lmbd(3,1);
 lmbd(5,1,2,3);
 lmbd(100, [1,2,3]);
 
-/*Function definitions are transformed to overloaded lambdas*/
+/*Function definitions are transformed into overloaded lambdas*/
 def fun1(x) {
     return x+1;
 }
@@ -39,13 +39,13 @@ lmbd1 = overload($() 1;
 print(lmbd1(10));
 print(lmbd1());
 
-/*Lambdas and functions may be passed as arguments*/
+/*Lambdas and functions may be passed as other function arguments*/
 
 def test(l) print(l(11));
 test($(x) x*100);
 
-/*There are methods. It's special type of lambdas.
-Their zero argument is scp(self).
+/*There are methods. It's a special type of lambdas.
+Their first argument is the  scope (self).
 See 'object.yoyo' example.*/
 
 // Functions can be defined in nested blocks

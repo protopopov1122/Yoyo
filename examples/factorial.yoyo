@@ -1,4 +1,4 @@
-/*Example of factorial on Yoyo*/
+/*Example of factorial in Yoyo*/
 
 /*All type declarations are absolutely optional
 But I recommend to put them if types are known
@@ -26,8 +26,8 @@ def facLoop(n->sys.types.int)->sys.types.int {
 
 // Object-oriented factorial
 /*WARNING: all functions definitions are collected by
-parser and moved to the start of block(whatever root or normal).
-Then they all will be available from the start of execution.
+parser and moved to the start of block (whenever root or nested).
+Then they'll be available at the start of execution.
 On the other side, if they use special types(like below) they should
 be defined like this, because these types become available
 only at runtime*/

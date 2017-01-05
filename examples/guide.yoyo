@@ -1,8 +1,8 @@
-/*This file contains interactive guide of Yoyo language.*/
+/*This file contains interactive guide for Yoyo language.*/
 
-print("Hello, it's Yoyo guide");
+print("Hello, it's a Yoyo guide");
 print("It will provide code examples and interactive command line to test them");
-print("Almost all code samples you see will be executed");
+print("Almost all code samples you'll see will be executed");
 input("Just press enter when you are ready");
 
 print("So let's start");
@@ -13,18 +13,18 @@ eval(code);
 code = "read()";
 print("And "+code+" to read line from console");
 code = "input(\"By the way, enter your name: \")";
-print("There exists also input() function: "+code+". It combines print() and read() functions");
+print("There also exists input() function: "+code+". It combines print() and read() functions");
 name = eval(code);
-print("Hello, "+name+"! There are more functions to print:\n"+
+print("Hello, "+name+"! There are some more functions to perform IO:\n"+
 			"\tconsole.print() - print without new line symbol\n"+
 			"\tconsole.println() - full name for print() function\n"+
 			"\tconsole.read() - reads char from console\n"+
 			"\tconsole.readLine() - full name for read function.");
 input("Hit enter");
 
-print("\nLets finish with console. Next thing is operations.\n"+
-			"They are like in other languages, so few examples will be enough.\n"+
-			"I recommend you to see operation priorities, because they a bit vary from other languages.");
+print("\nLet's finish with the console. The next thing are language operations.\n"+
+			"They are similar to the other languages, so few examples will be enough.\n"+
+			"I recommend you to see  operation priorities, because they a bit vary from other languages.");
 def printEval(prefix, command)
 	print(prefix+command+" = "+eval(command));
 printEval("\t", "2+2*2");
@@ -32,9 +32,9 @@ printEval("\t", "(2+2)*2");
 printEval("\t", "-10/5+1");
 printEval("\t", "(1<<10)>>4");
 printEval("\t", "0xFF_FF & 10");
-input("Hit enter. After few steps there will be REPL");
+input("Hit enter. After a few steps there will be REPL");
 
-print("\nIntegers in Yoyo may be defined different ways, they may contain '_' symbols to"+
+print("\nIntegers in Yoyo may be defined in different ways, they may contain '_' symbols to"+
 			" split parts of integer:");
 printEval("\tDec: ", "100");
 printEval("\tHex: ", "0xFF1");
@@ -44,14 +44,14 @@ print("Floating-point number: "+3.14159);
 print("Boolean: "+true+" or "+false);
 print("String: \"Hello, "+name+"\"");
 print("Null pointer: "+null);
-input("Hit enter. Now I'll show basic variables");
+input("Hit enter. Now I'll show you basic usage of variables");
 
-print("\nVariables are defined simply: a = 2. This statements assigns 2 to a variable or defines it in local scp, if it isn't defined.");
-print("Or var a = 2. This defines a in  local scp even if it is already defined in other scp");
+print("\nVariables are defined simply: a = 2. This statements assigns 2 to a variable or defines it in local scope, if it isn't defined.");
+print("Or var a = 2. This defines a in local scope even if it is already defined in other scopes");
 print("You also can do this: a,b = b,a or a,b,c = 2");
 
-print("\nNow test it with REPL and type 'exit' to go to next steps");
-print("Use '\' symbol at the end to enter multiline expressions. Yoyo is insensitive to whitespaces");
+print("\nNow test it with REPL and type 'exit' to proceed to next steps");
+print("Use '\' symbol at the end to enter multiline expressions. Yoyo is insensitive to the whitespaces");
 
 def repl(word) {
 	in = "\\";
@@ -77,27 +77,27 @@ def repl(word) {
 }
 
 repl("exit");
-print("\nHi there. Now I will show you control-flow structures. They will be shown by parts. Hit exter to see next one");
-print("The most simpliest: 'if'");
+print("\nHi there. Now I will show you control-flow structures. They will be shown by parts. Hit exter to see the first one one");
+print("The simpliest: 'if'");
 code = "if 2+2!=4 print(\"Somthing strange!\");\n\t\telse print(\"Normal\")";
 print("You just write: "+code);
 print("And it works:");
 eval(code);
-print("Parentheses around conditions in any control structures are optional but may be useful");
+print("Parentheses around conditions in any control structures are optional but may be useful for clarity");
 read();
-print("There exist while loop: a=0;\n\t\t\twhile a<10 print(a++)");
-print("And equal for loop: for a=0;a<10;a++ print(a)");
+print("There is while loop: a=0;\n\t\t\twhile a<10 print(a++)");
+print("Equalent for loop: for a=0;a<10;a++ print(a)");
 print("And foreach as well: foreach i : [1,2,3] print(i)");
 read();
-print("There is infinite loop 'do': do {something}.\n\tYou can limit it with while condition: do {something} while a==b");
-print("Also brackets '{}' are purely optional");
+print("There is an infinite loop 'do': do {something}.\n\tYou can limit it with while condition: do {something} while a==b");
+print("Braces '{}' are also purely optional");
 read();
 print("You can add labels to any loops like this:\n\t label1: do {}");
-print("Now you can use then to run 'break' and 'continue' commands:");
-print("You can run 'break' and 'continue' without labels. Then current loop will be used");
-print("There are also 'pass' command. It does literally nothing. For example, with it you may do infinite loop on a maximal speed: do pass");
+print("Now you can use them in 'break' and 'continue' commands:");
+print("You can run 'break' and 'continue' without labels. Then the nearest loop will be affected");
+print("There is also 'pass' command. It does literally nothing. For example, with it you may do infinite loop on a maximal speed: do pass");
 read();
-print("There also other control structures but they will be described later");
+print("There are also other control structures but they will be described later");
 print("\nNow have some fun!");
 repl("exit");
 
@@ -109,11 +109,11 @@ read();
 print("You can inherit objects:\n\ta = object {\n\t\ta: 100\n\t}\n\tb = object : a {\n\t\td: 1+a\n\t}");
 print("In Yoyo lambdas are first-class objects, so they can be object fields.");
 read();
-print("You can access object field: a.b; and call object method: a.c()");
-print("Moreover objects are used in runtime to emulate proper scps. It makes runtime more consistent. Now some REPL.");
+print("You can access object fields: a.b; and call object methods: a.c()");
+print("Moreover objects are used in runtime to emulate proper scopes. It makes runtime more consistent. Now play with REPL.");
 repl("exit");
 print("Unfortunately, I haven't finished this tutorial, but I'll do it soon. Try to see other examples");
-/* This source isn't very interesting. Implementation of REPL you can see in 'examples/repl.yoyo'
-   But I had hard day and now will listen some Led Zeppelin.
-	 I will finish tutorial later.
+/* This source isn't very interesting. Implementation of REPL is available in 'examples/repl.yoyo'
+   But I had hard day and now will listen to some Led Zeppelin.
+	 I will finish the tutorial later.
 	 																13.08.2016.*/

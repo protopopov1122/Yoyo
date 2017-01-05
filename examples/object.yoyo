@@ -1,6 +1,6 @@
-/*This examples explains object use*/
+/*This example explains object use*/
 
-/*To create new object is used 'object' keyword.
+/*To create a new object 'object' keyword is used.
 Object parent may be optionally specified after ':'
 operator. If it's not specified then object has
 default parent that includes some common methods.
@@ -32,28 +32,28 @@ son = object : father {
     age: 18
 }
 /*Both methods and functions may
-be overloaded and use object scp
-and outer scp.
-Object fields can specify type.(name -> type : value)*/
+be overloaded and use object scope
+and outer scopes.
+Object fields can specify type (name -> type : value).*/
 
 /*Methods are polymorph so they can use
-scp where they are defined and
-scp from where they are called(this
-scp passed as self variable).*/
+scope where they are defined and
+scope from where they are called(this
+scope passed as self variable).*/
 
 print(son.getAge());
 print(father.getFullName());
 
 /*Methods also may be used like this
-because they are special type of 
+because they are a special type of 
 lambdas. First argument will be passed
-as self variable*/
+as the self variable*/
 
 getAge = grandfather.getAge;
 print(getAge(son));
 print(getAge(grandfather));
 
-/*Functions use only scp where they are
+/*Functions can only access scope where they are
 defined*/
 print(son.getHobby());		// Will return the same
 print(father.getHobby());

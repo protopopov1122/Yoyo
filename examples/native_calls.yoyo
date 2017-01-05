@@ -1,4 +1,4 @@
-/*Example of using external code in C or C++*/
+/*Example of using external C or C++ code*/
 
 sys.sharedLibrary("libtest.so");	// Load shared library. It must be in LD_LIBRARY_PATH
 write = sys.native("YOYO_EXAMPLES_WRITE", null, null);	// Get function from library
